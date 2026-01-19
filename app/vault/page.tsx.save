@@ -1,0 +1,39 @@
+use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+export default function Vault() {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  return (
+    <main style={{ padding: 40 }}>
+      <h1>Document Vault</h1>
+
+      {userEmail ? (
+        <>
+          <p>✅ Logged in — {userEmail}</p>
+
+          <input type="file" />
+
+          <br /><br />
+
+          <button disabled>Upload (next step)</button>
+
+          <br /><br />
+
+          <a href="/">← Home</a>
+        </>
+      ) : (
+        <p>Please log in.</p>
+      )}
+    </main>
+  );
+}
+
