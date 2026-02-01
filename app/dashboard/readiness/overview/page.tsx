@@ -1,131 +1,107 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
-type OverviewData = {
-  percent: number;
-  documents: { total: number; done: number };
-  roles: { done: boolean };
-  triggers: { done: boolean };
-  instructions: { done: boolean };
-};
+type Progress = {
+  overall: {
+    done: number
+    total: number
+    percent: number
+  }
+  buckets: {
+    checklist: {
+      done: number
+      total: number
+      percent: number
+    }
+    documents: {
+      done: number
+      total: number
+      percent: number
+    }
+  }
+}
 
 export default function ReadinessOverviewPage() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<OverviewData | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      setLoading(true);
-      setError(null);
-
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth?.user;
-      if (!user) {
-        setError("NOT_AUTHENTICATED");
-        setLoading(false);
-        return;
+      try {
+        setError(null)
+        const res = await fetch('/api/readiness/progress')
+        const json = await res.json()
+        if (!res.ok) throw new Error(json?.error ?? 'Failed to load readiness')
+        setProgress(json)
+      } catch (e: any) {
+        setError(e?.message ?? 'Failed to load readiness')
+        setProgress(null)
       }
-
-      const res = await fetch(`/api/readiness/overview?userId=${user.id}`);
-      const json = await res.json();
-
-      if (!res.ok) {
-        setError(json?.error ?? "Failed to load overview");
-        setLoading(false);
-        return;
-      }
-
-      setData(json);
-      setLoading(false);
     }
 
-    load();
-  }, []);
-
-  if (loading) return <main style={{ padding: 16 }}>Loading…</main>;
-
-  if (error) {
-    return (
-      <main style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>Readiness Overview</h1>
-        <pre style={{ marginTop: 12 }}>{error}</pre>
-      </main>
-    );
-  }
+    load()
+  }, [])
 
   return (
-    <main style={{ padding: 16, maxWidth: 900 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Readiness Overview</h1>
-      <p style={{ marginTop: 8, opacity: 0.9 }}>
-        Left-of-death readiness: roles, triggers, instructions, and document presence.
+    <main style={{ padding: 20, maxWidth: 800 }}>
+      <h1 style={{ fontSize: 26, fontWeight: 800 }}>Readiness Overview</h1>
+
+      <p style={{ marginTop: 6, opacity: 0.85 }}>
+        Your overall preparedness based on checklist items and documents.
       </p>
 
-      <div style={{ marginTop: 16, padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
-        <div style={{ fontWeight: 700 }}>Completion</div>
-        <div style={{ fontSize: 32, fontWeight: 800, marginTop: 6 }}>{data?.percent ?? 0}%</div>
-        <div style={{ marginTop: 6, opacity: 0.85 }}>
-          Keep going—small steps reduce family chaos.
+      <div
+        style={{
+          marginTop: 20,
+          padding: 16,
+          border: '1px solid #444',
+          borderRadius: 14,
+        }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 16 }}>
+          Readiness Score
         </div>
-      </div>
 
-      <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-        <Card
-          title="Documents"
-          status={`${data!.documents.done}/${data!.documents.total} checked`}
-          done={data!.documents.total > 0 && data!.documents.done > 0}
-          href="/dashboard/readiness/documents"
-        />
-        <Card
-          title="Roles"
-          status={data!.roles.done ? "Configured" : "Add at least one"}
-          done={data!.roles.done}
-          href="/dashboard/readiness/roles"
-        />
-        <Card
-          title="Triggers"
-          status={data!.triggers.done ? "Configured" : "Set triggers"}
-          done={data!.triggers.done}
-          href="/dashboard/readiness/triggers"
-        />
-        <Card
-          title="Instructions"
-          status={data!.instructions.done ? "Started" : "Write first notes"}
-          done={data!.instructions.done}
-          href="/dashboard/readiness/instructions"
-        />
+        {error ? (
+          <div style={{ marginTop: 12, color: '#f66' }}>{error}</div>
+        ) : !progress ? (
+          <div style={{ marginTop: 12 }}>Loading…</div>
+        ) : (
+          <>
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 36,
+                fontWeight: 900,
+              }}
+            >
+              {progress.overall.percent}%
+            </div>
+
+            <div style={{ marginTop: 6, opacity: 0.9 }}>
+              {progress.overall.done} / {progress.overall.total} complete
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <div>
+                📋 Checklist: {progress.buckets.checklist.percent}%
+              </div>
+              <div>
+                📁 Documents: {progress.buckets.documents.percent}%
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <Link href="/dashboard/readiness">← Back</Link>
+        <Link href="/dashboard/readiness/documents">
+          → Go to Documents
+        </Link>
       </div>
     </main>
-  );
+  )
 }
 
-function Card({
-  title,
-  status,
-  done,
-  href,
-}: {
-  title: string;
-  status: string;
-  done: boolean;
-  href: string;
-}) {
-  return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 800 }}>{title}</div>
-          <div style={{ fontWeight: 700 }}>{done ? "✅" : "⏳"}</div>
-        </div>
-        <div style={{ marginTop: 6, opacity: 0.85 }}>{status}</div>
-      </div>
-    </Link>
-  );
-}
