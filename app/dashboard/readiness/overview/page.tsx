@@ -1,107 +1,54 @@
-'use client'
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+export const dynamic = "force-dynamic"
 
-type Progress = {
-  overall: {
-    done: number
-    total: number
-    percent: number
+export default async function Page() {
+  const supabase = await createClient()
+
+  const { data: auth, error: authErr } = await supabase.auth.getUser()
+  if (authErr || !auth?.user) {
+    redirect("/login")
   }
-  buckets: {
-    checklist: {
-      done: number
-      total: number
-      percent: number
-    }
-    documents: {
-      done: number
-      total: number
-      percent: number
-    }
+
+  const userId = auth.user.id
+
+  const { data, error } = await supabase
+    .from("readiness_documents")
+    .select("is_present")
+    .eq("user_id", userId)
+
+  if (error) {
+    return (
+      <div style={{ padding: 16 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Readiness Overview</h1>
+        <p style={{ marginTop: 12 }}>Failed to load readiness score.</p>
+        <pre style={{ whiteSpace: "pre-wrap", opacity: 0.8 }}>{error.message}</pre>
+      </div>
+    )
   }
-}
 
-export default function ReadinessOverviewPage() {
-  const [progress, setProgress] = useState<Progress | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        setError(null)
-        const res = await fetch('/api/readiness/progress')
-        const json = await res.json()
-        if (!res.ok) throw new Error(json?.error ?? 'Failed to load readiness')
-        setProgress(json)
-      } catch (e: any) {
-        setError(e?.message ?? 'Failed to load readiness')
-        setProgress(null)
-      }
-    }
-
-    load()
-  }, [])
+  const total = (data ?? []).length
+  const present = (data ?? []).filter(r => r.is_present).length
+  const scorePct = total === 0 ? 0 : Math.round((present / total) * 100)
 
   return (
-    <main style={{ padding: 20, maxWidth: 800 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 800 }}>Readiness Overview</h1>
+    <div style={{ padding: 16, display: "grid", gap: 16 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Readiness Overview</h1>
 
-      <p style={{ marginTop: 6, opacity: 0.85 }}>
-        Your overall preparedness based on checklist items and documents.
-      </p>
-
-      <div
-        style={{
-          marginTop: 20,
-          padding: 16,
-          border: '1px solid #444',
-          borderRadius: 14,
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: 16 }}>
-          Readiness Score
+      <div style={{ border: "1px solid #ddd", borderRadius: 16, padding: 16 }}>
+        <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1 }}>{scorePct}%</div>
+        <div style={{ opacity: 0.85, marginTop: 8 }}>
+          {present} of {total} present
         </div>
-
-        {error ? (
-          <div style={{ marginTop: 12, color: '#f66' }}>{error}</div>
-        ) : !progress ? (
-          <div style={{ marginTop: 12 }}>Loading…</div>
-        ) : (
-          <>
-            <div
-              style={{
-                marginTop: 12,
-                fontSize: 36,
-                fontWeight: 900,
-              }}
-            >
-              {progress.overall.percent}%
-            </div>
-
-            <div style={{ marginTop: 6, opacity: 0.9 }}>
-              {progress.overall.done} / {progress.overall.total} complete
-            </div>
-
-            <div style={{ marginTop: 16 }}>
-              <div>
-                📋 Checklist: {progress.buckets.checklist.percent}%
-              </div>
-              <div>
-                📁 Documents: {progress.buckets.documents.percent}%
-              </div>
-            </div>
-          </>
-        )}
+        <div style={{ opacity: 0.65, marginTop: 6, fontSize: 13 }}>
+          Source of truth: readiness_documents
+        </div>
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <Link href="/dashboard/readiness/documents">
-          → Go to Documents
-        </Link>
+      <div style={{ opacity: 0.85 }}>
+        Tip: Go to <b>/dashboard/readiness/documents</b> to mark items present and watch this score update.
       </div>
-    </main>
+    </div>
   )
 }
-
