@@ -1,4 +1,4 @@
- // app/dashboard/readiness/documents/page.tsx
+// app/dashboard/readiness/documents/page.tsx
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
@@ -12,6 +12,17 @@ type ReadinessDoc = {
   notes: string | null
   updated_at: string
   last_reviewed_at: string | null
+}
+
+type ReadinessFile = {
+  id: string
+  readiness_document_id: string
+  storage_bucket: string
+  storage_path: string
+  file_name: string
+  mime_type: string | null
+  file_size: number | null
+  created_at: string
 }
 
 function groupByCategory(docs: ReadinessDoc[]) {
@@ -29,6 +40,7 @@ function groupByCategory(docs: ReadinessDoc[]) {
 
 export default function ReadinessDocumentsPage() {
   const [docs, setDocs] = useState<ReadinessDoc[]>([])
+  const [files, setFiles] = useState<ReadinessFile[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
 
@@ -47,11 +59,34 @@ export default function ReadinessDocumentsPage() {
     }
   }
 
+  async function loadFiles() {
+    try {
+      const res = await fetch("/api/readiness/documents/files", { cache: "no-store" })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || "Failed to load files")
+      setFiles(json.files ?? [])
+    } catch (e: any) {
+      // non-fatal: documents page still works without file list
+      console.warn(e?.message || "Failed to load files")
+    }
+  }
+
   useEffect(() => {
     load()
+    loadFiles()
   }, [])
 
   const grouped = useMemo(() => groupByCategory(docs), [docs])
+
+  // Map readiness_document_id -> files (newest-first because API sorts by created_at desc)
+  const fileByDocId = useMemo(() => {
+    const m = new Map<string, ReadinessFile[]>()
+    for (const f of files) {
+      if (!m.has(f.readiness_document_id)) m.set(f.readiness_document_id, [])
+      m.get(f.readiness_document_id)!.push(f)
+    }
+    return m
+  }, [files])
 
   const total = docs.length
   const present = docs.filter((d) => d.is_present).length
@@ -91,10 +126,48 @@ export default function ReadinessDocumentsPage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || "Seed failed")
       await load()
+      await loadFiles()
       alert(`Seed complete. Inserted: ${json.inserted ?? 0}`)
     } catch (e: any) {
       alert(e?.message || "Seed failed")
     }
+  }
+
+  // 6.17: Attach a real file to a readiness item (calls /api/readiness/documents/upload)
+  async function attachFile(doc: ReadinessDoc, file: File) {
+    const fd = new FormData()
+    fd.append("readiness_document_id", doc.id)
+    fd.append("file", file)
+
+    const res = await fetch("/api/readiness/documents/upload", {
+      method: "POST",
+      body: fd,
+    })
+
+    const json = await res.json()
+    if (!res.ok) throw new Error(json?.error || "Upload failed")
+
+    // API returns updated readiness doc; sync it into state
+    setDocs((prev) =>
+      prev.map((d) => (d.id === doc.id ? (json.document as ReadinessDoc) : d))
+    )
+
+    // refresh file list so the "View" button appears immediately
+    await loadFiles()
+  }
+
+  // 6.18: View latest attached file via signed URL
+  async function viewFile(fileId: string) {
+    const res = await fetch("/api/readiness/documents/files/signed-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_id: fileId, expires_in: 600 }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json?.error || "Failed to create signed URL")
+    if (!json?.url) throw new Error("No signed URL returned")
+
+    window.open(json.url, "_blank", "noopener,noreferrer")
   }
 
   return (
@@ -149,22 +222,64 @@ export default function ReadinessDocumentsPage() {
                 </div>
 
                 <div className="divide-y">
-                  {items.map((d) => (
-                    <div key={d.id} className="py-3 flex items-center justify-between gap-4">
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={d.is_present}
-                          onChange={() => toggle(d)}
-                        />
-                        <span className="font-medium">{d.item_label}</span>
-                      </label>
+                  {items.map((d) => {
+                    const list = fileByDocId.get(d.id) ?? []
+                    const latest = list[0] // newest-first
+                    return (
+                      <div key={d.id} className="py-3 flex items-center justify-between gap-4">
+                        <label className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={d.is_present}
+                            onChange={() => toggle(d)}
+                          />
+                          <span className="font-medium">{d.item_label}</span>
+                        </label>
 
-                      <div className="text-sm text-muted-foreground">
-                        {d.is_present ? "Present" : "Missing"}
+                        {/* status + view + attach */}
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm text-muted-foreground">
+                            {d.is_present ? "Present" : "Missing"}
+                          </div>
+
+                          {latest ? (
+                            <button
+                              className="rounded-md border px-3 py-1 text-sm hover:bg-muted"
+                              onClick={async () => {
+                                try {
+                                  await viewFile(latest.id)
+                                } catch (e: any) {
+                                  alert(e?.message || "View failed")
+                                }
+                              }}
+                              title={latest.file_name}
+                            >
+                              View
+                            </button>
+                          ) : null}
+
+                          <label className="text-sm underline cursor-pointer">
+                            Attach file
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const f = e.target.files?.[0]
+                                // allow re-select same file later
+                                e.currentTarget.value = ""
+                                if (!f) return
+                                try {
+                                  await attachFile(d, f)
+                                } catch (err: any) {
+                                  alert(err?.message || "Upload failed")
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )
