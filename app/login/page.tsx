@@ -30,8 +30,7 @@ export default function LoginPage() {
       return;
     }
 
-    // ✅ Redirect to an EXISTING route
-    router.replace("/dashboard/readiness");
+    router.replace("/dashboard/readiness/overview");
   }
 
   return (
