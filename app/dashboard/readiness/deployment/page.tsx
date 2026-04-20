@@ -41,7 +41,7 @@ const SECTIONS: Section[] = [
     id: "legal",
     label: "Legal Authority",
     icon: "◈",
-    tagline: "Your family needs legal authority to act while you're gone.",
+    tagline: "Your family needs legal authority to act if something happens to you.",
     accentColor: "amber",
     items: [
       {
@@ -67,7 +67,7 @@ const SECTIONS: Section[] = [
         id: "healthcare-poa",
         title: "Execute a Healthcare Power of Attorney",
         description:
-          "Designates who can make medical decisions for you if you are incapacitated. Separate from general POA. Also consider a living will / advance directive stating your wishes for end-of-life care.",
+          "Designates who can make medical decisions for you if you are incapacitated. Separate from general POA. Also consider a living will / advance directive stating your wishes for critical care decisions.",
         documents: ["Legal", "Deployment"],
       },
       {

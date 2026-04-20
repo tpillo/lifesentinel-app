@@ -37,7 +37,8 @@ export async function POST(req: Request) {
     career_volunteer: body.career_volunteer ?? null,
     occupation: body.occupation ?? null,
     va_disability_rating: body.va_disability_rating ?? null,
-    va_pt_designation: body.va_pt_designation ?? false,
+    va_pt_designation: body.va_pt_designation ?? null,
+    service_connected_death: body.service_connected_death ?? null,
     updated_at: now,
   };
 

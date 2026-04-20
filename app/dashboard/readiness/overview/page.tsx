@@ -254,19 +254,19 @@ export default function ReadinessOverviewPage() {
     const percent = clampPercent(data?.overallPercent ?? 0);
     if (percent >= 80) {
       return {
-        badge: "Well protected",
-        text: "Your family's documents are in strong shape. A wonderful gift to the people you love.",
+        badge: "Mission ready",
+        text: "Your critical documents are secured and accessible. Your family is prepared for whatever comes next.",
       };
     }
     if (percent >= 50) {
       return {
-        badge: "Building protection",
-        text: "You've made real progress. Each category you complete is one less burden for your family.",
+        badge: "Building readiness",
+        text: "Solid progress. Each category you complete closes a gap your family might face in an emergency.",
       };
     }
     return {
-      badge: "Starting your journey",
-      text: "You're taking care of the people who matter most. Start with one category at a time — every step counts.",
+      badge: "Begin your prep",
+      text: "Every prepared family started here. Work through one category at a time — each step strengthens your family's readiness.",
     };
   }, [data]);
 
@@ -330,7 +330,30 @@ export default function ReadinessOverviewPage() {
   return (
     <div className="min-h-screen bg-[#faf8f5]">
       <DashboardHeader />
-      <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10">
+      <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10 space-y-6">
+
+        {/* ── Family Benefits Guide Banner ── */}
+        <div className="flex flex-col gap-4 rounded-3xl border border-stone-700 bg-gradient-to-br from-stone-800 to-stone-900 px-7 py-6 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="text-2xl select-none shrink-0 mt-0.5">📋</span>
+            <div>
+              <p className="font-serif text-base font-semibold text-white leading-snug">
+                Your Family Benefits Guide is ready
+              </p>
+              <p className="mt-1 text-sm text-stone-300 leading-relaxed">
+                See what your family is entitled to after your passing — federal benefits, state benefits, and critical deadlines.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/benefits"
+            className="shrink-0 inline-flex items-center justify-center rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700 shadow-lg shadow-amber-900/30"
+          >
+            View Benefits Guide →
+          </Link>
+        </div>
+
+        {/* ── Main Readiness Section ── */}
         <section className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
           <div className="relative border-b border-stone-100 px-6 py-8 md:px-8 md:py-10 bg-gradient-to-br from-amber-50/60 to-stone-50">
             <div className="relative">
@@ -341,7 +364,7 @@ export default function ReadinessOverviewPage() {
               <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl">
                   <h1 className="font-serif text-3xl font-semibold tracking-tight text-stone-900 md:text-4xl">
-                    Family Protection Overview
+                    Family Readiness Briefing
                   </h1>
                   <p className="mt-3 text-sm leading-7 text-stone-500 md:text-base">
                     {completionTone.text}
@@ -545,6 +568,50 @@ export default function ReadinessOverviewPage() {
             </div>
           </div>
         </section>
+
+        {/* ── Key Deadlines Widget ── */}
+        <div className="rounded-3xl border border-stone-200 bg-white px-7 py-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-5">
+            <span className="text-amber-500 select-none">◆</span>
+            <h2 className="font-serif text-lg font-semibold text-stone-900">Key Deadlines After a Veteran's Passing</h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+              <div className="inline-flex items-center rounded-full bg-red-100 border border-red-200 px-2.5 py-0.5 text-xs font-semibold text-red-800 mb-2">
+                Within 1 year — Critical
+              </div>
+              <p className="text-sm font-semibold text-stone-900 mb-1">File DIC Claim</p>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                Missing this deadline forfeits retroactive payments back to the date of death. File VA Form 21P-534EZ immediately.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+              <div className="inline-flex items-center rounded-full bg-red-100 border border-red-200 px-2.5 py-0.5 text-xs font-semibold text-red-800 mb-2">
+                Within 1 year — Critical
+              </div>
+              <p className="text-sm font-semibold text-stone-900 mb-1">File SGLI / VGLI Claim</p>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                Life insurance claim must be filed within 1 year. File form SGLV 8283 with OSGLI at 1-800-419-1473.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+              <div className="inline-flex items-center rounded-full bg-amber-100 border border-amber-200 px-2.5 py-0.5 text-xs font-semibold text-amber-800 mb-2">
+                Within 2 years
+              </div>
+              <p className="text-sm font-semibold text-stone-900 mb-1">Apply for CHAMPVA</p>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                Family healthcare coverage for eligible surviving spouses and dependents. File VA Form 10-10d within 2 years.
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-stone-400">
+            See all deadlines and benefit details in your{" "}
+            <Link href="/dashboard/benefits" className="text-amber-600 hover:text-amber-700 underline">
+              Family Benefits Guide
+            </Link>
+          </p>
+        </div>
+
       </main>
     </div>
   );

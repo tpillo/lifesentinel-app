@@ -184,7 +184,7 @@ const GUIDES: DocGuide[] = [
     category: "Legal",
     priority: "important",
     summary:
-      "Legal documents stating the veteran's wishes for end-of-life medical care, and designating a healthcare proxy.",
+      "Legal documents stating the veteran's wishes for critical medical care, and designating a healthcare proxy.",
     whyItMatters:
       "Without an advance directive, medical decisions may be made by the hospital or state law — not by family. The VA encourages all veterans to complete a VA Advance Directive (VA Form 10-0137). A healthcare proxy gives someone legal authority to make medical decisions.",
     whatItUnlocks: [

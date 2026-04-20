@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import DashboardHeader from "@/components/DashboardHeader";
+import { trackEvent } from "@/lib/gtag";
 
 type GuardianLink = {
   id: string;
@@ -78,6 +79,7 @@ export default function GuardianSharePage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Failed to create link");
+      trackEvent("guardian_designated", { expires_in_hours: expiryHours });
       await loadLinks();
     } catch (e: any) {
       setError(e?.message ?? "Failed to create link");

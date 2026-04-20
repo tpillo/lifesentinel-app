@@ -15,55 +15,56 @@ function buildPrompt(profile: Record<string, any> | null): string {
     : occ === "firefighter" ? "Firefighter / First Responder"
     : "Civilian";
 
+  const ptLabel =
+    profile?.va_pt_designation === "yes" ? "Yes"
+    : profile?.va_pt_designation === "pending" ? "Pending"
+    : profile?.va_pt_designation === "no" ? "No"
+    : "Unknown";
+
   const lines: string[] = [
-    "You are a knowledgeable benefits advisor helping families understand the survivor, disability, and service-related benefits they may be entitled to.",
+    "You are a veteran benefits advisor helping a family understand what they are entitled to after a veteran's passing.",
     "",
-    "Generate a comprehensive, personalized benefits report for the following individual. Be specific — include program names, dollar amounts or ranges where known, eligibility thresholds, and filing timelines. Note where something varies by situation or requires verification.",
+    "Based on this veteran's profile, generate a clear, compassionate, organized summary of ALL post-death benefits their family qualifies for.",
+    "Cover federal benefits, state benefits, and important deadlines. Be specific about dollar amounts where known, eligibility requirements,",
+    "required forms, and who to contact. Focus only on survivor/post-death benefits — not benefits for the living veteran.",
     "",
-    "## Individual Profile",
+    "## Veteran Profile",
     `- Occupation: ${occLabel}`,
   ];
 
   if (profile?.branch) lines.push(`- Branch of Service: ${profile.branch}`);
-  if (profile?.department_type) lines.push(`- Department Type: ${profile.department_type}`);
-  if (profile?.career_volunteer) lines.push(`- Career/Volunteer: ${profile.career_volunteer}`);
-  if (profile?.occupation) lines.push(`- Occupation: ${profile.occupation}`);
-  if (profile?.status) lines.push(`- Status: ${profile.status}`);
+  if (profile?.status) lines.push(`- Service Status: ${profile.status}`);
   if (profile?.state) lines.push(`- State of Residence: ${profile.state}`);
   if (profile?.years_of_service) lines.push(`- Years of Service: ${profile.years_of_service}`);
   if (profile?.va_disability_rating) lines.push(`- VA Combined Disability Rating: ${profile.va_disability_rating === "none" ? "None" : profile.va_disability_rating + "%"}`);
-  if (profile?.va_pt_designation != null) lines.push(`- Permanent & Total (P&T) Designation: ${profile.va_pt_designation ? "Yes" : "No"}`);
+  if (profile?.va_pt_designation) lines.push(`- Permanent & Total (P&T) Designation: ${ptLabel}`);
+  if (profile?.service_connected_death) lines.push(`- Cause of Death Service-Connected: ${profile.service_connected_death}`);
   if (profile?.marital_status) lines.push(`- Marital Status: ${profile.marital_status}`);
-  if (profile?.num_dependents != null) lines.push(`- Number of Dependents: ${profile.num_dependents}`);
+  if (profile?.num_dependents != null) lines.push(`- Number of Dependent Children Under 23: ${profile.num_dependents}`);
+  if (profile?.department_type) lines.push(`- Department Type: ${profile.department_type}`);
+  if (profile?.career_volunteer) lines.push(`- Career/Volunteer: ${profile.career_volunteer}`);
 
   lines.push(
     "",
-    "## Report Requirements",
+    "## Report Sections",
     "",
-    "Please cover each of the following sections in detail, tailored specifically to this individual's profile:",
+    "### 1. Federal Survivor Benefits",
+    "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, Fry Scholarship, VA Burial Benefits, VA Home Loan for surviving spouse, SGLI/VGLI, and Social Security survivor benefits. Include 2026 dollar amounts, eligibility conditions, required forms, and contacts.",
     "",
-    "### 1. Federal Benefits Overview",
-    "Key federal programs this person and their family may be entitled to based on their occupation, service, and status.",
+    "### 2. State-Specific Benefits",
+    `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and any special programs. Be specific about current law and how to apply. Note which benefits transfer to a new residence.`,
     "",
-    "### 2. VA Benefits (if applicable)",
-    "Based on their disability rating, P&T status, branch, and years of service — cover compensation amounts, additional allowances for dependents, and what changes at P&T designation.",
+    "### 3. Healthcare for Survivors",
+    "Cover CHAMPVA (if not already addressed), TRICARE if applicable, and state health program options for surviving family members.",
     "",
-    "### 3. Survivor Financial Benefits",
-    "DIC (Dependency and Indemnity Compensation), SBP (Survivor Benefit Plan), LODI/PSOB (for law enforcement/fire), Social Security survivor benefits, and any other financial survivor programs relevant to their occupation.",
+    "### 4. Education Benefits for Dependents",
+    "Cover DEA/Chapter 35, Fry Scholarship (if applicable), state tuition waivers for the veteran's state, and any other education benefits for dependent children or surviving spouse.",
     "",
-    "### 4. Healthcare Benefits for Survivors",
-    "TRICARE, CHAMPVA, Medicaid transitions, COBRA, and any state-specific health programs for survivors of this occupation type.",
+    "### 5. Additional Resources & Less-Known Benefits",
+    "Highlight any less-known benefits specific to this veteran's profile — such as CHAMPVA dental, state veteran license plate fee waivers, burial benefits, Gold Star family programs, or income tax exemptions.",
     "",
-    "### 5. Education Benefits for Dependents",
-    "Chapter 35/DEA, MyCAA, Fry Scholarship, state tuition waivers, and any scholarship programs specific to their occupation or state.",
-    "",
-    "### 6. State-Specific Benefits",
-    `Benefits specifically available to survivors of ${occLabel.toLowerCase()}s in ${profile?.state ?? "their state"}, including property tax exemptions, license fee waivers, pension survivor benefits, and any special state programs.`,
-    "",
-    "### 7. Important Deadlines & Key Contacts",
-    "Filing deadlines, time-sensitive elections (like SBP), and the specific agencies and phone numbers their family should contact.",
-    "",
-    "Format your response using ## for main sections, ### for subsections, **bold** for important terms and amounts, and bullet points for lists. Write in a warm, clear, family-friendly tone — not bureaucratic jargon.",
+    "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
+    "Write in a warm, clear, family-friendly tone. This report will be read by a grieving family — be compassionate and practical.",
   );
 
   return lines.join("\n");

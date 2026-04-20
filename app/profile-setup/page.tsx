@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { trackEvent } from "@/lib/gtag";
 
 type OccupationType = "law_enforcement" | "military_veteran" | "firefighter" | "civilian" | "";
 
@@ -16,7 +17,8 @@ type FormData = {
   years_of_service: string;
   status: string;
   va_disability_rating: string;
-  va_pt_designation: boolean;
+  va_pt_designation: string;
+  service_connected_death: string;
   full_name: string;
   date_of_birth: string;
   marital_status: string;
@@ -36,20 +38,20 @@ const US_STATES = [
 
 const OCCUPATION_OPTIONS: { value: OccupationType; label: string; icon: string; description: string }[] = [
   {
+    value: "military_veteran",
+    label: "Veteran / Military",
+    icon: "✦",
+    description: "Active duty, reserve, National Guard, or veteran of any branch",
+  },
+  {
     value: "law_enforcement",
     label: "Law Enforcement",
     icon: "◈",
     description: "City police, county sheriff, state trooper, federal agent",
   },
   {
-    value: "military_veteran",
-    label: "Military / Veteran",
-    icon: "✦",
-    description: "Active duty, reserve, National Guard, or veteran of any branch",
-  },
-  {
     value: "firefighter",
-    label: "Firefighter / First Responder",
+    label: "Fire / First Responder",
     icon: "◆",
     description: "Career or volunteer firefighter, paramedic, EMT",
   },
@@ -69,6 +71,14 @@ const selectClass =
 
 function FieldHint({ children }: { children: React.ReactNode }) {
   return <p className="mt-1 text-xs text-stone-400 leading-relaxed">{children}</p>;
+}
+
+function InfoBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-5 py-4">
+      <p className="text-xs text-amber-800 leading-relaxed">{children}</p>
+    </div>
+  );
 }
 
 function StepIndicator({ current }: { current: number }) {
@@ -129,14 +139,15 @@ export default function ProfileSetupPage() {
     years_of_service: "",
     status: "",
     va_disability_rating: "",
-    va_pt_designation: false,
+    va_pt_designation: "",
+    service_connected_death: "",
     full_name: "",
     date_of_birth: "",
     marital_status: "",
     num_dependents: "",
   });
 
-  function set(field: keyof FormData, value: string | boolean) {
+  function set(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -172,36 +183,44 @@ export default function ProfileSetupPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save profile");
-      router.replace("/dashboard/readiness/overview");
-    } catch (err: any) {
-      setError(err.message);
+      trackEvent("profile_completed", { occupation_type: form.occupation_type });
+      router.replace("/dashboard/benefits");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setSaving(false);
     }
   }
+
+  const isDeceased = form.status === "deceased";
+  const isMilitary = form.occupation_type === "military_veteran";
 
   return (
     <main className="min-h-screen bg-[#faf8f5] px-4 py-12">
       <div className="mx-auto w-full max-w-2xl">
 
         {/* Logo */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
             <h1 className="font-serif text-2xl font-semibold text-stone-900 tracking-tight">
               LifeSentinel
             </h1>
           </Link>
-          <p className="mt-4 text-stone-500 text-sm leading-relaxed max-w-lg mx-auto">
-            To personalize your LifeSentinel experience, we need to know a little about you.
-            This information is never sold or shared — it&rsquo;s used only to show your family
-            the benefits and resources they&rsquo;re entitled to.
+        </div>
+
+        {/* Privacy statement */}
+        <div className="mb-8 rounded-2xl border border-stone-200 bg-white px-6 py-5 text-center shadow-sm">
+          <p className="text-sm text-stone-500 leading-relaxed max-w-lg mx-auto">
+            To personalize your Life Sentinel experience, we need to know a little about you.
+            This information is <span className="font-medium text-stone-700">encrypted, never sold</span>,
+            and only used to show your family the benefits and protections they&rsquo;ve earned.
           </p>
         </div>
 
         <StepIndicator current={step} />
 
-        {/* Step 1 — Occupation Type */}
+        {/* ── Step 1 — Occupation Type ── */}
         {step === 1 && (
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8">
             <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
@@ -209,7 +228,7 @@ export default function ProfileSetupPage() {
             </h2>
             <p className="text-sm text-stone-500 mb-6 leading-relaxed">
               This helps us find the right benefits programs for your family — they vary
-              significantly between law enforcement, military, and civilian employees.
+              significantly between military, law enforcement, and civilian employees.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -247,7 +266,7 @@ export default function ProfileSetupPage() {
           </div>
         )}
 
-        {/* Step 2 — Occupation-specific fields */}
+        {/* ── Step 2 — Occupation-specific fields ── */}
         {step === 2 && (
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8">
             <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
@@ -263,8 +282,8 @@ export default function ProfileSetupPage() {
               <div>
                 <label className="block text-sm font-medium text-stone-700">State of residence</label>
                 <FieldHint>
-                  Benefits and survivor programs differ dramatically by state. Your state helps us
-                  show your family exactly what they&rsquo;re owed.
+                  Benefits vary dramatically by state. This ensures we show your family exactly
+                  what they&rsquo;re owed where you live.
                 </FieldHint>
                 <select value={form.state} onChange={(e) => set("state", e.target.value)} className={selectClass}>
                   <option value="">Select your state…</option>
@@ -272,7 +291,7 @@ export default function ProfileSetupPage() {
                 </select>
               </div>
 
-              {/* Law Enforcement */}
+              {/* ── Law Enforcement ── */}
               {form.occupation_type === "law_enforcement" && (
                 <>
                   <div>
@@ -297,12 +316,13 @@ export default function ProfileSetupPage() {
                       <option value="">Select…</option>
                       <option value="active">Active</option>
                       <option value="retired">Retired</option>
+                      <option value="deceased">Deceased (family member setting up)</option>
                     </select>
                   </div>
                 </>
               )}
 
-              {/* Military / Veteran */}
+              {/* ── Military / Veteran ── */}
               {form.occupation_type === "military_veteran" && (
                 <>
                   <div>
@@ -315,73 +335,80 @@ export default function ProfileSetupPage() {
                       <option value="air_force">Air Force</option>
                       <option value="coast_guard">Coast Guard</option>
                       <option value="space_force">Space Force</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Years of service</label>
-                    <FieldHint>Many benefits are tied to length of service. This ensures your family gets the complete picture.</FieldHint>
-                    <input type="number" min="0" max="60" value={form.years_of_service} onChange={(e) => set("years_of_service", e.target.value)} className={inputClass} placeholder="e.g. 8" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Status</label>
-                    <select value={form.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
-                      <option value="">Select…</option>
-                      <option value="active">Active Duty</option>
-                      <option value="reserve">Reserve / National Guard</option>
-                      <option value="veteran">Veteran</option>
-                      <option value="retired">Retired</option>
+                      <option value="national_guard">National Guard</option>
+                      <option value="reserves">Reserves</option>
                     </select>
                   </div>
 
-                  {/* VA disability fields */}
-                  <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-4">
-                    <p className="text-xs text-blue-800 leading-relaxed mb-4">
-                      Your combined VA disability rating and P&amp;T status determine which additional
-                      benefits your family is entitled to. P&amp;T designation in particular
-                      significantly expands survivor benefits.
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Service status</label>
+                    <select value={form.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="active_duty">Active Duty</option>
+                      <option value="veteran">Veteran</option>
+                      <option value="retired">Retired</option>
+                      <option value="separated">Separated</option>
+                      <option value="deceased">Deceased (family member setting up)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Years of service</label>
+                    <input type="number" min="0" max="60" value={form.years_of_service} onChange={(e) => set("years_of_service", e.target.value)} className={inputClass} placeholder="e.g. 8" />
+                  </div>
+
+                  {/* VA disability */}
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-5 py-5 space-y-4">
+                    <p className="text-xs text-blue-800 leading-relaxed">
+                      These determine which federal and state benefits your family is entitled to
+                      after your passing — many families miss thousands in benefits simply because
+                      they didn&rsquo;t know to ask.
                     </p>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700">Combined VA Disability Rating</label>
-                        <select value={form.va_disability_rating} onChange={(e) => set("va_disability_rating", e.target.value)} className={selectClass}>
-                          <option value="">Select…</option>
-                          <option value="none">None</option>
-                          {[10,20,30,40,50,60,70,80,90,100].map((r) => (
-                            <option key={r} value={String(r)}>{r}%</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-2">
-                          Permanent &amp; Total (P&amp;T) Designation
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => set("va_pt_designation", !form.va_pt_designation)}
-                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-                              form.va_pt_designation ? "bg-amber-500" : "bg-stone-200"
-                            }`}
-                            role="switch"
-                            aria-checked={form.va_pt_designation}
-                          >
-                            <span
-                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ${
-                                form.va_pt_designation ? "translate-x-5" : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                          <span className="text-sm text-stone-600">
-                            {form.va_pt_designation ? "Yes — I have P&T designation" : "No P&T designation"}
-                          </span>
-                        </div>
-                      </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700">Combined VA Disability Rating</label>
+                      <select value={form.va_disability_rating} onChange={(e) => set("va_disability_rating", e.target.value)} className={selectClass}>
+                        <option value="">Select…</option>
+                        <option value="none">None</option>
+                        {[10,20,30,40,50,60,70,80,90,100].map((r) => (
+                          <option key={r} value={String(r)}>{r}%</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700">Permanent &amp; Total (P&amp;T) Designation</label>
+                      <select value={form.va_pt_designation} onChange={(e) => set("va_pt_designation", e.target.value)} className={selectClass}>
+                        <option value="">Select…</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="pending">Pending</option>
+                      </select>
                     </div>
                   </div>
+
+                  {/* Service-connected death — only if deceased */}
+                  {isDeceased && (
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700">
+                        Was the cause of death service-connected?
+                      </label>
+                      <InfoBox>
+                        If the cause of death is service-connected, your family may qualify for
+                        significantly higher monthly compensation (DIC) for life.
+                      </InfoBox>
+                      <select value={form.service_connected_death} onChange={(e) => set("service_connected_death", e.target.value)} className={selectClass}>
+                        <option value="">Select…</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="unknown">Unknown</option>
+                      </select>
+                    </div>
+                  )}
                 </>
               )}
 
-              {/* Firefighter / First Responder */}
+              {/* ── Firefighter / First Responder ── */}
               {form.occupation_type === "firefighter" && (
                 <>
                   <div>
@@ -403,12 +430,13 @@ export default function ProfileSetupPage() {
                       <option value="">Select…</option>
                       <option value="active">Active</option>
                       <option value="retired">Retired</option>
+                      <option value="deceased">Deceased (family member setting up)</option>
                     </select>
                   </div>
                 </>
               )}
 
-              {/* Civilian */}
+              {/* ── Civilian ── */}
               {form.occupation_type === "civilian" && (
                 <div>
                   <label className="block text-sm font-medium text-stone-700">Occupation</label>
@@ -438,7 +466,7 @@ export default function ProfileSetupPage() {
           </div>
         )}
 
-        {/* Step 3 — Personal Info */}
+        {/* ── Step 3 — Personal Info ── */}
         {step === 3 && (
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8">
             <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
@@ -449,6 +477,7 @@ export default function ProfileSetupPage() {
             </p>
 
             <div className="space-y-5">
+
               <div>
                 <label className="block text-sm font-medium text-stone-700">Full name</label>
                 <input
@@ -477,14 +506,19 @@ export default function ProfileSetupPage() {
                   <option value="">Select…</option>
                   <option value="single">Single</option>
                   <option value="married">Married</option>
-                  <option value="domestic_partner">Domestic Partner</option>
-                  <option value="divorced">Divorced</option>
                   <option value="widowed">Widowed</option>
+                  <option value="divorced">Divorced</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-stone-700">Number of dependents</label>
+                <label className="block text-sm font-medium text-stone-700">
+                  Number of dependent children under 23
+                </label>
+                <FieldHint>
+                  Many survivor benefits include additional monthly payments for dependent children,
+                  plus education benefits through age 23.
+                </FieldHint>
                 <input
                   type="number"
                   min="0"
@@ -495,6 +529,26 @@ export default function ProfileSetupPage() {
                   placeholder="0"
                 />
               </div>
+
+              {/* Non-military users: service-connected death shown here if deceased */}
+              {!isMilitary && isDeceased && (
+                <div>
+                  <label className="block text-sm font-medium text-stone-700">
+                    Was the cause of death service-connected?
+                  </label>
+                  <InfoBox>
+                    If the cause of death is service-connected, your family may qualify for
+                    significantly higher monthly compensation (DIC) for life.
+                  </InfoBox>
+                  <select value={form.service_connected_death} onChange={(e) => set("service_connected_death", e.target.value)} className={selectClass}>
+                    <option value="">Select…</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+              )}
+
             </div>
 
             {error && (
@@ -503,9 +557,9 @@ export default function ProfileSetupPage() {
               </p>
             )}
 
-            {/* Privacy note */}
+            {/* Lock statement */}
             <div className="mt-7 rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
-              <span className="text-stone-400 text-lg select-none shrink-0 mt-0.5">🔒</span>
+              <span className="text-lg select-none shrink-0 mt-0.5">🔒</span>
               <p className="text-xs text-stone-500 leading-relaxed">
                 Your information is encrypted and private. Only you and your designated Guardian can see it.
               </p>

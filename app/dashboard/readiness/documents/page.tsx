@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import DashboardHeader from "@/components/DashboardHeader";
+import { trackEvent } from "@/lib/gtag";
 
 type ReadinessDoc = {
   id: string;
@@ -197,6 +198,7 @@ export default function ReadinessDocumentsPage() {
       const res = await fetch("/api/readiness/documents/upload", { method: "POST", body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Upload failed");
+      trackEvent("document_uploaded", { category: doc.category, item_key: doc.item_key });
       setDocs((prev) => prev.map((d) => (d.id === doc.id ? (json.document as ReadinessDoc) : d)));
       await loadFiles();
     } catch (err: any) {

@@ -53,6 +53,51 @@ const DEFAULT_SEED: SeedItem[] = [
     item_key: "deployment",
     item_label: "Deployment",
   },
+  {
+    category: "Survivor Readiness",
+    item_key: "dd_214_uploaded",
+    item_label: "DD-214 Uploaded",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "va_award_letter_uploaded",
+    item_label: "VA Award Letter Uploaded",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "sgli_vgli_stored",
+    item_label: "SGLI/VGLI Policy Information Stored",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "guardian_designated",
+    item_label: "Guardian Designated",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "disability_rating_on_file",
+    item_label: "Disability Rating Recorded in Profile",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "pt_status_on_file",
+    item_label: "P&T Status Recorded",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "state_confirmed",
+    item_label: "State of Residence Confirmed",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "dependents_listed",
+    item_label: "Surviving Spouse/Dependents Listed",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "benefits_guide_reviewed",
+    item_label: "Family Benefits Guide Reviewed",
+  },
 ];
 
 export async function GET() {

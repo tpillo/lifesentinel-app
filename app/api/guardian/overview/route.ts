@@ -27,17 +27,24 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "This link has expired." }, { status: 403 });
   }
 
-  const { data: docs, error: docsErr } = await supabaseAdmin
-    .from("readiness_documents")
-    .select("id, item_label, is_present")
-    .eq("user_id", link.owner_user_id)
-    .order("item_label", { ascending: true });
+  const [docsResult, profileResult] = await Promise.all([
+    supabaseAdmin
+      .from("readiness_documents")
+      .select("id, item_label, is_present")
+      .eq("user_id", link.owner_user_id)
+      .order("item_label", { ascending: true }),
+    supabaseAdmin
+      .from("profiles")
+      .select("full_name, service_connected_death, status, occupation_type")
+      .eq("user_id", link.owner_user_id)
+      .maybeSingle(),
+  ]);
 
-  if (docsErr) {
-    return NextResponse.json({ error: docsErr.message }, { status: 500 });
+  if (docsResult.error) {
+    return NextResponse.json({ error: docsResult.error.message }, { status: 500 });
   }
 
-  const items = (docs ?? []).map((d) => ({
+  const items = (docsResult.data ?? []).map((d) => ({
     id: d.id,
     title: d.item_label,
     completed: d.is_present,
@@ -47,5 +54,7 @@ export async function GET(req: Request) {
   const completed = items.filter((i) => i.completed).length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-  return NextResponse.json({ total, completed, percent, items });
+  const profile = profileResult.data ?? null;
+
+  return NextResponse.json({ total, completed, percent, items, profile });
 }
