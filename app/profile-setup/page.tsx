@@ -15,6 +15,8 @@ type FormData = {
   occupation: string;
   years_of_service: string;
   status: string;
+  va_disability_rating: string;
+  va_pt_designation: boolean;
   full_name: string;
   date_of_birth: string;
   marital_status: string;
@@ -126,13 +128,15 @@ export default function ProfileSetupPage() {
     occupation: "",
     years_of_service: "",
     status: "",
+    va_disability_rating: "",
+    va_pt_designation: false,
     full_name: "",
     date_of_birth: "",
     marital_status: "",
     num_dependents: "",
   });
 
-  function set(field: keyof FormData, value: string) {
+  function set(field: keyof FormData, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -327,6 +331,52 @@ export default function ProfileSetupPage() {
                       <option value="veteran">Veteran</option>
                       <option value="retired">Retired</option>
                     </select>
+                  </div>
+
+                  {/* VA disability fields */}
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-4">
+                    <p className="text-xs text-blue-800 leading-relaxed mb-4">
+                      Your combined VA disability rating and P&amp;T status determine which additional
+                      benefits your family is entitled to. P&amp;T designation in particular
+                      significantly expands survivor benefits.
+                    </p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700">Combined VA Disability Rating</label>
+                        <select value={form.va_disability_rating} onChange={(e) => set("va_disability_rating", e.target.value)} className={selectClass}>
+                          <option value="">Select…</option>
+                          <option value="none">None</option>
+                          {[10,20,30,40,50,60,70,80,90,100].map((r) => (
+                            <option key={r} value={String(r)}>{r}%</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-2">
+                          Permanent &amp; Total (P&amp;T) Designation
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => set("va_pt_designation", !form.va_pt_designation)}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                              form.va_pt_designation ? "bg-amber-500" : "bg-stone-200"
+                            }`}
+                            role="switch"
+                            aria-checked={form.va_pt_designation}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ${
+                                form.va_pt_designation ? "translate-x-5" : "translate-x-0"
+                              }`}
+                            />
+                          </button>
+                          <span className="text-sm text-stone-600">
+                            {form.va_pt_designation ? "Yes — I have P&T designation" : "No P&T designation"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
