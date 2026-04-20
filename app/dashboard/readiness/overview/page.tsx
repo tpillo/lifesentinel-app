@@ -1,231 +1,551 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import DashboardHeader from "@/components/DashboardHeader";
 
-type OverviewItem = {
-  id: string
-  title: string
-  completed: boolean
+type CategoryProgress = {
+  category: string;
+  total: number;
+  completed: number;
+  percent: number;
+};
+
+type NewOverviewResponse = {
+  overallPercent?: number;
+  totalItems?: number;
+  completedItems?: number;
+  missingItems?: number;
+  categoryProgress?: CategoryProgress[];
+};
+
+type LegacyItem = {
+  id: string;
+  title: string;
+  completed: boolean;
+};
+
+type LegacyOverviewResponse = {
+  total?: number;
+  completed?: number;
+  percent?: number;
+  items?: LegacyItem[];
+};
+
+type ReadinessDoc = {
+  id: string;
+  item_label: string;
+  is_present: boolean;
+};
+
+type ReadinessFile = {
+  id: string;
+  readiness_document_id: string;
+  file_name: string;
+};
+
+type NormalizedOverview = {
+  overallPercent: number;
+  totalItems: number;
+  completedItems: number;
+  missingItems: number;
+  categoryProgress: CategoryProgress[];
+};
+
+function clampPercent(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-type Overview = {
-  total: number
-  completed: number
-  percent: number
-  items: OverviewItem[]
+function getCategoryAccent(category: string) {
+  const key = category.trim().toLowerCase();
+  switch (key) {
+    case "identity":   return "bg-stone-400";
+    case "legal":      return "bg-amber-600";
+    case "insurance":  return "bg-sky-500";
+    case "military":   return "bg-emerald-600";
+    case "family":     return "bg-rose-400";
+    case "finance":    return "bg-amber-500";
+    case "va":         return "bg-blue-600";
+    case "other":      return "bg-stone-400";
+    default:           return "bg-stone-400";
+  }
 }
 
-function getScoreTone(percent: number) {
-  if (percent >= 80) {
+function getCategoryLabel(category: string) {
+  if (category.trim().toLowerCase() === "va") return "VA";
+  return category;
+}
+
+function normalizeOverviewResponse(
+  raw: NewOverviewResponse | LegacyOverviewResponse
+): NormalizedOverview {
+  const hasNewShape =
+    typeof (raw as NewOverviewResponse).overallPercent === "number" ||
+    typeof (raw as NewOverviewResponse).totalItems === "number" ||
+    typeof (raw as NewOverviewResponse).completedItems === "number";
+
+  if (hasNewShape) {
+    const next = raw as NewOverviewResponse;
+    const totalItems = Number(next.totalItems ?? 0);
+    const completedItems = Number(next.completedItems ?? 0);
+    const overallPercent =
+      typeof next.overallPercent === "number"
+        ? next.overallPercent
+        : totalItems > 0
+        ? (completedItems / totalItems) * 100
+        : 0;
+    const missingItems =
+      typeof next.missingItems === "number"
+        ? next.missingItems
+        : Math.max(0, totalItems - completedItems);
     return {
-      barClass: "bg-green-600",
-      badgeClass: "bg-green-100 text-green-800 border-green-200",
-      label: "Strong",
-    }
+      overallPercent: clampPercent(overallPercent),
+      totalItems,
+      completedItems,
+      missingItems,
+      categoryProgress: Array.isArray(next.categoryProgress) ? next.categoryProgress : [],
+    };
   }
 
-  if (percent >= 50) {
-    return {
-      barClass: "bg-amber-500",
-      badgeClass: "bg-amber-100 text-amber-800 border-amber-200",
-      label: "In Progress",
-    }
-  }
+  const legacy = raw as LegacyOverviewResponse;
+  const items = Array.isArray(legacy.items) ? legacy.items : [];
+  const totalItems = typeof legacy.total === "number" ? legacy.total : items.length;
+  const completedItems =
+    typeof legacy.completed === "number"
+      ? legacy.completed
+      : items.filter((item) => item.completed).length;
+  const overallPercent =
+    typeof legacy.percent === "number"
+      ? legacy.percent
+      : totalItems > 0
+      ? (completedItems / totalItems) * 100
+      : 0;
+  const categoryProgress: CategoryProgress[] = items.map((item) => ({
+    category: item.title,
+    total: 1,
+    completed: item.completed ? 1 : 0,
+    percent: item.completed ? 100 : 0,
+  }));
 
   return {
-    barClass: "bg-red-600",
-    badgeClass: "bg-red-100 text-red-800 border-red-200",
-    label: "Needs Attention",
-  }
+    overallPercent: clampPercent(overallPercent),
+    totalItems,
+    completedItems,
+    missingItems: Math.max(0, totalItems - completedItems),
+    categoryProgress,
+  };
 }
 
-function getPriorityRank(title: string) {
-  const t = title.toLowerCase()
-
-  if (t.includes("will") || t.includes("estate")) return 1
-  if (t.includes("insurance")) return 2
-  if (t.includes("va")) return 3
-  if (t.includes("bank")) return 4
-  if (t.includes("marriage")) return 5
-  if (t.includes("birth")) return 6
-  if (t.includes("emergency")) return 7
-  return 99
+function StatCard({
+  label,
+  value,
+  subtext,
+}: {
+  label: string;
+  value: string | number;
+  subtext: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <div className="text-sm font-medium text-stone-500">{label}</div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight text-stone-900">{value}</div>
+      <div className="mt-2 text-sm text-stone-400">{subtext}</div>
+    </div>
+  );
 }
 
-export default function OverviewPage() {
-  const [data, setData] = useState<Overview | null>(null)
-  const [error, setError] = useState<string>("")
+function ProgressBar({ percent }: { percent: number }) {
+  const safePercent = clampPercent(percent);
+  return (
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-stone-100">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-500"
+        style={{ width: `${safePercent}%` }}
+      />
+    </div>
+  );
+}
+
+export default function ReadinessOverviewPage() {
+  const [data, setData] = useState<NormalizedOverview | null>(null);
+  const [docs, setDocs] = useState<ReadinessDoc[]>([]);
+  const [files, setFiles] = useState<ReadinessFile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function load() {
+    let cancelled = false;
+
+    async function loadOverview() {
       try {
-        const res = await fetch("/api/readiness/overview", {
-          cache: "no-store",
-        })
+        setLoading(true);
+        setError("");
 
-        const text = await res.text()
+        const [overviewRes, docsRes, filesRes] = await Promise.all([
+          fetch("/api/readiness/overview", { method: "GET", cache: "no-store" }),
+          fetch("/api/readiness/documents", { cache: "no-store" }),
+          fetch("/api/readiness/documents/files", { cache: "no-store" }),
+        ]);
 
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${text || "No response body"}`)
+        if (!overviewRes.ok) throw new Error("Failed to load readiness overview.");
+        if (!docsRes.ok) throw new Error("Failed to load readiness documents.");
+        if (!filesRes.ok) throw new Error("Failed to load readiness files.");
+
+        const overviewJson = await overviewRes.json();
+        const docsJson = await docsRes.json();
+        const filesJson = await filesRes.json();
+        const normalized = normalizeOverviewResponse(overviewJson);
+
+        if (!cancelled) {
+          setData(normalized);
+          setDocs(docsJson.documents ?? []);
+          setFiles(filesJson.files ?? []);
         }
-
-        if (!text) {
-          throw new Error("API returned an empty response")
-        }
-
-        const json = JSON.parse(text) as Overview
-        setData(json)
       } catch (err) {
-        console.error("Overview fetch failed:", err)
-        setError(err instanceof Error ? err.message : "Unknown error")
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Something went wrong loading the overview."
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
-    load()
-  }, [])
+    loadOverview();
+    return () => { cancelled = true; };
+  }, []);
 
-  const missing = useMemo(() => {
-    if (!data) return []
+  const docIdByCategory = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const doc of docs) map.set(doc.item_label, doc.id);
+    return map;
+  }, [docs]);
 
-    return [...data.items]
-      .filter((item) => !item.completed)
-      .sort((a, b) => getPriorityRank(a.title) - getPriorityRank(b.title))
-      .slice(0, 5)
-  }, [data])
+  const filesByCategory = useMemo(() => {
+    const map = new Map<string, ReadinessFile[]>();
+    for (const category of docIdByCategory.keys()) map.set(category, []);
+    for (const file of files) {
+      const matchingDoc = docs.find((doc) => doc.id === file.readiness_document_id);
+      if (!matchingDoc) continue;
+      const key = matchingDoc.item_label;
+      const existing = map.get(key) ?? [];
+      existing.push(file);
+      map.set(key, existing);
+    }
+    return map;
+  }, [files, docs, docIdByCategory]);
 
-  if (error) {
+  const sortedCategories = useMemo(() => {
+    if (!data?.categoryProgress) return [];
+    const preferredOrder = ["Identity", "Legal", "Insurance", "Finance", "Family", "Military", "VA", "Other"];
+    return [...data.categoryProgress].sort((a, b) => {
+      const aIndex = preferredOrder.indexOf(a.category);
+      const bIndex = preferredOrder.indexOf(b.category);
+      if (aIndex === -1 && bIndex === -1) return a.category.localeCompare(b.category);
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+  }, [data]);
+
+  const completionTone = useMemo(() => {
+    const percent = clampPercent(data?.overallPercent ?? 0);
+    if (percent >= 80) {
+      return {
+        badge: "Well protected",
+        text: "Your family's documents are in strong shape. A wonderful gift to the people you love.",
+      };
+    }
+    if (percent >= 50) {
+      return {
+        badge: "Building protection",
+        text: "You've made real progress. Each category you complete is one less burden for your family.",
+      };
+    }
+    return {
+      badge: "Starting your journey",
+      text: "You're taking care of the people who matter most. Start with one category at a time — every step counts.",
+    };
+  }, [data]);
+
+  if (loading) {
     return (
-      <div className="p-8 max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4 text-white">Readiness Overview</h1>
-        <div className="border rounded-2xl p-6 bg-white shadow-sm">
-          <div className="text-red-600 font-semibold mb-2">Failed to load overview</div>
-          <pre className="text-sm whitespace-pre-wrap text-gray-700">{error}</pre>
-        </div>
+      <div className="min-h-screen bg-[#faf8f5]">
+        <DashboardHeader />
+        <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10">
+          <div className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+            <div className="border-b border-stone-100 px-6 py-8 md:px-8">
+              <div className="h-4 w-40 animate-pulse rounded bg-stone-100" />
+              <div className="mt-4 h-10 w-80 animate-pulse rounded bg-stone-100" />
+              <div className="mt-3 h-4 w-full max-w-2xl animate-pulse rounded bg-stone-100" />
+            </div>
+            <div className="grid gap-5 px-6 py-6 md:grid-cols-3 md:px-8">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="rounded-2xl border border-stone-200 bg-stone-50 p-5">
+                  <div className="h-4 w-24 animate-pulse rounded bg-stone-200" />
+                  <div className="mt-4 h-10 w-20 animate-pulse rounded bg-stone-200" />
+                  <div className="mt-3 h-4 w-32 animate-pulse rounded bg-stone-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
-    )
+    );
   }
 
-  if (!data) {
-    return <div className="p-6 text-white">Loading...</div>
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-[#faf8f5]">
+        <DashboardHeader />
+        <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10">
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
+            <div className="text-lg font-semibold text-stone-900">Readiness Overview</div>
+            <p className="mt-2 text-sm text-red-700">{error || "Unable to load overview data."}</p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/readiness/documents"
+                className="inline-flex items-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                Go to Documents
+              </Link>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
-  const tone = getScoreTone(data.percent)
+  const overallPercent = clampPercent(data.overallPercent);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-white">Readiness Overview</h1>
-        <p className="text-gray-400 mt-2">
-          Track what is complete, what is missing, and what needs attention next.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#faf8f5]">
+      <DashboardHeader />
+      <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10">
+        <section className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+          <div className="relative border-b border-stone-100 px-6 py-8 md:px-8 md:py-10 bg-gradient-to-br from-amber-50/60 to-stone-50">
+            <div className="relative">
+              <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+                {completionTone.badge}
+              </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 border rounded-2xl p-6 shadow-sm bg-white">
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900">Readiness Score</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Based on your current essential document checklist
-              </p>
-            </div>
+              <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-3xl">
+                  <h1 className="font-serif text-3xl font-semibold tracking-tight text-stone-900 md:text-4xl">
+                    Family Protection Overview
+                  </h1>
+                  <p className="mt-3 text-sm leading-7 text-stone-500 md:text-base">
+                    {completionTone.text}
+                  </p>
+                </div>
 
-            <div className="text-right">
-              <div className="text-4xl font-bold text-gray-900">{data.percent}%</div>
-              <div
-                className={`inline-flex mt-2 items-center rounded-full border px-3 py-1 text-xs font-semibold ${tone.badgeClass}`}
-              >
-                {tone.label}
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/dashboard/readiness/documents"
+                    className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700"
+                  >
+                    Manage Documents
+                  </Link>
+                  <Link
+                    href="/dashboard/vault"
+                    className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+                  >
+                    Open Vault
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-            <div
-              className={`${tone.barClass} h-4 transition-all duration-500`}
-              style={{ width: `${data.percent}%` }}
+          <div className="grid gap-5 px-6 py-6 md:grid-cols-3 md:px-8">
+            <StatCard
+              label="Protection Score"
+              value={`${overallPercent}%`}
+              subtext={`${data.completedItems} of ${data.totalItems} categories protected`}
+            />
+            <StatCard
+              label="Protected"
+              value={data.completedItems}
+              subtext="Categories your family can count on"
+            />
+            <StatCard
+              label="Still to add"
+              value={data.missingItems}
+              subtext="Categories worth completing when you're ready"
             />
           </div>
 
-          <div className="mt-3 text-sm text-gray-600">
-            {data.completed} of {data.total} items complete
-          </div>
-        </div>
-
-        <div className="border rounded-2xl p-6 shadow-sm bg-white">
-          <h2 className="text-lg font-semibold text-gray-900">Checklist Snapshot</h2>
-
-          <div className="mt-5 space-y-4">
-            <div>
-              <div className="text-sm text-gray-500">Completed</div>
-              <div className="text-3xl font-bold text-gray-900">{data.completed}</div>
-            </div>
-
-            <div>
-              <div className="text-sm text-gray-500">Remaining</div>
-              <div className="text-3xl font-bold text-gray-900">
-                {Math.max(data.total - data.completed, 0)}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-sm text-gray-500">Total Items</div>
-              <div className="text-3xl font-bold text-gray-900">{data.total}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="border rounded-2xl p-6 shadow-sm bg-white">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Top Missing Items</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Prioritized items to improve your readiness fastest
-            </p>
-          </div>
-
-          <Link
-            href="/dashboard/readiness/documents"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            Open documents →
-          </Link>
-        </div>
-
-        {missing.length === 0 ? (
-          <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 font-medium">
-            You&apos;re fully prepared.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {missing.map((item, index) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
-                    {index + 1}
-                  </div>
+          <div className="px-6 pb-8 md:px-8">
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <div className="font-medium text-gray-900">{item.title}</div>
-                    <div className="text-sm text-gray-500">Missing from your readiness vault</div>
+                    <h2 className="font-serif text-lg font-semibold text-stone-900">
+                      Protection by Category
+                    </h2>
+                    <p className="mt-1 text-sm text-stone-400">
+                      How each area of your family's life is covered.
+                    </p>
+                  </div>
+                  <div className="hidden rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-500 sm:inline-flex">
+                    {sortedCategories.length} categories
                   </div>
                 </div>
 
-                <Link
-                  href="/dashboard/readiness/documents"
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Fix
-                </Link>
-              </div>
-            ))}
+                <div className="mt-6 space-y-4">
+                  {sortedCategories.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-6 text-sm text-stone-400">
+                      No category data available yet.
+                    </div>
+                  ) : (
+                    sortedCategories.map((item) => {
+                      const percent = clampPercent(item.percent);
+                      const uploadedFiles = filesByCategory.get(item.category) ?? [];
+
+                      return (
+                        <div
+                          key={item.category}
+                          className="rounded-2xl border border-stone-100 bg-stone-50/50 p-4"
+                        >
+                          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-2.5 w-2.5 rounded-full ${getCategoryAccent(item.category)}`} />
+                              <div className="text-sm font-medium text-stone-800">
+                                {getCategoryLabel(item.category)}
+                              </div>
+                            </div>
+                            <div className="text-sm text-stone-500">
+                              {item.completed}/{item.total} complete
+                            </div>
+                          </div>
+
+                          <ProgressBar percent={percent} />
+
+                          <div className="mt-2 flex items-center justify-between text-xs text-stone-400">
+                            <span>{percent}% protected</span>
+                            <span>
+                              {Math.max(0, item.total - item.completed)} remaining
+                            </span>
+                          </div>
+
+                          <div className="mt-4 rounded-xl border border-stone-100 bg-white px-3 py-3">
+                            <div className="text-xs font-medium uppercase tracking-wide text-stone-400">
+                              Documents added
+                            </div>
+                            {uploadedFiles.length === 0 ? (
+                              <div className="mt-2 text-sm text-stone-400">
+                                No documents added yet.
+                              </div>
+                            ) : (
+                              <div className="mt-2 space-y-1">
+                                {uploadedFiles.slice(0, 3).map((file) => (
+                                  <div
+                                    key={file.id}
+                                    className="truncate text-sm text-stone-600"
+                                    title={file.file_name}
+                                  >
+                                    · {file.file_name}
+                                  </div>
+                                ))}
+                                {uploadedFiles.length > 3 ? (
+                                  <div className="text-xs text-stone-400">
+                                    +{uploadedFiles.length - 3} more
+                                  </div>
+                                ) : null}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+                <h2 className="font-serif text-lg font-semibold text-stone-900">Summary</h2>
+                <p className="mt-1 text-sm text-stone-400">
+                  A clear picture of where things stand today.
+                </p>
+
+                <div className="mt-6 rounded-2xl border border-stone-100 bg-stone-50 p-5">
+                  <div className="text-sm font-medium text-stone-500">
+                    Overall protection score
+                  </div>
+                  <div className="mt-3 flex items-end gap-3">
+                    <div className="text-4xl font-semibold tracking-tight text-stone-900">
+                      {overallPercent}%
+                    </div>
+                    <div className="pb-1 text-sm text-stone-400">
+                      families protected
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <ProgressBar percent={overallPercent} />
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-3">
+                    <div className="text-xs uppercase tracking-wide text-stone-400">
+                      Total categories
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-stone-900">
+                      {data.totalItems}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                    <div className="text-xs uppercase tracking-wide text-emerald-600">
+                      Protected
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-emerald-800">
+                      {data.completedItems}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-3">
+                    <div className="text-xs uppercase tracking-wide text-stone-400">
+                      Still to add
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-stone-700">
+                      {data.missingItems}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                  <div className="text-sm font-medium text-amber-900">
+                    A gentle suggestion
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-amber-800">
+                    Open Documents, add records for each category, and mark it protected
+                    when you feel it's covered. Even one category is a gift to your family.
+                  </p>
+                </div>
+
+                <div className="mt-5">
+                  <Link
+                    href="/dashboard/readiness/documents"
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-amber-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-amber-700"
+                  >
+                    Go to Documents
+                  </Link>
+                </div>
+              </section>
+            </div>
           </div>
-        )}
-      </div>
+        </section>
+      </main>
     </div>
-  )
+  );
 }
