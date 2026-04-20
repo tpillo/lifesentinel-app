@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/dashboard/readiness/deployment", label: "Pre-Deployment" },
   { href: "/dashboard/readiness/survivor", label: "Survivor" },
   { href: "/dashboard/guardian", label: "Share" },
+  { href: "/profile-setup", label: "Profile" },
 ];
 
 export default function DashboardHeader() {
