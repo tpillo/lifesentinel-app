@@ -44,7 +44,7 @@ export default function RegisterPage() {
     // If Supabase returned an active session, email confirmation is off — go straight to dashboard.
     // If session is null, confirmation email was sent and the user needs to verify first.
     if (data.session) {
-      router.replace("/dashboard/readiness/overview");
+      router.replace("/profile-setup");
     } else {
       setConfirmed(true);
     }
