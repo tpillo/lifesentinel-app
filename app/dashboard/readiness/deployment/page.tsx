@@ -50,7 +50,7 @@ const SECTIONS: Section[] = [
         description:
           "A General POA gives your spouse or designated person authority to handle financial, legal, and administrative matters on your behalf while you are deployed. Without it, they may be unable to sign for a car repair, close a bank account, or handle housing issues. Execute this at the installation legal office — it is free for service members.",
         critical: true,
-        documents: ["Legal"],
+        documents: ["Legal", "Deployment"],
         tip: "Get it notarized and make multiple certified copies. Your spouse should keep one, your attorney should have one, and one should be in the vault.",
         contact: "Installation Legal Assistance Office (free for service members)",
       },
@@ -60,7 +60,7 @@ const SECTIONS: Section[] = [
         description:
           "Every deploying service member should have a current will. Review beneficiaries, guardianship of minor children, and executor designation. If you got married, had children, bought property, or divorced since your last will, it needs to be updated. This is also free at the installation legal office.",
         critical: true,
-        documents: ["Legal"],
+        documents: ["Legal", "Deployment"],
         contact: "Installation Legal Assistance Office (free for service members)",
       },
       {
@@ -68,7 +68,7 @@ const SECTIONS: Section[] = [
         title: "Execute a Healthcare Power of Attorney",
         description:
           "Designates who can make medical decisions for you if you are incapacitated. Separate from general POA. Also consider a living will / advance directive stating your wishes for end-of-life care.",
-        documents: ["Legal"],
+        documents: ["Legal", "Deployment"],
       },
       {
         id: "sgli-beneficiary",
@@ -76,7 +76,7 @@ const SECTIONS: Section[] = [
         description:
           "Confirm who receives your Service Members' Group Life Insurance (up to $500,000) in the event of your death. Update via SOES (Servicemembers' Online Enrollment System) at milConnect or with your unit's personnel office. SGLI beneficiary designations override your will — make sure they match your intent.",
         critical: true,
-        documents: ["Insurance", "Military"],
+        documents: ["Insurance", "Deployment"],
         contact: "milConnect: milconnect.dmdc.osd.mil",
       },
       {
@@ -84,7 +84,7 @@ const SECTIONS: Section[] = [
         title: "Update TSP beneficiary designation",
         description:
           "Your Thrift Savings Plan beneficiary may be different from your SGLI beneficiary. Log in to tsp.gov to confirm or update. Like SGLI, TSP beneficiary designations override your will.",
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
         contact: "TSP: tsp.gov or 1-877-968-3778",
       },
       {
@@ -93,7 +93,7 @@ const SECTIONS: Section[] = [
         description:
           "The DD-93 designates your emergency contacts and beneficiaries for official notification purposes. It must be current before every deployment. Your unit's S1 or admin section will require this. Ensure beneficiary designations are consistent with SGLI and your will.",
         critical: true,
-        documents: ["Military"],
+        documents: ["Military", "Deployment"],
         contact: "Unit S1 / Personnel Office",
       },
     ],
@@ -111,7 +111,7 @@ const SECTIONS: Section[] = [
         description:
           "If your accounts are in your name only, your spouse may be unable to access funds during deployment. Visit your bank or use online banking to add them. Both USAA and Navy Federal allow this remotely.",
         critical: true,
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
       },
       {
         id: "spouse-credit",
@@ -125,21 +125,21 @@ const SECTIONS: Section[] = [
         description:
           "Mortgage or rent, utilities, car payment, insurance premiums, phone, internet — set every recurring bill to auto-pay from a joint account. Leave a written list of what's automated and what requires manual action.",
         tip: "Create a simple spreadsheet: bill name, amount, due date, payment method, and login credentials stored securely in the vault.",
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
       },
       {
         id: "budget-plan",
         title: "Create a written household budget plan",
         description:
           "Document monthly income (including deployment pay, BAH, BAS), fixed expenses, and discretionary spending. Your spouse should know exactly what comes in and goes out each month.",
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
       },
       {
         id: "emergency-fund",
         title: "Confirm the emergency fund is accessible to your spouse",
         description:
           "Ensure you have 3–6 months of expenses in a joint savings account your spouse can access. Murphy's Law applies especially during deployments — home repairs, car breakdowns, and medical bills don't pause.",
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
       },
       {
         id: "allotment",
@@ -170,7 +170,7 @@ const SECTIONS: Section[] = [
         title: "Confirm TRICARE enrollment and coverage",
         description:
           "Review your family's TRICARE plan and confirm your family knows how to use it. Locate the nearest MTF (Military Treatment Facility) and the TRICARE regional contractor. Leave insurance cards and plan information in the vault.",
-        documents: ["Insurance"],
+        documents: ["Insurance", "Deployment"],
         contact: "TRICARE: tricare.mil or 1-800-444-5445",
       },
       {
@@ -191,7 +191,7 @@ const SECTIONS: Section[] = [
         title: "Share Rear Detachment Commander contact information",
         description:
           "Your family should know who to call at the unit for emergencies, casualty notifications, or urgent issues. The Rear-D Commander is the primary point of contact while you are deployed.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
       {
         id: "mypay-spouse",
@@ -215,14 +215,14 @@ const SECTIONS: Section[] = [
         description:
           "Deployment orders may be needed for school enrollment, legal matters, and accessing benefits. Upload to the Military category in the vault.",
         critical: true,
-        documents: ["Military"],
+        documents: ["Military", "Deployment"],
       },
       {
         id: "upload-identity",
         title: "Upload copies of all identity documents",
         description:
           "Passports, Social Security cards, birth certificates, marriage certificate, and adoption papers for all family members. If a document is lost or stolen while you're deployed, your spouse will need these.",
-        documents: ["Identity"],
+        documents: ["Identity", "Deployment"],
       },
       {
         id: "upload-legal",
@@ -230,35 +230,35 @@ const SECTIONS: Section[] = [
         description:
           "Once executed, upload scanned copies to the Legal category. The originals should be with your attorney or in a safe; the vault gives your family digital access.",
         critical: true,
-        documents: ["Legal"],
+        documents: ["Legal", "Deployment"],
       },
       {
         id: "upload-insurance",
         title: "Upload all insurance policies and cards",
         description:
           "SGLI policy documents, TRICARE cards, auto insurance, home/renter's insurance, and any supplemental life insurance. Include the SGLI beneficiary designation.",
-        documents: ["Insurance"],
+        documents: ["Insurance", "Deployment"],
       },
       {
         id: "upload-finance",
         title: "Upload a financial summary",
         description:
           "A document listing all bank accounts, investment accounts, TSP balance, outstanding loans, credit cards, and monthly bills — with account numbers, contact numbers, and login instructions. Encrypt sensitive items if storing plaintext.",
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
       },
       {
         id: "upload-vehicle",
         title: "Upload vehicle registrations and titles",
         description:
           "If a vehicle is in your name only, your spouse may need proof of ownership for registration renewal, insurance claims, or emergency sale.",
-        documents: ["Finance"],
+        documents: ["Finance", "Deployment"],
       },
       {
         id: "upload-family",
         title: "Leave emergency contacts and household instructions",
         description:
           "Trusted neighbors, family members, childcare contacts, school info, pediatrician, vet, and a home systems guide (circuit breakers, water shutoff, HVAC filters). Upload to the Family category.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
     ],
   },
@@ -274,7 +274,7 @@ const SECTIONS: Section[] = [
         title: "Leave a list of trusted home repair contacts",
         description:
           "Plumber, electrician, HVAC technician, locksmith, and a general handyman. Your spouse should know who to call and roughly what things cost so they aren't taken advantage of.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
       {
         id: "vehicle-maintenance",
@@ -287,7 +287,7 @@ const SECTIONS: Section[] = [
         title: "Establish a childcare backup plan",
         description:
           "What happens if the primary daycare is closed or a child gets sick? Identify at least two backup caregivers your children know and trust. Document their contacts in the Family section of the vault.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
       {
         id: "spare-keys",
@@ -300,14 +300,14 @@ const SECTIONS: Section[] = [
         title: "Update school emergency contacts and authorized pickup list",
         description:
           "Schools need to know who can pick up your children in an emergency. Update their records to include trusted adults who can act in your absence.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
       {
         id: "pet-plan",
         title: "Create a plan for pets",
         description:
           "If your spouse cannot care for pets alone, identify a backup caregiver. Ensure vaccinations are current and upload records to the vault. A signed authorization letter allows a vet to treat your pet in an emergency.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
     ],
   },
@@ -342,7 +342,7 @@ const SECTIONS: Section[] = [
         title: "Identify a 'second contact' for your family",
         description:
           "A trusted person your family can call if they need advice, support, or help when you're unreachable — and if they're unsure whether something rises to the level of a unit notification. Typically a trusted friend, neighbor, or nearby family member.",
-        documents: ["Family"],
+        documents: ["Family", "Deployment"],
       },
       {
         id: "apo-address",
@@ -412,23 +412,29 @@ export default function DeploymentChecklistPage() {
     loadDocs();
   }, []);
 
-  async function uploadFile(itemId: string, category: string, file: File) {
-    const doc = docsByCat[category];
-    if (!doc) return;
+  async function uploadFile(itemId: string, categories: string[], file: File) {
     setUploadingItem(itemId);
     try {
-      const form = new FormData();
-      form.append("readiness_document_id", doc.id);
-      form.append("file", file);
-      const res = await fetch("/api/readiness/documents/upload", { method: "POST", body: form });
-      const data = await res.json();
-      if (data.ok && data.file) {
-        setFilesByDocId((prev) => {
-          const updated = { ...prev };
-          updated[doc.id] = [data.file, ...(updated[doc.id] ?? [])];
-          return updated;
-        });
-      }
+      const docs = categories.map((c) => docsByCat[c]).filter(Boolean);
+      const results = await Promise.all(
+        docs.map(async (doc) => {
+          const form = new FormData();
+          form.append("readiness_document_id", doc.id);
+          form.append("file", file);
+          const res = await fetch("/api/readiness/documents/upload", { method: "POST", body: form });
+          return res.json();
+        })
+      );
+      setFilesByDocId((prev) => {
+        const updated = { ...prev };
+        for (const data of results) {
+          if (data.ok && data.file) {
+            const docId = data.file.readiness_document_id;
+            updated[docId] = [data.file, ...(updated[docId] ?? [])];
+          }
+        }
+        return updated;
+      });
     } finally {
       setUploadingItem(null);
     }
@@ -657,15 +663,22 @@ export default function DeploymentChecklistPage() {
                           </div>
 
                           {item.documents && (() => {
-                            const targetCat = item.documents[0];
-                            const targetDoc = docsByCat[targetCat];
-                            const files = targetDoc ? (filesByDocId[targetDoc.id] ?? []) : [];
+                            const allFiles = item.documents
+                              .map((c) => docsByCat[c])
+                              .filter(Boolean)
+                              .flatMap((doc) => filesByDocId[doc.id] ?? []);
+                            const seen = new Set<string>();
+                            const uniqueFiles = allFiles.filter((f) => {
+                              if (seen.has(f.file_name)) return false;
+                              seen.add(f.file_name);
+                              return true;
+                            });
                             const isUploading = uploadingItem === item.id;
                             return (
                               <div className="mt-3 space-y-2">
-                                {files.length > 0 && (
+                                {uniqueFiles.length > 0 && (
                                   <div className="rounded-xl border border-stone-200 bg-stone-50 divide-y divide-stone-100">
-                                    {files.map((f) => (
+                                    {uniqueFiles.map((f) => (
                                       <div key={f.id} className="flex items-center gap-2 px-3 py-2">
                                         <span className="text-stone-400 text-xs select-none">📎</span>
                                         <span className="text-xs text-stone-600 truncate flex-1 min-w-0">{f.file_name}</span>
@@ -691,7 +704,7 @@ export default function DeploymentChecklistPage() {
                                     disabled={isUploading}
                                     onChange={(e) => {
                                       const f = e.target.files?.[0];
-                                      if (f) uploadFile(item.id, targetCat, f);
+                                      if (f) uploadFile(item.id, item.documents!, f);
                                       e.target.value = "";
                                     }}
                                   />
