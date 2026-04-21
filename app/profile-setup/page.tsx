@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trackEvent } from "@/lib/gtag";
@@ -128,6 +128,8 @@ export default function ProfileSetupPage() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   const [form, setForm] = useState<FormData>({
     occupation_type: "",
@@ -146,6 +148,38 @@ export default function ProfileSetupPage() {
     marital_status: "",
     num_dependents: "",
   });
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok) return;
+        const { profile } = await res.json();
+        if (!profile) return;
+        setIsEditing(true);
+        setForm({
+          occupation_type: profile.occupation_type ?? "",
+          state: profile.state ?? "",
+          department_type: profile.department_type ?? "",
+          branch: profile.branch ?? "",
+          career_volunteer: profile.career_volunteer ?? "",
+          occupation: profile.occupation ?? "",
+          years_of_service: profile.years_of_service != null ? String(profile.years_of_service) : "",
+          status: profile.status ?? "",
+          va_disability_rating: profile.va_disability_rating ?? "",
+          va_pt_designation: profile.va_pt_designation ?? "",
+          service_connected_death: profile.service_connected_death ?? "",
+          full_name: profile.full_name ?? "",
+          date_of_birth: profile.date_of_birth ?? "",
+          marital_status: profile.marital_status ?? "",
+          num_dependents: profile.num_dependents != null ? String(profile.num_dependents) : "",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
 
   function set(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -194,6 +228,264 @@ export default function ProfileSetupPage() {
 
   const isDeceased = form.status === "deceased";
   const isMilitary = form.occupation_type === "military_veteran";
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
+          <p className="text-stone-500 text-sm">Loading your profile…</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (isEditing) {
+    return (
+      <main className="min-h-screen bg-[#faf8f5] px-4 py-12">
+        <div className="mx-auto w-full max-w-2xl space-y-6">
+
+          <div className="text-center mb-2">
+            <Link href="/" className="inline-block">
+              <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
+              <h1 className="font-serif text-2xl font-semibold text-stone-900 tracking-tight">Update Profile</h1>
+            </Link>
+            <p className="mt-2 text-sm text-stone-500">Keep your information current so your family sees the right benefits.</p>
+          </div>
+
+          {/* Occupation */}
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8">
+            <h2 className="font-serif text-lg font-semibold text-stone-900 mb-5">Occupation</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {OCCUPATION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set("occupation_type", opt.value)}
+                  className={`text-left rounded-2xl border-2 p-5 transition-all ${
+                    form.occupation_type === opt.value
+                      ? "border-amber-500 bg-amber-50"
+                      : "border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50"
+                  }`}
+                >
+                  <div className={`text-xl mb-3 select-none ${form.occupation_type === opt.value ? "text-amber-600" : "text-stone-400"}`}>{opt.icon}</div>
+                  <div className={`text-sm font-semibold mb-1 ${form.occupation_type === opt.value ? "text-amber-900" : "text-stone-900"}`}>{opt.label}</div>
+                  <div className="text-xs text-stone-500 leading-relaxed">{opt.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Service Details */}
+          {form.occupation_type && (
+            <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8 space-y-5">
+              <h2 className="font-serif text-lg font-semibold text-stone-900">Service Details</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700">State of residence</label>
+                <select value={form.state} onChange={(e) => set("state", e.target.value)} className={selectClass}>
+                  <option value="">Select your state…</option>
+                  {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {form.occupation_type === "law_enforcement" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Department type</label>
+                    <select value={form.department_type} onChange={(e) => set("department_type", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="city_police">City Police</option>
+                      <option value="county_sheriff">County Sheriff</option>
+                      <option value="state_trooper">State Trooper</option>
+                      <option value="federal">Federal Agency</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Years of service</label>
+                    <input type="number" min="0" max="60" value={form.years_of_service} onChange={(e) => set("years_of_service", e.target.value)} className={inputClass} placeholder="e.g. 12" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Status</label>
+                    <select value={form.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="active">Active</option>
+                      <option value="retired">Retired</option>
+                      <option value="deceased">Deceased (family member setting up)</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {form.occupation_type === "military_veteran" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Branch of service</label>
+                    <select value={form.branch} onChange={(e) => set("branch", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="army">Army</option>
+                      <option value="navy">Navy</option>
+                      <option value="marines">Marine Corps</option>
+                      <option value="air_force">Air Force</option>
+                      <option value="coast_guard">Coast Guard</option>
+                      <option value="space_force">Space Force</option>
+                      <option value="national_guard">National Guard</option>
+                      <option value="reserves">Reserves</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Service status</label>
+                    <select value={form.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="active_duty">Active Duty</option>
+                      <option value="veteran">Veteran</option>
+                      <option value="retired">Retired</option>
+                      <option value="separated">Separated</option>
+                      <option value="deceased">Deceased (family member setting up)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Years of service</label>
+                    <input type="number" min="0" max="60" value={form.years_of_service} onChange={(e) => set("years_of_service", e.target.value)} className={inputClass} placeholder="e.g. 8" />
+                  </div>
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-4 space-y-4">
+                    <p className="text-xs text-blue-800 leading-relaxed">
+                      A rating increase or new P&amp;T designation can unlock higher monthly benefits for your family. Update these whenever your VA rating changes.
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700">Combined VA Disability Rating</label>
+                      <select value={form.va_disability_rating} onChange={(e) => set("va_disability_rating", e.target.value)} className={selectClass}>
+                        <option value="">Select…</option>
+                        <option value="none">None</option>
+                        {[10,20,30,40,50,60,70,80,90,100].map((r) => (
+                          <option key={r} value={String(r)}>{r}%</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700">Permanent &amp; Total (P&amp;T) Designation</label>
+                      <select value={form.va_pt_designation} onChange={(e) => set("va_pt_designation", e.target.value)} className={selectClass}>
+                        <option value="">Select…</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="pending">Pending</option>
+                      </select>
+                    </div>
+                  </div>
+                  {isDeceased && (
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700">Was the cause of death service-connected?</label>
+                      <InfoBox>If the cause of death is service-connected, your family may qualify for significantly higher monthly compensation (DIC) for life.</InfoBox>
+                      <select value={form.service_connected_death} onChange={(e) => set("service_connected_death", e.target.value)} className={selectClass}>
+                        <option value="">Select…</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="unknown">Unknown</option>
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {form.occupation_type === "firefighter" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Career or volunteer?</label>
+                    <select value={form.career_volunteer} onChange={(e) => set("career_volunteer", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="career">Career</option>
+                      <option value="volunteer">Volunteer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Years of service</label>
+                    <input type="number" min="0" max="60" value={form.years_of_service} onChange={(e) => set("years_of_service", e.target.value)} className={inputClass} placeholder="e.g. 15" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Status</label>
+                    <select value={form.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="active">Active</option>
+                      <option value="retired">Retired</option>
+                      <option value="deceased">Deceased (family member setting up)</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {form.occupation_type === "civilian" && (
+                <div>
+                  <label className="block text-sm font-medium text-stone-700">Occupation</label>
+                  <input type="text" value={form.occupation} onChange={(e) => set("occupation", e.target.value)} className={inputClass} placeholder="e.g. Teacher, Software Engineer, Nurse…" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Personal Info */}
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8 space-y-5">
+            <h2 className="font-serif text-lg font-semibold text-stone-900">Personal Information</h2>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700">Full name</label>
+              <input type="text" value={form.full_name} onChange={(e) => set("full_name", e.target.value)} className={inputClass} placeholder="Your full legal name" autoComplete="name" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700">Date of birth</label>
+              <input type="date" value={form.date_of_birth} onChange={(e) => set("date_of_birth", e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700">Marital status</label>
+              <select value={form.marital_status} onChange={(e) => set("marital_status", e.target.value)} className={selectClass}>
+                <option value="">Select…</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="widowed">Widowed</option>
+                <option value="divorced">Divorced</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700">Number of dependent children under 23</label>
+              <FieldHint>Many survivor benefits include additional monthly payments for dependent children, plus education benefits through age 23.</FieldHint>
+              <input type="number" min="0" max="20" value={form.num_dependents} onChange={(e) => set("num_dependents", e.target.value)} className={inputClass} placeholder="0" />
+            </div>
+
+            {!isMilitary && isDeceased && (
+              <div>
+                <label className="block text-sm font-medium text-stone-700">Was the cause of death service-connected?</label>
+                <InfoBox>If the cause of death is service-connected, your family may qualify for significantly higher monthly compensation (DIC) for life.</InfoBox>
+                <select value={form.service_connected_death} onChange={(e) => set("service_connected_death", e.target.value)} className={selectClass}>
+                  <option value="">Select…</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</p>
+          )}
+
+          <div className="flex items-center justify-between pb-4">
+            <Link href="/dashboard/readiness/overview" className="text-sm text-stone-400 hover:text-stone-600 transition">
+              ← Back to dashboard
+            </Link>
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit() || saving}
+              className="rounded-xl bg-amber-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save Changes →"}
+            </button>
+          </div>
+
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#faf8f5] px-4 py-12">

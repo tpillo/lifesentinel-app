@@ -655,6 +655,20 @@ export default function BenefitsPage() {
           </div>
         )}
 
+        {/* Profile update reminder */}
+        {!profileLoading && profile?.occupation_type && (
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
+            <span className="text-stone-400 text-base select-none shrink-0 mt-0.5">↻</span>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              <strong className="text-stone-700">Keep your profile current.</strong> A VA disability rating increase,
+              new P&amp;T designation, change in dependents, or remarriage can unlock additional benefits.{" "}
+              <Link href="/profile-setup" className="text-amber-600 underline hover:text-amber-700">
+                Update your profile →
+              </Link>
+            </p>
+          </div>
+        )}
+
         {/* Federal Benefits */}
         {!profileLoading && benefits.length > 0 && (
           <section>
