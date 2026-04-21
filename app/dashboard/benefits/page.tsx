@@ -588,7 +588,9 @@ export default function BenefitsPage() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        setMarkdown((prev) => prev + decoder.decode(value, { stream: true }));
+        const chunk = decoder.decode(value, { stream: true });
+        const cleaned = chunk.replace(/^---+\s*$/gm, "").replace(/^\*\*\*+\s*$/gm, "").replace(/^___+\s*$/gm, "");
+        setMarkdown((prev) => prev + cleaned);
       }
       setStreamDone(true);
     } catch (err: unknown) {

@@ -72,7 +72,7 @@ function buildPrompt(profile: Record<string, any> | null): string {
     "",
     "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
     "Do NOT use markdown tables under any circumstances. Use bullet points for all lists including DIC breakdowns.",
-    "Do NOT use horizontal rules (---) or dividers of any kind. Use ## and ### headings to separate sections instead.",
+    "Do NOT use horizontal rules or dividers of any kind — no ---, no ***, no ___. Never output three or more dashes, asterisks, or underscores on a line. Use ## and ### headings to separate sections instead.",
     "Write in a warm, clear, family-friendly tone. This report will be read by a grieving family — be compassionate and practical.",
   );
 
