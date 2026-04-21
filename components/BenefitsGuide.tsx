@@ -426,23 +426,38 @@ function DeadlineTimeline() {
 
 // ── Main exported component ────────────────────────────────────────────
 
-export default function BenefitsGuide({ profile }: { profile: Profile }) {
+export default function BenefitsGuide({
+  profile,
+  veteranName,
+}: {
+  profile: Profile;
+  veteranName?: string | null;
+}) {
   const benefits = getBenefits(profile);
   const stateHasData = profile.state ? !!STATE_INFO[profile.state] : false;
+  const name = veteranName ?? "your loved one";
 
   return (
     <div className="space-y-8">
       <div className="rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 to-stone-50 px-8 py-8 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-amber-500 select-none text-lg">✦</span>
-          <h2 className="font-serif text-2xl font-semibold text-stone-900">Family Benefits Guide</h2>
+          <h2 className="font-serif text-2xl font-semibold text-stone-900">
+            {veteranName ? `What Your Family Is Entitled To` : "Family Benefits Guide"}
+          </h2>
         </div>
-        <p className="text-sm text-stone-500 leading-relaxed max-w-2xl mt-2">
-          These are the federal and state benefits your family may be entitled to. Benefits marked
-          <span className="mx-1 inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-800">✓ Likely Qualifies</span>
-          are based on the information on file.
-          <span className="ml-1 inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-medium text-amber-700">◎ Verify Eligibility</span>
-          means confirm with the VA or a VSO.
+        <p className="text-sm text-stone-600 leading-relaxed max-w-2xl mt-2">
+          {veteranName
+            ? `Based on ${name}'s service and profile, here is a summary of the benefits your family may be entitled to. Review each one carefully — some have time-sensitive deadlines.`
+            : "These are the federal and state benefits your family may be entitled to."
+          }
+        </p>
+        <p className="text-sm text-stone-500 leading-relaxed max-w-2xl mt-3">
+          Benefits marked{" "}
+          <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-800">✓ Likely Qualifies</span>
+          {" "}are based on the information on file.{" "}
+          <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-medium text-amber-700">◎ Verify Eligibility</span>
+          {" "}means confirm with the VA or a VSO before filing.
         </p>
       </div>
 
@@ -471,10 +486,18 @@ export default function BenefitsGuide({ profile }: { profile: Profile }) {
 
       <DeadlineTimeline />
 
-      <div className="rounded-2xl border border-stone-200 bg-stone-50 px-6 py-5 text-xs text-stone-500 leading-relaxed">
-        <strong className="text-stone-700">Important:</strong> This guide is for informational purposes only and does not constitute legal or financial advice.
-        Benefit amounts and eligibility rules change. A Veterans Service Organization (VSO) can help file claims for free —
-        find one at <a href="https://www.va.gov/vso" target="_blank" rel="noopener noreferrer" className="text-amber-600 underline">va.gov/vso</a>.
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-6 py-5 space-y-2">
+        <p className="text-sm font-semibold text-stone-700">Need help filing claims?</p>
+        <p className="text-sm text-stone-600 leading-relaxed">
+          Veterans Service Organizations (VSOs) provide free assistance filing VA claims — no cost to you, ever.
+          Find one near you at{" "}
+          <a href="https://www.va.gov/decision-reviews/get-help-with-your-decision" target="_blank" rel="noopener noreferrer" className="text-amber-600 underline">
+            va.gov/decision-reviews/get-help-with-your-decision
+          </a>.
+        </p>
+        <p className="text-xs text-stone-400 leading-relaxed pt-1">
+          This is a starting point for research, not legal or financial advice. Always verify eligibility with the VA or a VSO before filing.
+        </p>
       </div>
     </div>
   );

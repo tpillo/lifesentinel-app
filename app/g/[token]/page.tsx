@@ -498,6 +498,12 @@ export default function GuardianOverviewPage() {
           </div>
         </div>
 
+        {/* 1 — Benefits Guide */}
+        {data.profile?.occupation_type && (
+          <BenefitsGuide profile={data.profile} veteranName={veteranName} />
+        )}
+
+        {/* 2 — Gold Star prompt (military only, after benefits) */}
         {isMilitary && serviceConnected === null && (
           <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-stone-50 px-6 py-8 md:px-10 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
@@ -552,13 +558,14 @@ export default function GuardianOverviewPage() {
           </div>
         )}
 
+        {/* 3 — Documents */}
         {presentItems.length > 0 && (
           <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
             <h2 className="font-serif text-2xl font-semibold text-stone-900 mb-2">
-              Documents ready for you
+              Important Documents {veteranName ? `${veteranName} Left For You` : "Left For You"}
             </h2>
             <p className="text-sm text-stone-400 mb-6">
-              These categories have been prepared and are waiting for you in the vault.
+              These have been organized and are waiting for you in the vault.
             </p>
 
             <div className="space-y-3">
@@ -611,10 +618,6 @@ export default function GuardianOverviewPage() {
               ))}
             </div>
           </div>
-        )}
-
-        {data.profile?.occupation_type && (
-          <BenefitsGuide profile={data.profile} />
         )}
 
         <p className="text-center text-xs text-stone-400 pb-4">
