@@ -358,7 +358,7 @@ export default function ProfileSetupPage() {
                   </div>
 
                   {/* VA disability */}
-                  <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-5 py-5 space-y-4">
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-4 space-y-4">
                     <p className="text-xs text-blue-800 leading-relaxed">
                       These determine which federal and state benefits your family is entitled to
                       after your passing — many families miss thousands in benefits simply because

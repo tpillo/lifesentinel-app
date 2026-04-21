@@ -38,7 +38,7 @@ export default function DashboardHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           <nav className="flex items-center gap-1">
             {navLinks.map((link) => {
               const active = pathname === link.href || pathname?.startsWith(link.href);
@@ -68,7 +68,7 @@ export default function DashboardHeader() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMenuOpen((o) => !o)}
-          className="md:hidden flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition"
+          className="lg:hidden flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           <span className={`block h-0.5 w-5 bg-current transition-all duration-200 ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
@@ -79,7 +79,7 @@ export default function DashboardHeader() {
 
       {/* Mobile menu drawer */}
       {menuOpen && (
-        <div className="md:hidden border-t border-stone-100 bg-white px-6 pb-5 pt-3 space-y-1">
+        <div className="lg:hidden border-t border-stone-100 bg-white px-6 pb-5 pt-3 space-y-1">
           {navLinks.map((link) => {
             const active = pathname === link.href || pathname?.startsWith(link.href);
             return (

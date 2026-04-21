@@ -597,7 +597,7 @@ export default function BenefitsPage() {
       <main className="mx-auto max-w-4xl px-6 py-8 md:px-8 space-y-6">
 
         {/* Header */}
-        <div className="rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-800 to-stone-900 px-8 py-10 shadow-lg">
+        <div className="rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-800 to-stone-900 px-6 py-8 md:px-8 md:py-10 shadow-lg">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-600/40 bg-amber-600/20 px-3 py-1 text-xs font-medium text-amber-300 mb-4">
             ◆ Post-Death Survivor Benefits
           </div>
@@ -730,7 +730,7 @@ export default function BenefitsPage() {
           )}
 
           {(streamLoading || markdown) && (
-            <div className="rounded-3xl border border-stone-200 bg-white px-8 py-8 shadow-sm">
+            <div className="rounded-3xl border border-stone-200 bg-white px-5 py-6 md:px-8 md:py-8 shadow-sm">
               {streamLoading && !markdown && <StreamingSkeleton />}
               {markdown && <BenefitsContent markdown={markdown} />}
               {streamLoading && markdown && (

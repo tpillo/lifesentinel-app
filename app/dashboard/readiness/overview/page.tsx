@@ -333,7 +333,7 @@ export default function ReadinessOverviewPage() {
       <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10 space-y-6">
 
         {/* ── Family Benefits Guide Banner ── */}
-        <div className="flex flex-col gap-4 rounded-3xl border border-stone-700 bg-gradient-to-br from-stone-800 to-stone-900 px-7 py-6 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 rounded-3xl border border-stone-700 bg-gradient-to-br from-stone-800 to-stone-900 px-5 py-6 md:px-7 shadow-lg sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
             <span className="text-2xl select-none shrink-0 mt-0.5">📋</span>
             <div>

@@ -28,7 +28,7 @@ type OverviewResponse = {
 function GoldStarSection({ veteranName }: { veteranName: string | null }) {
   const name = veteranName ?? "the veteran"
   return (
-    <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-stone-50 px-8 py-8 shadow-sm">
+    <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-stone-50 px-5 py-6 md:px-8 md:py-8 shadow-sm">
       <div className="flex items-center gap-3 mb-2">
         <span className="text-2xl select-none">★</span>
         <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-0.5 text-xs font-semibold text-amber-800">
