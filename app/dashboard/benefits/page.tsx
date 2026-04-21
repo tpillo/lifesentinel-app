@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/DashboardHeader";
+import { RcsbpSection } from "@/components/BenefitsGuide";
 import { trackEvent } from "@/lib/gtag";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -19,6 +20,10 @@ type Profile = {
   status?: string | null;
   branch?: string | null;
   full_name?: string | null;
+  retirement_type?: string | null;
+  rcsbp_election?: string | null;
+  sbp_base_amount?: string | null;
+  collecting_retired_pay?: string | null;
 };
 
 type Eligibility = "yes" | "verify";
@@ -756,6 +761,9 @@ export default function BenefitsPage() {
             </div>
           )}
         </section>
+
+        {/* RCSBP */}
+        {!profileLoading && profile && <RcsbpSection profile={profile} />}
 
         {/* Deadlines */}
         {!profileLoading && <DeadlineTimeline />}
