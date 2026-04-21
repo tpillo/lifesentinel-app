@@ -39,6 +39,10 @@ export async function POST(req: Request) {
     va_disability_rating: body.va_disability_rating ?? null,
     va_pt_designation: body.va_pt_designation ?? null,
     service_connected_death: body.service_connected_death ?? null,
+    retirement_type: body.retirement_type ?? null,
+    rcsbp_election: body.rcsbp_election ?? null,
+    sbp_base_amount: body.sbp_base_amount ?? null,
+    collecting_retired_pay: body.collecting_retired_pay ?? null,
     updated_at: now,
   };
 

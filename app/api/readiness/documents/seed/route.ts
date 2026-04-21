@@ -98,6 +98,21 @@ const DEFAULT_SEED: SeedItem[] = [
     item_key: "benefits_guide_reviewed",
     item_label: "Family Benefits Guide Reviewed",
   },
+  {
+    category: "Survivor Readiness",
+    item_key: "rcsbp_election_confirmed",
+    item_label: "RCSBP Election Confirmed and Documented",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "dd_form_2656_5_uploaded",
+    item_label: "DD Form 2656-5 (RCSBP Election Certificate) Uploaded",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "dfas_contact_saved",
+    item_label: "DFAS Contact Number Saved (1-800-321-1080)",
+  },
 ];
 
 export async function GET() {

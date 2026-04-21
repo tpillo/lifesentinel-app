@@ -19,6 +19,10 @@ type FormData = {
   va_disability_rating: string;
   va_pt_designation: string;
   service_connected_death: string;
+  retirement_type: string;
+  rcsbp_election: string;
+  sbp_base_amount: string;
+  collecting_retired_pay: string;
   full_name: string;
   date_of_birth: string;
   marital_status: string;
@@ -123,6 +127,103 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
+function RcsbpOptionInfo({ option }: { option: string }) {
+  const [open, setOpen] = useState(false);
+  const tips: Record<string, string> = {
+    option_c: "Immediate Annuity: Your spouse begins receiving monthly payments the day after your death, regardless of your age. This is the most protective option and is the default if no election was made within 90 days of your 20-year letter.",
+    option_b: "Deferred Annuity: If you die before age 60, your spouse's payments don't start until the date you would have turned 60. If you die after 60, payments start immediately. This option costs less but provides a coverage gap.",
+    option_a: "Declined/Deferred: You chose not to enroll at the time of your 20-year letter. If you die before retired pay begins at age 60, your spouse receives no annuity. You can still enroll in standard SBP when retired pay begins.",
+  };
+  if (!tips[option]) return null;
+  return (
+    <button type="button" onClick={() => setOpen((o) => !o)} className="mt-1 text-xs text-amber-600 underline hover:text-amber-700">
+      {open ? "Hide explanation ↑" : "What does this mean? ↓"}
+      {open && <p className="mt-2 text-left text-xs text-stone-600 leading-relaxed font-normal no-underline">{tips[option]}</p>}
+    </button>
+  );
+}
+
+function RetirementFields({
+  form,
+  set,
+  isReserveRetirement,
+  selectClass,
+}: {
+  form: FormData;
+  set: (field: keyof FormData, value: string) => void;
+  isReserveRetirement: boolean;
+  selectClass: string;
+}) {
+  return (
+    <>
+      <div>
+        <label className="block text-sm font-medium text-stone-700">Retirement Type</label>
+        <p className="mt-1 text-xs text-stone-400 leading-relaxed">
+          Reserve and National Guard retirees have different survivor benefit rules than active duty retirees.
+          Selecting the correct type ensures your family sees accurate benefit information.
+        </p>
+        <select value={form.retirement_type} onChange={(e) => set("retirement_type", e.target.value)} className={selectClass}>
+          <option value="">Select…</option>
+          <option value="active_duty">Active Duty Retirement</option>
+          <option value="reserve_ng">Reserve / National Guard Retirement (20-year letter)</option>
+          <option value="not_eligible">Not yet eligible for retirement</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </div>
+
+      {isReserveRetirement && (
+        <>
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-4 space-y-4">
+            <p className="text-xs text-blue-800 leading-relaxed">
+              When you received your 20-year letter, you had 90 days to elect RCSBP coverage. Your election determines
+              whether your spouse receives a monthly annuity after your death — and when those payments begin.
+              If you&apos;re unsure what you elected, check your DD Form 2656-5 or contact DFAS at 1-800-321-1080.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700">RCSBP Election</label>
+              <p className="mt-1 text-xs text-stone-400">Did you elect RCSBP coverage when you received your 20-year letter?</p>
+              <select value={form.rcsbp_election} onChange={(e) => set("rcsbp_election", e.target.value)} className={selectClass}>
+                <option value="">Select…</option>
+                <option value="option_c">Option C — Immediate Annuity (spouse receives annuity immediately upon my death, at any age)</option>
+                <option value="option_b">Option B — Deferred Annuity (spouse receives annuity starting when I would have turned 60, if I die before then)</option>
+                <option value="option_a">Option A — Declined / Deferred to age 60 (no coverage if I die before retirement pay begins)</option>
+                <option value="unknown">I&apos;m not sure / need to check my paperwork</option>
+              </select>
+              {form.rcsbp_election && <RcsbpOptionInfo option={form.rcsbp_election} />}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700">SBP Base Amount</label>
+              <p className="mt-1 text-xs text-stone-400">What base amount did you elect for SBP coverage?</p>
+              <select value={form.sbp_base_amount} onChange={(e) => set("sbp_base_amount", e.target.value)} className={selectClass}>
+                <option value="">Select…</option>
+                <option value="full">Full retired pay</option>
+                <option value="reduced">Reduced amount (custom coverage)</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700">Currently Receiving Retired Pay?</label>
+              <p className="mt-1 text-xs text-stone-400">
+                Gray area retirees have completed 20 years of qualifying service and received their 20-year letter,
+                but are not yet receiving retired pay (typically between the 20-year letter and age 60).
+                If you elected Option C or B, your RCSBP coverage is active during this period.
+              </p>
+              <select value={form.collecting_retired_pay} onChange={(e) => set("collecting_retired_pay", e.target.value)} className={selectClass}>
+                <option value="">Select…</option>
+                <option value="yes">Yes — collecting at age 60+</option>
+                <option value="no">No — in the &quot;gray area&quot; (have 20-year letter but not yet collecting)</option>
+              </select>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 export default function ProfileSetupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -143,6 +244,10 @@ export default function ProfileSetupPage() {
     va_disability_rating: "",
     va_pt_designation: "",
     service_connected_death: "",
+    retirement_type: "",
+    rcsbp_election: "",
+    sbp_base_amount: "",
+    collecting_retired_pay: "",
     full_name: "",
     date_of_birth: "",
     marital_status: "",
@@ -169,6 +274,10 @@ export default function ProfileSetupPage() {
           va_disability_rating: profile.va_disability_rating ?? "",
           va_pt_designation: profile.va_pt_designation ?? "",
           service_connected_death: profile.service_connected_death ?? "",
+          retirement_type: profile.retirement_type ?? "",
+          rcsbp_election: profile.rcsbp_election ?? "",
+          sbp_base_amount: profile.sbp_base_amount ?? "",
+          collecting_retired_pay: profile.collecting_retired_pay ?? "",
           full_name: profile.full_name ?? "",
           date_of_birth: profile.date_of_birth ?? "",
           marital_status: profile.marital_status ?? "",
@@ -228,6 +337,8 @@ export default function ProfileSetupPage() {
 
   const isDeceased = form.status === "deceased";
   const isMilitary = form.occupation_type === "military_veteran";
+  const showRetirementType = isMilitary && (form.status === "retired" || form.status === "veteran");
+  const isReserveRetirement = form.retirement_type === "reserve_ng";
 
   if (loading) {
     return (
@@ -385,6 +496,7 @@ export default function ProfileSetupPage() {
                       </select>
                     </div>
                   )}
+                  {showRetirementType && <RetirementFields form={form} set={set} isReserveRetirement={isReserveRetirement} selectClass={selectClass} />}
                 </>
               )}
 
@@ -697,6 +809,9 @@ export default function ProfileSetupPage() {
                       </select>
                     </div>
                   )}
+
+                  {/* Retirement type */}
+                  {showRetirementType && <RetirementFields form={form} set={set} isReserveRetirement={isReserveRetirement} selectClass={selectClass} />}
                 </>
               )}
 

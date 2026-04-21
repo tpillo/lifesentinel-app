@@ -14,6 +14,10 @@ export type Profile = {
   status?: string | null;
   branch?: string | null;
   full_name?: string | null;
+  retirement_type?: string | null;
+  rcsbp_election?: string | null;
+  sbp_base_amount?: string | null;
+  collecting_retired_pay?: string | null;
 };
 
 type Eligibility = "yes" | "verify";
@@ -424,6 +428,111 @@ function DeadlineTimeline() {
   );
 }
 
+// ── RCSBP Card ─────────────────────────────────────────────────────────
+
+function RcsbpCard({ profile, guardian = false }: { profile: Profile; guardian?: boolean }) {
+  const election = profile.rcsbp_election;
+  const isGrayArea = profile.collecting_retired_pay === "no";
+  const baseLabel = profile.sbp_base_amount === "full" ? "full retired pay" : profile.sbp_base_amount === "reduced" ? "your elected reduced base amount" : "your elected base amount";
+  const name = profile.full_name ?? "the veteran";
+
+  const content = {
+    option_c: {
+      icon: "✓",
+      color: "emerald",
+      headline: guardian ? `${name} elected Immediate Annuity (Option C) — Your spouse is protected.` : "✓ Your spouse is protected now.",
+      body: guardian
+        ? `${name} elected an Immediate Annuity (Option C). Your monthly annuity begins the day after their death — at any age. Contact DFAS immediately at 1-800-321-1080 with the death certificate to start your annuity.`
+        : `You elected an Immediate Annuity (Option C). If you die at any age — including during the gray area before age 60 — your spouse will begin receiving a monthly SBP annuity the day after your death.`,
+      details: [
+        `Monthly annuity: ~55% of ${baseLabel} (tax-free, for life)`,
+        "Payments begin: the day after death — no waiting period",
+        guardian ? "Have your DD Form 2656-5 (RCSBP election certificate) ready — it should be in the document vault" : "Store your DD Form 2656-5 (RCSBP election certificate) in this vault",
+        "DFAS contact: 1-800-321-1080",
+      ],
+    },
+    option_b: {
+      icon: "⚠",
+      color: "amber",
+      headline: guardian ? `${name} elected Deferred Annuity (Option B) — Note the timing.` : "⚠ Coverage gap before age 60.",
+      body: guardian
+        ? `${name} elected a Deferred Annuity (Option B). Your annuity IS owed to you — but if ${name} died before age 60, payments won't begin until the date they would have turned 60. If they died after 60, contact DFAS now.`
+        : `You elected a Deferred Annuity (Option B). Your spouse IS covered, but if you die before age 60, payments won't begin until the date you would have turned 60.`,
+      details: [
+        `Monthly annuity: ~55% of ${baseLabel} (when payments begin)`,
+        "If death before 60: payments start on veteran's 60th birthday",
+        "If death after 60: payments begin immediately",
+        "DFAS contact: 1-800-321-1080",
+      ],
+    },
+    option_a: {
+      icon: "⚠",
+      color: "red",
+      headline: "⚠ No RCSBP coverage currently.",
+      body: "You declined coverage at your 20-year letter (Option A). If you die before retired pay begins at age 60, your spouse will not receive an SBP annuity. However, when you begin collecting retired pay at age 60, you can enroll in standard SBP at that time.",
+      details: [
+        "No annuity if death occurs before age 60",
+        "Action: Review SBP enrollment options when you reach retirement age",
+        "Contact DFAS for options: 1-800-321-1080",
+      ],
+    },
+    unknown: {
+      icon: "❓",
+      color: "amber",
+      headline: "❓ RCSBP election unknown — action required.",
+      body: "Your RCSBP election status is unclear. This is critical information for your family. Steps to find out:",
+      details: [
+        "Locate your DD Form 2656-5 (RCSBP Election Certificate) — store a copy in this vault",
+        "Contact DFAS at 1-800-321-1080",
+        "Log in to myPay at mypay.dfas.mil to view your SBP coverage",
+        "Update your LifeSentinel profile once confirmed",
+      ],
+    },
+  };
+
+  const key = (election as keyof typeof content) ?? "unknown";
+  const card = content[key] ?? content.unknown;
+
+  const borderColor = card.color === "emerald" ? "border-emerald-200 bg-emerald-50/40"
+    : card.color === "red" ? "border-red-200 bg-red-50"
+    : "border-amber-200 bg-amber-50/40";
+
+  return (
+    <div className={`rounded-2xl border px-6 py-5 ${borderColor}`}>
+      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+        <h3 className="font-serif text-base font-semibold text-stone-900">{card.headline}</h3>
+        {isGrayArea && !guardian && (
+          <span className="shrink-0 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
+            Gray Area Retiree
+          </span>
+        )}
+      </div>
+      <p className="text-sm text-stone-600 leading-relaxed mb-3">{card.body}</p>
+      <ul className="space-y-1.5 text-sm text-stone-600">
+        {card.details.map((d, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+            <span>{d}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function RcsbpSection({ profile, guardian = false }: { profile: Profile; guardian?: boolean }) {
+  if (profile.retirement_type !== "reserve_ng") return null;
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-amber-500 select-none">◈</span>
+        <h2 className="font-serif text-xl font-semibold text-stone-900">Reserve Retirement &amp; SBP/RCSBP</h2>
+      </div>
+      <RcsbpCard profile={profile} guardian={guardian} />
+    </section>
+  );
+}
+
 // ── Main exported component ────────────────────────────────────────────
 
 export default function BenefitsGuide({
@@ -483,6 +592,8 @@ export default function BenefitsGuide({
           <StateCard state={profile.state} />
         </section>
       )}
+
+      <RcsbpSection profile={profile} guardian={!!veteranName} />
 
       <DeadlineTimeline />
 

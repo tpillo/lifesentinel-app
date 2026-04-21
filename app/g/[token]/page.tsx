@@ -23,6 +23,10 @@ type VeteranProfile = {
   marital_status: string | null
   years_of_service: number | null
   branch: string | null
+  retirement_type: string | null
+  rcsbp_election: string | null
+  sbp_base_amount: string | null
+  collecting_retired_pay: string | null
 }
 
 type OverviewResponse = {
