@@ -18,6 +18,9 @@ export type Profile = {
   rcsbp_election?: string | null;
   sbp_base_amount?: string | null;
   collecting_retired_pay?: string | null;
+  branches_served?: string[] | null;
+  retirement_branch?: string | null;
+  primary_service_branch?: string | null;
 };
 
 type Eligibility = "yes" | "verify";

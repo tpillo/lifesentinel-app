@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       .order("item_label", { ascending: true }),
     supabaseAdmin
       .from("profiles")
-      .select("full_name, service_connected_death, status, occupation_type, va_disability_rating, va_pt_designation, state, num_dependents, marital_status, years_of_service, branch, retirement_type, rcsbp_election, sbp_base_amount, collecting_retired_pay")
+      .select("full_name, service_connected_death, status, occupation_type, va_disability_rating, va_pt_designation, state, num_dependents, marital_status, years_of_service, branch, retirement_type, rcsbp_election, sbp_base_amount, collecting_retired_pay, branches_served, retirement_branch, primary_service_branch")
       .eq("user_id", link.owner_user_id)
       .maybeSingle(),
   ]);

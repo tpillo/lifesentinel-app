@@ -113,6 +113,26 @@ const DEFAULT_SEED: SeedItem[] = [
     item_key: "dfas_contact_saved",
     item_label: "DFAS Contact Number Saved (1-800-321-1080)",
   },
+  {
+    category: "Survivor Readiness",
+    item_key: "branches_documented",
+    item_label: "All Branches of Service Documented",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "retirement_branch_confirmed",
+    item_label: "Retirement Branch Confirmed",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "ceremony_branch_noted",
+    item_label: "Preferred Branch for Ceremonies Noted",
+  },
+  {
+    category: "Survivor Readiness",
+    item_key: "vso_memberships_stored",
+    item_label: "Veteran Service Organization Memberships Stored in Vault",
+  },
 ];
 
 export async function GET() {

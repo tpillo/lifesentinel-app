@@ -12,6 +12,9 @@ type FormData = {
   state: string;
   department_type: string;
   branch: string;
+  branches_served: string[];
+  retirement_branch: string;
+  primary_service_branch: string;
   career_volunteer: string;
   occupation: string;
   years_of_service: string;
@@ -127,6 +130,82 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
+const BRANCHES = [
+  { value: "army", label: "Army" },
+  { value: "navy", label: "Navy" },
+  { value: "marines", label: "Marine Corps" },
+  { value: "air_force", label: "Air Force" },
+  { value: "coast_guard", label: "Coast Guard" },
+  { value: "space_force", label: "Space Force" },
+  { value: "national_guard", label: "National Guard" },
+  { value: "reserves", label: "Reserves" },
+];
+
+function BranchFields({
+  form,
+  set,
+  toggleBranch,
+  selectClass,
+}: {
+  form: FormData;
+  set: (field: keyof FormData, value: string) => void;
+  toggleBranch: (b: string) => void;
+  selectClass: string;
+}) {
+  const multipleSelected = form.branches_served.length > 1;
+  return (
+    <>
+      <div>
+        <label className="block text-sm font-medium text-stone-700 mb-1">Branches Served</label>
+        <p className="text-xs text-stone-400 mb-2">Select all that apply</p>
+        <div className="grid grid-cols-2 gap-2">
+          {BRANCHES.map((b) => {
+            const checked = form.branches_served.includes(b.value);
+            return (
+              <button
+                key={b.value}
+                type="button"
+                onClick={() => toggleBranch(b.value)}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium text-left transition ${
+                  checked
+                    ? "border-amber-500 bg-amber-50 text-amber-900"
+                    : "border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50"
+                }`}
+              >
+                <span className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${checked ? "border-amber-500 bg-amber-500" : "border-stone-300"}`}>
+                  {checked && <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </span>
+                {b.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {multipleSelected && (
+        <div>
+          <label className="block text-sm font-medium text-stone-700">Retirement Branch</label>
+          <p className="text-xs text-stone-400 mt-0.5 mb-1">Which branch are you officially retired from or will retire from?</p>
+          <select value={form.retirement_branch} onChange={(e) => set("retirement_branch", e.target.value)} className={selectClass}>
+            <option value="">Select…</option>
+            {BRANCHES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-stone-700">Primary Service Identity</label>
+        <p className="text-xs text-stone-400 mt-0.5 mb-1">Which branch do you most identify with for ceremony and memorial purposes?</p>
+        <FieldHint>This helps your Guardian notify the right veteran organizations and arrange branch-appropriate honors and ceremonies.</FieldHint>
+        <select value={form.primary_service_branch} onChange={(e) => set("primary_service_branch", e.target.value)} className={selectClass}>
+          <option value="">Select…</option>
+          {BRANCHES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+        </select>
+      </div>
+    </>
+  );
+}
+
 function RcsbpOptionInfo({ option }: { option: string }) {
   const [open, setOpen] = useState(false);
   const tips: Record<string, string> = {
@@ -237,6 +316,9 @@ export default function ProfileSetupPage() {
     state: "",
     department_type: "",
     branch: "",
+    branches_served: [],
+    retirement_branch: "",
+    primary_service_branch: "",
     career_volunteer: "",
     occupation: "",
     years_of_service: "",
@@ -267,6 +349,9 @@ export default function ProfileSetupPage() {
           state: profile.state ?? "",
           department_type: profile.department_type ?? "",
           branch: profile.branch ?? "",
+          branches_served: Array.isArray(profile.branches_served) ? profile.branches_served : [],
+          retirement_branch: profile.retirement_branch ?? "",
+          primary_service_branch: profile.primary_service_branch ?? "",
           career_volunteer: profile.career_volunteer ?? "",
           occupation: profile.occupation ?? "",
           years_of_service: profile.years_of_service != null ? String(profile.years_of_service) : "",
@@ -294,6 +379,16 @@ export default function ProfileSetupPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function toggleBranch(branch: string) {
+    setForm((prev) => {
+      const current = prev.branches_served;
+      const next = current.includes(branch)
+        ? current.filter((b) => b !== branch)
+        : [...current, branch];
+      return { ...prev, branches_served: next };
+    });
+  }
+
   function canAdvanceStep1() {
     return form.occupation_type !== "";
   }
@@ -301,7 +396,7 @@ export default function ProfileSetupPage() {
   function canAdvanceStep2() {
     if (!form.state) return false;
     if (form.occupation_type === "law_enforcement") return !!form.department_type && !!form.status;
-    if (form.occupation_type === "military_veteran") return !!form.branch && !!form.status;
+    if (form.occupation_type === "military_veteran") return form.branches_served.length > 0 && !!form.status;
     if (form.occupation_type === "firefighter") return !!form.career_volunteer && !!form.status;
     if (form.occupation_type === "civilian") return !!form.occupation;
     return false;
@@ -431,20 +526,7 @@ export default function ProfileSetupPage() {
 
               {form.occupation_type === "military_veteran" && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Branch of service</label>
-                    <select value={form.branch} onChange={(e) => set("branch", e.target.value)} className={selectClass}>
-                      <option value="">Select…</option>
-                      <option value="army">Army</option>
-                      <option value="navy">Navy</option>
-                      <option value="marines">Marine Corps</option>
-                      <option value="air_force">Air Force</option>
-                      <option value="coast_guard">Coast Guard</option>
-                      <option value="space_force">Space Force</option>
-                      <option value="national_guard">National Guard</option>
-                      <option value="reserves">Reserves</option>
-                    </select>
-                  </div>
+                  <BranchFields form={form} set={set} toggleBranch={toggleBranch} selectClass={selectClass} />
                   <div>
                     <label className="block text-sm font-medium text-stone-700">Service status</label>
                     <select value={form.status} onChange={(e) => set("status", e.target.value)} className={selectClass}>
@@ -729,20 +811,7 @@ export default function ProfileSetupPage() {
               {/* ── Military / Veteran ── */}
               {form.occupation_type === "military_veteran" && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Branch of service</label>
-                    <select value={form.branch} onChange={(e) => set("branch", e.target.value)} className={selectClass}>
-                      <option value="">Select…</option>
-                      <option value="army">Army</option>
-                      <option value="navy">Navy</option>
-                      <option value="marines">Marine Corps</option>
-                      <option value="air_force">Air Force</option>
-                      <option value="coast_guard">Coast Guard</option>
-                      <option value="space_force">Space Force</option>
-                      <option value="national_guard">National Guard</option>
-                      <option value="reserves">Reserves</option>
-                    </select>
-                  </div>
+                  <BranchFields form={form} set={set} toggleBranch={toggleBranch} selectClass={selectClass} />
 
                   <div>
                     <label className="block text-sm font-medium text-stone-700">Service status</label>

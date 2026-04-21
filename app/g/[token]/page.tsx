@@ -27,6 +27,9 @@ type VeteranProfile = {
   rcsbp_election: string | null
   sbp_base_amount: string | null
   collecting_retired_pay: string | null
+  branches_served: string[] | null
+  retirement_branch: string | null
+  primary_service_branch: string | null
 }
 
 type OverviewResponse = {
@@ -380,6 +383,125 @@ function GoldStarSection({ veteranName }: { veteranName: string | null }) {
   )
 }
 
+const BRANCH_LABELS: Record<string, string> = {
+  army: "Army", navy: "Navy", marines: "Marine Corps", air_force: "Air Force",
+  coast_guard: "Coast Guard", space_force: "Space Force", national_guard: "National Guard", reserves: "Reserves",
+};
+
+const BRANCH_ORGS: Record<string, { name: string; detail: string }[]> = {
+  marines: [
+    { name: "Marine Corps League", detail: "Notify local detachment" },
+    { name: "Marine Corps Association & Foundation", detail: "mcafoundation.org" },
+    { name: "Semper Fi & America's Fund", detail: "semperfifund.org" },
+    { name: "Marine for Life Network", detail: "Contact nearest USMC installation" },
+    { name: "Marine Corps Funeral Honors", detail: "Contact nearest USMC installation for a funeral honors detail" },
+  ],
+  army: [
+    { name: "Association of the United States Army (AUSA)", detail: "ausa.org" },
+    { name: "Army Retirement Services", detail: "myarmybenefits.us.army.mil" },
+    { name: "Army Funeral Honors", detail: "Contact nearest Army installation or 1-800-771-7666" },
+  ],
+  navy: [
+    { name: "Navy League", detail: "navyleague.org" },
+    { name: "Fleet Reserve Association", detail: "fra.org" },
+    { name: "Navy Funeral Honors", detail: "Contact nearest Navy installation" },
+  ],
+  air_force: [
+    { name: "Air Force Association", detail: "afa.org" },
+    { name: "Air Force Sergeants Association", detail: "hqafsa.org" },
+    { name: "Air Force Funeral Honors", detail: "Contact nearest Air Force installation" },
+  ],
+  coast_guard: [
+    { name: "Coast Guard Foundation", detail: "coastguardfoundation.org" },
+    { name: "Coast Guard Mutual Assistance", detail: "cgmahq.org" },
+    { name: "Coast Guard Funeral Honors", detail: "Contact nearest Coast Guard sector" },
+  ],
+  space_force: [
+    { name: "Space Force Association", detail: "sfassociation.org" },
+    { name: "Space Force Funeral Honors", detail: "Contact nearest Space Force installation" },
+  ],
+  national_guard: [
+    { name: "National Guard Association (NGAUS)", detail: "ngaus.org" },
+    { name: "National Guard Funeral Honors", detail: "Contact your state Adjutant General's office" },
+  ],
+  reserves: [
+    { name: "Reserve Officers Association (ROA)", detail: "roa.org" },
+    { name: "Reserve Component Funeral Honors", detail: "Contact your reserve unit or 1-877-645-4667" },
+  ],
+};
+
+function BranchSection({ profile }: { profile: { full_name: string | null; branches_served: string[] | null; retirement_branch: string | null; primary_service_branch: string | null; service_connected_death?: string | null; va_disability_rating?: string | null } }) {
+  const name = profile.full_name ?? "The veteran";
+  const branches = profile.branches_served ?? [];
+  const retirementBranch = profile.retirement_branch;
+  const primaryBranch = profile.primary_service_branch;
+
+  if (branches.length === 0 && !primaryBranch) return null;
+
+  const branchLabels = branches.map((b) => BRANCH_LABELS[b] ?? b);
+  const primaryOrgs = primaryBranch ? BRANCH_ORGS[primaryBranch] ?? [] : [];
+  const hasServiceConnected = profile.service_connected_death === "yes";
+  const hasDisability = profile.va_disability_rating && profile.va_disability_rating !== "none";
+
+  return (
+    <div className="rounded-3xl border border-stone-200 bg-white px-6 py-8 md:px-8 shadow-sm space-y-6">
+      <div>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-amber-500 select-none text-lg">✦</span>
+          <h2 className="font-serif text-2xl font-semibold text-stone-900">Service &amp; Memorial Information</h2>
+        </div>
+        <p className="text-sm text-stone-600 leading-relaxed">
+          {name} served in <strong className="text-stone-800">{branchLabels.length > 0 ? branchLabels.join(", ") : "the military"}</strong>.
+          {retirementBranch && <> They officially retired from the <strong className="text-stone-800">{BRANCH_LABELS[retirementBranch] ?? retirementBranch}</strong>.</>}
+          {primaryBranch && <> They identified primarily with the <strong className="text-stone-800">{BRANCH_LABELS[primaryBranch] ?? primaryBranch}</strong> for memorial and ceremony purposes.</>}
+        </p>
+      </div>
+
+      {primaryOrgs.length > 0 && (
+        <div>
+          <h3 className="font-serif text-base font-semibold text-stone-900 mb-3">
+            {BRANCH_LABELS[primaryBranch!] ?? primaryBranch} Organizations to Notify
+          </h3>
+          <ul className="space-y-2">
+            {primaryOrgs.map((org, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
+                <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+                <span><strong className="font-medium text-stone-800">{org.name}</strong> — {org.detail}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div>
+        <h3 className="font-serif text-base font-semibold text-stone-900 mb-3">All-Branch Organizations</h3>
+        <ul className="space-y-2">
+          {hasServiceConnected && (
+            <li className="flex items-start gap-2 text-sm text-stone-600">
+              <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+              <span><strong className="font-medium text-stone-800">VFW (Veterans of Foreign Wars)</strong> — Notify local post. vfw.org</span>
+            </li>
+          )}
+          <li className="flex items-start gap-2 text-sm text-stone-600">
+            <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+            <span><strong className="font-medium text-stone-800">American Legion</strong> — Notify local post. legion.org</span>
+          </li>
+          {hasDisability && (
+            <li className="flex items-start gap-2 text-sm text-stone-600">
+              <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+              <span><strong className="font-medium text-stone-800">DAV (Disabled American Veterans)</strong> — Free claims assistance. dav.org</span>
+            </li>
+          )}
+          <li className="flex items-start gap-2 text-sm text-stone-600">
+            <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+            <span><strong className="font-medium text-stone-800">DoD Military Funeral Honors</strong> — 1-877-645-4667 (all branches)</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export default function GuardianOverviewPage() {
   const params = useParams()
   const token = Array.isArray(params?.token) ? params.token[0] : params?.token ?? ""
@@ -622,6 +744,10 @@ export default function GuardianOverviewPage() {
               ))}
             </div>
           </div>
+        )}
+
+        {data.profile && (
+          <BranchSection profile={data.profile} />
         )}
 
         <p className="text-center text-xs text-stone-400 pb-4">
