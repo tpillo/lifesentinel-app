@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import BenefitsGuide from "@/components/BenefitsGuide"
 
 type OverviewItem = {
   id: string
@@ -15,6 +16,13 @@ type VeteranProfile = {
   service_connected_death: string | null
   status: string | null
   occupation_type: string | null
+  va_disability_rating: string | null
+  va_pt_designation: string | null
+  state: string | null
+  num_dependents: number | null
+  marital_status: string | null
+  years_of_service: number | null
+  branch: string | null
 }
 
 type OverviewResponse = {
@@ -603,6 +611,10 @@ export default function GuardianOverviewPage() {
               ))}
             </div>
           </div>
+        )}
+
+        {data.profile?.occupation_type && (
+          <BenefitsGuide profile={data.profile} />
         )}
 
         <p className="text-center text-xs text-stone-400 pb-4">

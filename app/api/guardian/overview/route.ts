@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       .order("item_label", { ascending: true }),
     supabaseAdmin
       .from("profiles")
-      .select("full_name, service_connected_death, status, occupation_type")
+      .select("full_name, service_connected_death, status, occupation_type, va_disability_rating, va_pt_designation, state, num_dependents, marital_status, years_of_service, branch")
       .eq("user_id", link.owner_user_id)
       .maybeSingle(),
   ]);
