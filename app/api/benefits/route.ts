@@ -63,6 +63,13 @@ function buildPrompt(profile: Record<string, any> | null): string {
     "### 5. Additional Resources & Less-Known Benefits",
     "Highlight any less-known benefits specific to this veteran's profile — such as CHAMPVA dental, state veteran license plate fee waivers, burial benefits, Gold Star family programs, or income tax exemptions.",
     "",
+    "## Critical Accuracy Requirements",
+    "- DIC remarriage rule: the correct age is 55, NOT 57. As of 2021, surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC permanently. Do not use age 57 anywhere.",
+    "- DIC base rate: $1,699.36/month (2026). Do not use approximate or rounded figures.",
+    "- DIC 8-year enhancement: +$360.85/month (not a child allowance — this is the 8-year rule for spouses).",
+    "- DIC per child: +$421.00/month per dependent child under 18.",
+    "- DIC transitional benefit: +$342.00/month for first 2 years if surviving spouse has dependent children.",
+    "",
     "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
     "Write in a warm, clear, family-friendly tone. This report will be read by a grieving family — be compassionate and practical.",
   );
