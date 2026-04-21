@@ -164,7 +164,7 @@ function getBenefits(p: Profile): BenefitDef[] {
         id: "dic",
         title: "DIC — Dependency & Indemnity Compensation",
         amount: "$1,699.36/month — paid to all qualifying surviving spouses, tax-free, for life\n+$360.85/month — if veteran was rated 100% disabled for 8+ continuous years before death AND you were married during those same 8 years (total: $2,060.21)\n+$421.00/month — per dependent child under 18\n+$342.00/month — transitional benefit for first 2 years after death if you have dependent children",
-        description: "DIC is a monthly payment the VA makes to surviving spouses for life. Your income and assets do NOT affect eligibility — this is not means-tested. Eligibility is based on the veteran's service history and disability rating, not financial need.",
+        description: "DIC is a monthly payment the VA makes to surviving spouses for life. Your income and assets do NOT affect eligibility — this is not means-tested. Eligibility is based on the veteran's service history and disability rating, not financial need. Must not have remarried — except if remarriage occurs at age 55 or older, in which case DIC continues uninterrupted. Surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC payments permanently.",
         eligibility: dicElig,
         form: "VA Form 21P-534EZ",
         contact: "VA: 1-800-827-1000",
