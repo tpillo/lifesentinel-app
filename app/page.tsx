@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase";
 
 const audiences = [
   {
@@ -75,6 +77,15 @@ const trustItems = [
 ];
 
 export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      setLoggedIn(!!data.session);
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#faf8f5] font-sans">
 
@@ -87,12 +98,21 @@ export default function Home() {
               LifeSentinel
             </span>
           </Link>
-          <Link
-            href="/login"
-            className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
-          >
-            Sign In
-          </Link>
+          {loggedIn ? (
+            <Link
+              href="/dashboard/readiness/overview"
+              className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </header>
 
