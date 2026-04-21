@@ -39,6 +39,8 @@ type BenefitDef = {
   deadline?: string;
   howToApply: string;
   confirmed: boolean;
+  qualificationNote?: string;
+  plainLanguageNote?: string;
 };
 
 type StateInfo = {
@@ -152,17 +154,25 @@ function getBenefits(p: Profile): BenefitDef[] {
       (isPT || rating100 || scUnknown) ? "verify" : null;
 
     if (dicElig) {
+      const dicQualNote = isPT
+        ? "Yes — because the veteran held a 100% P&T rating, the surviving spouse qualifies for DIC regardless of cause of death, provided the marriage lasted at least 1 year."
+        : scDeath
+        ? "Yes — because the cause of death was service-connected."
+        : "Verify — contact the VA to confirm eligibility based on the veteran's service record.";
+
       list.push({
         id: "dic",
         title: "DIC — Dependency & Indemnity Compensation",
-        amount: "$1,699.36/month base rate (tax-free, for life)\n+$360.85/month if veteran was totally disabled 8+ years\n+$421.00/month per dependent child under 18",
-        description: "Monthly tax-free compensation for the surviving spouse of a veteran whose death was service-connected, or who was totally disabled for a qualifying period. Surviving spouses who remarry after age 55 keep DIC.",
+        amount: "$1,699.36/month — paid to all qualifying surviving spouses, tax-free, for life\n+$360.85/month — if veteran was rated 100% disabled for 8+ continuous years before death AND you were married during those same 8 years (total: $2,060.21)\n+$421.00/month — per dependent child under 18\n+$342.00/month — transitional benefit for first 2 years after death if you have dependent children",
+        description: "DIC is a monthly payment the VA makes to surviving spouses for life. Your income and assets do NOT affect eligibility — this is not means-tested. Eligibility is based on the veteran's service history and disability rating, not financial need.",
         eligibility: dicElig,
         form: "VA Form 21P-534EZ",
         contact: "VA: 1-800-827-1000",
         deadline: "File within 1 year of death to receive retroactive pay back to date of death",
         howToApply: "File VA Form 21P-534EZ with the VA Pension Management Center for your state. Apply at va.gov or call 1-800-827-1000.",
         confirmed: true,
+        qualificationNote: dicQualNote,
+        plainLanguageNote: "The 8-year enhancement (+$360.85) is separate from the child allowance (+$421 per child). A family with 2 children AND the 8-year qualification could receive: $1,699.36 + $360.85 + $842.00 = $2,902.21/month — all tax-free.",
       });
     }
 
@@ -383,6 +393,15 @@ function BenefitCard({ b }: { b: BenefitDef }) {
 
       <p className="text-sm text-stone-500 leading-relaxed mb-3">{b.description}</p>
 
+      {b.qualificationNote && (
+        <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-3 mb-3">
+          <p className="text-xs text-stone-500 leading-relaxed">
+            <span className="font-semibold text-stone-700">Does this family qualify? </span>
+            {b.qualificationNote}
+          </p>
+        </div>
+      )}
+
       <div className="space-y-1 text-xs mb-3">
         {b.form && (
           <p><span className="text-stone-400">Form: </span><span className="font-medium text-stone-700">{b.form}</span></p>
@@ -408,9 +427,16 @@ function BenefitCard({ b }: { b: BenefitDef }) {
       </div>
 
       {open && (
-        <p className="mt-3 text-xs text-stone-500 leading-relaxed rounded-xl bg-stone-50 px-4 py-3">
-          {b.howToApply}
-        </p>
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-stone-500 leading-relaxed rounded-xl bg-stone-50 px-4 py-3">
+            {b.howToApply}
+          </p>
+          {b.plainLanguageNote && (
+            <p className="text-xs text-stone-600 leading-relaxed rounded-xl border border-amber-100 bg-amber-50/50 px-4 py-3">
+              <span className="font-semibold text-amber-800">Example: </span>{b.plainLanguageNote}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
