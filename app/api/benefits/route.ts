@@ -71,6 +71,7 @@ function buildPrompt(profile: Record<string, any> | null): string {
     "- DIC transitional benefit: +$342.00/month for first 2 years if surviving spouse has dependent children.",
     "",
     "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
+    "Do NOT use markdown tables under any circumstances. Use bullet points for all lists including DIC breakdowns.",
     "Write in a warm, clear, family-friendly tone. This report will be read by a grieving family — be compassionate and practical.",
   );
 
