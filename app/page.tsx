@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
+import Logo from "@/components/Logo";
 
 const audiences = [
   {
@@ -92,11 +93,8 @@ export default function Home() {
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-amber-600 text-xl select-none">❧</span>
-            <span className="font-serif text-lg font-semibold text-stone-900 tracking-tight">
-              LifeSentinel
-            </span>
+          <Link href="/" className="flex items-center">
+            <Logo />
           </Link>
           {loggedIn ? (
             <Link

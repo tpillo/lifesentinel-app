@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import BenefitsGuide from "@/components/BenefitsGuide"
+import Logo from "@/components/Logo"
 
 type OverviewItem = {
   id: string
@@ -580,11 +581,8 @@ export default function GuardianOverviewPage() {
     <div className="min-h-screen bg-[#faf8f5]">
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4 md:px-8">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-600 text-xl">❧</span>
-            <span className="font-serif text-lg font-semibold text-stone-900 tracking-tight">
-              LifeSentinel
-            </span>
+          <div className="flex items-center">
+            <Logo />
           </div>
           <Link
             href={`/g/${token}/vault`}
