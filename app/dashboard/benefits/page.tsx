@@ -767,11 +767,9 @@ export default function BenefitsPage() {
                 <p className="mt-1 text-xs text-amber-600">Verify with your state VA office</p>
               </div>
             )}
+            <StateEdSection profile={profile} />
           </section>
         )}
-
-        {/* State Education Benefits */}
-        {!profileLoading && profile && <StateEdSection profile={profile} />}
 
         {/* Organizations Here to Help */}
         {!profileLoading && profile && <OrgsSection profile={profile} />}

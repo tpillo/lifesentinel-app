@@ -748,22 +748,13 @@ export function StateEdSection({ profile }: { profile: Profile }) {
   if (!card) return null;
 
   return (
-    <section>
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-emerald-600 select-none">◎</span>
-        <h2 className="font-serif text-xl font-semibold text-stone-900">State Education Benefits for Your Family</h2>
-      </div>
-      <p className="text-sm text-stone-500 leading-relaxed mb-4">
-        Many states offer free or reduced college tuition for surviving spouses and dependent children — benefits that exist separately from and in addition to federal programs like DEA and the Fry Scholarship.
+    <div className="mt-5 pt-5 border-t border-stone-100">
+      <p className="text-sm font-semibold text-stone-700 mb-1">Education Benefits</p>
+      <p className="text-xs text-stone-500 leading-relaxed mb-3">
+        Free or reduced college tuition for surviving spouses and dependent children — separate from and stackable with DEA (Chapter 35).
       </p>
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
-        <p className="text-xs text-amber-800 leading-relaxed">
-          <span className="font-semibold">⚠ Important: </span>
-          Some state education benefits require you to NOT have already made an irrevocable Fry Scholarship (Chapter 33) election. DEA (Chapter 35) can generally be used alongside state benefits. Check eligibility before electing any federal program.
-        </p>
-      </div>
       {card}
-    </section>
+    </div>
   );
 }
 
@@ -1190,10 +1181,9 @@ export default function BenefitsGuide({
             <h2 className="font-serif text-xl font-semibold text-stone-900">State Benefits — {profile.state}</h2>
           </div>
           <StateCard state={profile.state} />
+          <StateEdSection profile={profile} />
         </section>
       )}
-
-      <StateEdSection profile={profile} />
 
       <OrgsSection profile={profile} />
 
