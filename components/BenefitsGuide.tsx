@@ -429,7 +429,7 @@ export function VmsdepCard() {
         <ul className="space-y-1.5 mt-1">
           {[
             "DEA (Chapter 35) — can be used alongside VMSDEP. It pays cash directly to the dependent or spouse, not to the school, so there is no tuition conflict.",
-            "Fry Scholarship / Chapter 33 — not recommended to stack with VMSDEP. Both cover tuition directly, creating overlap and potential conflicts.",
+            "Fry Scholarship / Chapter 33 — not recommended to stack with VMSDEP. Both pay tuition directly to the school, creating overlap and potential conflicts.",
             "Elect VMSDEP first — it does not require an irrevocable election. Evaluate federal options after VMSDEP is in place.",
           ].map((b, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-amber-800 leading-relaxed">
