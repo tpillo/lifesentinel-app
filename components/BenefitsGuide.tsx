@@ -429,7 +429,7 @@ export function VmsdepCard() {
           "Full tuition and mandatory fee waiver for 8 semesters at any Virginia public college or university",
           "Semester stipend for room, board, books, and supplies (amount varies annually)",
           "Covers surviving spouse (any age) and dependent children ages 16–29",
-          "Eligibility: veteran rated 90%+ P&T, or service member killed/MIA/POW — veteran and dependent must have cumulatively resided in Virginia across 5 years (not required to be continuous)",
+          "Eligibility: veteran rated 90%+ P&T, or service member killed/MIA/POW — veteran and dependent must have resided in Virginia for 5 years (verify exact residency requirements with DVS, as continuous occupancy may not be required)",
           "Enrollment must be renewed each semester in the VMSDEP portal — not automatic",
         ].map((b, i) => (
           <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
