@@ -56,7 +56,7 @@ type StateInfo = {
 
 const STATE_INFO: Record<string, StateInfo> = {
   Virginia: {
-    title: "Virginia — Property Tax & Income Tax Benefits",
+    title: "Property Tax & Income Tax Benefits",
     bullets: [
       "Surviving spouse of 100% P&T veteran: full property tax exemption (no remarriage required, transferable to new primary residence)",
       "Surviving spouse of veteran who died in line of duty: full property tax exemption (updated Jan 2025)",
