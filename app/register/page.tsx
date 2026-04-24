@@ -41,13 +41,16 @@ export default function RegisterPage() {
       return;
     }
 
-    // If Supabase returned an active session, email confirmation is off — go straight to dashboard.
-    // If session is null, confirmation email was sent and the user needs to verify first.
-    if (data.session) {
-      router.replace("/profile-setup");
-    } else {
-      setConfirmed(true);
+    // Notify admin and create pending profile regardless of email confirmation state
+    if (data.user) {
+      await fetch("/api/register-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: data.user.id, email, full_name: null }),
+      });
     }
+
+    router.replace("/pending-approval");
   }
 
   if (confirmed) {
