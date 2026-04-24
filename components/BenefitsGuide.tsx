@@ -415,22 +415,37 @@ function StateCard({ state }: { state: string }) {
 
 export function VmsdepCard() {
   return (
-    <div className="rounded-2xl border border-emerald-300 bg-white p-6 shadow-sm">
-      <div className="flex flex-wrap items-center gap-2 mb-4">
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <span className="text-emerald-600 text-base select-none">⌂</span>
         <h3 className="font-serif text-base font-semibold text-stone-900">
-          VMSDEP — Virginia Military Survivors &amp; Dependents Education Program
+          VMSDEP — Virginia Education Benefit for Survivors &amp; Dependents
         </h3>
-        <span className="ml-auto text-xs font-medium text-emerald-700">✓ Confirmed Virginia state benefit</span>
+        <span className="ml-auto text-xs font-medium text-emerald-700">✓ Confirmed benefit</span>
       </div>
 
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
+      <ul className="space-y-2 mb-3">
+        {[
+          "Full tuition and mandatory fee waiver for 8 semesters at any Virginia public college or university",
+          "Semester stipend for room, board, books, and supplies (amount varies annually)",
+          "Covers surviving spouse (any age) and dependent children ages 16–29",
+          "Eligibility: veteran rated 90%+ P&T, or service member killed/MIA/POW — veteran and dependent must have lived in Virginia 5+ years",
+          "Enrollment must be renewed each semester in the VMSDEP portal — not automatic",
+        ].map((b, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
+            <span className="text-emerald-500 mt-1 shrink-0 text-xs">●</span>
+            {b}
+          </li>
+        ))}
+      </ul>
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 mb-3">
         <p className="text-xs font-semibold text-amber-900 mb-1">Federal program interaction</p>
-        <ul className="space-y-1.5 mt-1">
+        <ul className="space-y-1 mt-1">
           {[
-            "DEA (Chapter 35) — can be used alongside VMSDEP. It pays cash directly to the dependent or spouse, not to the school, so there is no tuition conflict.",
-            "Fry Scholarship / Chapter 33 — not recommended to stack with VMSDEP. Both pay tuition directly to the school, creating overlap and potential conflicts.",
-            "Elect VMSDEP first — it does not require an irrevocable election. Evaluate federal options after VMSDEP is in place.",
+            "DEA (Chapter 35) — safe to use alongside VMSDEP. Pays cash directly to the dependent or spouse, not to the school.",
+            "Fry Scholarship / Chapter 33 — not recommended to stack. Both pay tuition directly to the school, creating overlap.",
+            "Apply for VMSDEP first — it does not require an irrevocable election.",
           ].map((b, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-amber-800 leading-relaxed">
               <span className="text-amber-500 mt-0.5 shrink-0">●</span>
@@ -440,46 +455,9 @@ export function VmsdepCard() {
         </ul>
       </div>
 
-      <p className="text-sm font-medium text-stone-700 mb-2">What it provides</p>
-      <ul className="space-y-1.5 mb-5">
-        {[
-          "Full tuition and mandatory fee waiver for 8 semesters (4 academic years) at any Virginia public college or university",
-          "Semester stipend to offset room, board, books, and supplies (amount varies annually)",
-          "Covers surviving spouse (any age) and dependent children ages 16–29",
-        ].map((b, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
-            <span className="text-emerald-500 mt-1 shrink-0 text-xs">●</span>
-            {b}
-          </li>
-        ))}
-      </ul>
-
-      <p className="text-sm font-medium text-stone-700 mb-2">Eligibility</p>
-      <ul className="space-y-1.5 mb-5">
-        {[
-          "Veteran rated 90%+ permanently disabled OR 100% P&T due to military service, OR service member killed, missing in action, or taken prisoner",
-          "Veteran and dependent must have resided in Virginia for at least 5 years",
-        ].map((b, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
-            <span className="text-emerald-500 mt-1 shrink-0 text-xs">●</span>
-            {b}
-          </li>
-        ))}
-      </ul>
-
-      <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 mb-4">
-        <p className="text-xs font-semibold text-stone-700 mb-1">Enrollment reminder</p>
-        <p className="text-xs text-stone-600 leading-relaxed">
-          Students must update enrollment in the VMSDEP portal <strong>every semester</strong> — it is not automatic.
-          Missing the enrollment deadline means losing that semester&apos;s waiver.
-        </p>
-      </div>
-
-      <div className="space-y-0.5 text-xs text-stone-500">
-        <p><span className="text-stone-400">Apply: </span><span className="text-stone-600">dvs.virginia.gov</span></p>
-        <p><span className="text-stone-400">Email: </span><span className="text-stone-600">vmsdep@dvs.virginia.gov</span></p>
-        <p><span className="text-stone-400">Phone: </span><span className="text-stone-600">804-225-2083 (Mon–Fri 8am–4:30pm)</span></p>
-      </div>
+      <p className="text-xs text-stone-400">
+        How to apply: <span className="text-stone-600">dvs.virginia.gov · vmsdep@dvs.virginia.gov · 804-225-2083</span>
+      </p>
     </div>
   );
 }
@@ -748,11 +726,7 @@ export function StateEdSection({ profile }: { profile: Profile }) {
   if (!card) return null;
 
   return (
-    <div className="mt-5 pt-5 border-t border-stone-100">
-      <p className="text-sm font-semibold text-stone-700 mb-1">Education Benefits</p>
-      <p className="text-xs text-stone-500 leading-relaxed mb-3">
-        Free or reduced college tuition for surviving spouses and dependent children — separate from and stackable with DEA (Chapter 35).
-      </p>
+    <div className="mt-4">
       {card}
     </div>
   );
