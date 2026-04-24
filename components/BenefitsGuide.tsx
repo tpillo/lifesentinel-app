@@ -425,12 +425,19 @@ export function VmsdepCard() {
       </div>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
-        <p className="text-xs font-semibold text-amber-900 mb-1">Important — read before filing federal education benefits</p>
-        <p className="text-xs text-amber-800 leading-relaxed">
-          Before electing DEA (Chapter 35) or the Fry Scholarship, Virginia residents should review VMSDEP eligibility
-          first. Those federal programs require an <strong>irrevocable election</strong> — VMSDEP does not, and can
-          potentially be used alongside or instead.
-        </p>
+        <p className="text-xs font-semibold text-amber-900 mb-1">Federal program interaction</p>
+        <ul className="space-y-1.5 mt-1">
+          {[
+            "DEA (Chapter 35) — can be used alongside VMSDEP. It pays cash directly to the dependent or spouse, not to the school, so there is no tuition conflict.",
+            "Fry Scholarship / Chapter 33 — not recommended to stack with VMSDEP. Both cover tuition directly, creating overlap and potential conflicts.",
+            "Elect VMSDEP first — it does not require an irrevocable election. Evaluate federal options after VMSDEP is in place.",
+          ].map((b, i) => (
+            <li key={i} className="flex items-start gap-2 text-xs text-amber-800 leading-relaxed">
+              <span className="text-amber-500 mt-0.5 shrink-0">●</span>
+              {b}
+            </li>
+          ))}
+        </ul>
       </div>
 
       <p className="text-sm font-medium text-stone-700 mb-2">What it provides</p>
@@ -752,7 +759,7 @@ export function StateEdSection({ profile }: { profile: Profile }) {
       <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
         <p className="text-xs text-amber-800 leading-relaxed">
           <span className="font-semibold">⚠ Important: </span>
-          Some state education benefits require you to NOT have already made an irrevocable federal DEA or Fry Scholarship election. Check state eligibility BEFORE electing a federal program.
+          Some state education benefits require you to NOT have already made an irrevocable Fry Scholarship (Chapter 33) election. DEA (Chapter 35) can generally be used alongside state benefits. Check eligibility before electing any federal program.
         </p>
       </div>
       {card}
