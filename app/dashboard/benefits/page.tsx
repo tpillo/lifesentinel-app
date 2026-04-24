@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/DashboardHeader";
-import { RcsbpSection } from "@/components/BenefitsGuide";
+import { RcsbpSection, OrgsSection, StateEdSection } from "@/components/BenefitsGuide";
 import { trackEvent } from "@/lib/gtag";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -12,6 +12,7 @@ type Profile = {
   occupation_type?: string | null;
   va_disability_rating?: string | null;
   va_pt_designation?: string | null;
+  pt_award_date?: string | null;
   service_connected_death?: string | null;
   state?: string | null;
   num_dependents?: number | null;
@@ -24,6 +25,7 @@ type Profile = {
   rcsbp_election?: string | null;
   sbp_base_amount?: string | null;
   collecting_retired_pay?: string | null;
+  branches_served?: string[] | null;
 };
 
 type Eligibility = "yes" | "verify";
@@ -41,6 +43,7 @@ type BenefitDef = {
   confirmed: boolean;
   qualificationNote?: string;
   plainLanguageNote?: string;
+  enhancementNote?: string;
 };
 
 type StateInfo = {
@@ -133,6 +136,21 @@ const STATE_INFO: Record<string, StateInfo> = {
 
 // ── Benefit eligibility logic ──────────────────────────────────────────
 
+function getDicEnhancementNote(ptAwardDate: string | null | undefined, isPT: boolean): string | undefined {
+  if (!isPT) return undefined;
+  if (!ptAwardDate) return "? 8-Year Enhancement — P&T Award Date not on file. Add your P&T award date to your profile to see if you qualify for the +$360.85/month enhancement.";
+  const award = new Date(ptAwardDate);
+  const today = new Date();
+  const msPerYear = 1000 * 60 * 60 * 24 * 365.25;
+  const yearsHeld = (today.getTime() - award.getTime()) / msPerYear;
+  if (yearsHeld >= 8) {
+    return "✓ 8-Year Enhancement Confirmed — your spouse qualifies for the additional +$360.85/month, bringing total DIC to $2,060.21/month.";
+  }
+  const qualifyDate = new Date(award.getTime() + 8 * msPerYear);
+  const qualifyStr = qualifyDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return `⚠ 8-Year Enhancement Not Yet Reached — qualifies on ${qualifyStr}. Until then, the base DIC rate of $1,699.36/month applies.`;
+}
+
 function getBenefits(p: Profile): BenefitDef[] {
   const isMilitary = p.occupation_type === "military_veteran";
   const rating = p.va_disability_rating;
@@ -173,6 +191,7 @@ function getBenefits(p: Profile): BenefitDef[] {
         confirmed: true,
         qualificationNote: dicQualNote,
         plainLanguageNote: "The 8-year enhancement (+$360.85) is separate from the child allowance (+$421 per child). A family with 2 children AND the 8-year qualification could receive: $1,699.36 + $360.85 + $842.00 = $2,902.21/month — all tax-free.",
+        enhancementNote: getDicEnhancementNote(p.pt_award_date, isPT),
       });
     }
 
@@ -399,6 +418,18 @@ function BenefitCard({ b }: { b: BenefitDef }) {
             <span className="font-semibold text-stone-700">Does this family qualify? </span>
             {b.qualificationNote}
           </p>
+        </div>
+      )}
+
+      {b.enhancementNote && (
+        <div className={`rounded-xl border px-4 py-3 mb-3 ${
+          b.enhancementNote.startsWith("✓")
+            ? "border-emerald-200 bg-emerald-50/50"
+            : b.enhancementNote.startsWith("⚠")
+            ? "border-amber-200 bg-amber-50/50"
+            : "border-stone-200 bg-stone-50"
+        }`}>
+          <p className="text-xs leading-relaxed text-stone-700">{b.enhancementNote}</p>
         </div>
       )}
 
@@ -738,6 +769,12 @@ export default function BenefitsPage() {
             )}
           </section>
         )}
+
+        {/* State Education Benefits */}
+        {!profileLoading && profile && <StateEdSection profile={profile} />}
+
+        {/* Organizations Here to Help */}
+        {!profileLoading && profile && <OrgsSection profile={profile} />}
 
         {/* Parks & Recreation note */}
         {isMilitary && (

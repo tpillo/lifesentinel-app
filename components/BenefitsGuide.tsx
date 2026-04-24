@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export type Profile = {
   occupation_type?: string | null;
   va_disability_rating?: string | null;
   va_pt_designation?: string | null;
+  pt_award_date?: string | null;
   service_connected_death?: string | null;
   state?: string | null;
   num_dependents?: number | null;
@@ -38,6 +39,7 @@ type BenefitDef = {
   confirmed: boolean;
   qualificationNote?: string;
   plainLanguageNote?: string;
+  enhancementNote?: string;
 };
 
 type StateInfo = {
@@ -130,6 +132,21 @@ const STATE_INFO: Record<string, StateInfo> = {
 
 // ── Benefit eligibility logic ──────────────────────────────────────────
 
+function getDicEnhancementNote(ptAwardDate: string | null | undefined, isPT: boolean): string | undefined {
+  if (!isPT) return undefined;
+  if (!ptAwardDate) return "? 8-Year Enhancement — P&T Award Date not on file. Add your P&T award date to your profile to see if you qualify for the +$360.85/month enhancement.";
+  const award = new Date(ptAwardDate);
+  const today = new Date("2026-04-20");
+  const msPerYear = 1000 * 60 * 60 * 24 * 365.25;
+  const yearsHeld = (today.getTime() - award.getTime()) / msPerYear;
+  if (yearsHeld >= 8) {
+    return "✓ 8-Year Enhancement Confirmed — your spouse qualifies for the additional +$360.85/month, bringing total DIC to $2,060.21/month.";
+  }
+  const qualifyDate = new Date(award.getTime() + 8 * msPerYear);
+  const qualifyStr = qualifyDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return `⚠ 8-Year Enhancement Not Yet Reached — qualifies on ${qualifyStr}. Until then, the base DIC rate of $1,699.36/month applies.`;
+}
+
 export function getBenefits(p: Profile): BenefitDef[] {
   const isMilitary = p.occupation_type === "military_veteran";
   const rating = p.va_disability_rating;
@@ -169,6 +186,7 @@ export function getBenefits(p: Profile): BenefitDef[] {
         confirmed: true,
         qualificationNote: dicQualNote,
         plainLanguageNote: "The 8-year enhancement (+$360.85) is separate from the child allowance (+$421 per child). A family with 2 children AND the 8-year qualification could receive: $1,699.36 + $360.85 + $842.00 = $2,902.21/month — all tax-free.",
+        enhancementNote: getDicEnhancementNote(p.pt_award_date, isPT),
       });
     }
 
@@ -324,6 +342,18 @@ function BenefitCard({ b }: { b: BenefitDef }) {
         </div>
       )}
 
+      {b.enhancementNote && (
+        <div className={`rounded-xl border px-4 py-3 mb-3 ${
+          b.enhancementNote.startsWith("✓")
+            ? "border-emerald-200 bg-emerald-50/50"
+            : b.enhancementNote.startsWith("⚠")
+            ? "border-amber-200 bg-amber-50/50"
+            : "border-stone-200 bg-stone-50"
+        }`}>
+          <p className="text-xs leading-relaxed text-stone-700">{b.enhancementNote}</p>
+        </div>
+      )}
+
       <div className="space-y-1 text-xs mb-3">
         {b.form && <p><span className="text-stone-400">Form: </span><span className="font-medium text-stone-700">{b.form}</span></p>}
         {b.contact && <p><span className="text-stone-400">Contact: </span><span className="text-stone-600">{b.contact}</span></p>}
@@ -380,6 +410,540 @@ function StateCard({ state }: { state: string }) {
         How to apply: <span className="text-stone-600">{data.howToApply}</span>
       </p>
     </div>
+  );
+}
+
+export function VmsdepCard() {
+  return (
+    <div className="rounded-2xl border border-emerald-300 bg-white p-6 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-emerald-600 text-base select-none">⌂</span>
+        <h3 className="font-serif text-base font-semibold text-stone-900">
+          VMSDEP — Virginia Military Survivors &amp; Dependents Education Program
+        </h3>
+        <span className="ml-auto text-xs font-medium text-emerald-700">✓ Confirmed Virginia state benefit</span>
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
+        <p className="text-xs font-semibold text-amber-900 mb-1">Important — read before filing federal education benefits</p>
+        <p className="text-xs text-amber-800 leading-relaxed">
+          Before electing DEA (Chapter 35) or the Fry Scholarship, Virginia residents should review VMSDEP eligibility
+          first. Those federal programs require an <strong>irrevocable election</strong> — VMSDEP does not, and can
+          potentially be used alongside or instead.
+        </p>
+      </div>
+
+      <p className="text-sm font-medium text-stone-700 mb-2">What it provides</p>
+      <ul className="space-y-1.5 mb-5">
+        {[
+          "Full tuition and mandatory fee waiver for 8 semesters (4 academic years) at any Virginia public college or university",
+          "Semester stipend to offset room, board, books, and supplies (amount varies annually)",
+          "Covers surviving spouse (any age) and dependent children ages 16–29",
+        ].map((b, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
+            <span className="text-emerald-500 mt-1 shrink-0 text-xs">●</span>
+            {b}
+          </li>
+        ))}
+      </ul>
+
+      <p className="text-sm font-medium text-stone-700 mb-2">Eligibility</p>
+      <ul className="space-y-1.5 mb-5">
+        {[
+          "Veteran rated 90%+ permanently disabled OR 100% P&T due to military service, OR service member killed, missing in action, or taken prisoner",
+          "Veteran and dependent must have resided in Virginia for at least 5 years",
+        ].map((b, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
+            <span className="text-emerald-500 mt-1 shrink-0 text-xs">●</span>
+            {b}
+          </li>
+        ))}
+      </ul>
+
+      <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 mb-4">
+        <p className="text-xs font-semibold text-stone-700 mb-1">Enrollment reminder</p>
+        <p className="text-xs text-stone-600 leading-relaxed">
+          Students must update enrollment in the VMSDEP portal <strong>every semester</strong> — it is not automatic.
+          Missing the enrollment deadline means losing that semester&apos;s waiver.
+        </p>
+      </div>
+
+      <div className="space-y-0.5 text-xs text-stone-500">
+        <p><span className="text-stone-400">Apply: </span><span className="text-stone-600">dvs.virginia.gov</span></p>
+        <p><span className="text-stone-400">Email: </span><span className="text-stone-600">vmsdep@dvs.virginia.gov</span></p>
+        <p><span className="text-stone-400">Phone: </span><span className="text-stone-600">804-225-2083 (Mon–Fri 8am–4:30pm)</span></p>
+      </div>
+    </div>
+  );
+}
+
+// ── State Education Benefits ───────────────────────────────────────────
+
+function EdBullet({ text }: { text: string }) {
+  return (
+    <li className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
+      <span className="text-emerald-500 mt-1 shrink-0 text-xs">●</span>
+      {text}
+    </li>
+  );
+}
+
+function EdCardShell({ title, label, contact, children }: {
+  title: string;
+  label: string;
+  contact: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-emerald-300 bg-white p-6 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <h3 className="font-serif text-base font-semibold text-stone-900 flex-1">{title}</h3>
+        <span className="text-xs font-medium text-emerald-700">{label}</span>
+      </div>
+      {children}
+      <div className="mt-4 pt-3 border-t border-stone-100 space-y-0.5 text-xs text-stone-500">
+        {contact}
+      </div>
+    </div>
+  );
+}
+
+function HazlewoodCard() {
+  return (
+    <EdCardShell
+      title="Hazlewood Act — Texas Education Benefit"
+      label="✓ Confirmed Texas state benefit"
+      contact={
+        <>
+          <p><span className="text-stone-400">Apply: </span>Texas Veterans Commission — tvc.texas.gov</p>
+          <p><span className="text-stone-400">Phone: </span>800-252-8387</p>
+        </>
+      }
+    >
+      <ul className="space-y-1.5 mb-4">
+        {[
+          "Full tuition and most fee exemption — up to 150 semester credit hours at Texas public colleges",
+          "Eligible: spouse and dependent children of veterans who died in the line of duty, are MIA/POW, or are totally disabled for employability",
+          "Hazlewood Legacy Program: veteran can transfer unused hours to dependent children",
+          "Does NOT cover: living expenses, books, supplies, or service fees",
+        ].map((b, i) => <EdBullet key={i} text={b} />)}
+      </ul>
+    </EdCardShell>
+  );
+}
+
+function FloridaCsddvCard() {
+  return (
+    <EdCardShell
+      title="CSDDV Scholarship — Florida Education Benefit"
+      label="✓ Confirmed Florida state benefit"
+      contact={
+        <>
+          <p><span className="text-stone-400">Apply: </span>floridastudentfinancialaid.org</p>
+          <p><span className="text-stone-400">Phone: </span>888-827-2004</p>
+        </>
+      }
+    >
+      <ul className="space-y-1.5 mb-4">
+        {[
+          "Scholarships for Children and Spouses of Deceased or Disabled Veterans (CSDDV)",
+          "Covers tuition and fees at Florida public colleges and universities",
+          "Eligible: dependent children and spouses of veterans who died from service-connected disability OR who are 100% P&T",
+          "Death Benefits Program: spouses/dependents of deceased Florida National Guard and Armed Forces members — up to 120 credit hours tuition waiver",
+        ].map((b, i) => <EdBullet key={i} text={b} />)}
+      </ul>
+    </EdCardShell>
+  );
+}
+
+function CalVetCard() {
+  return (
+    <EdCardShell
+      title="CalVet College Fee Waiver — California Education Benefit"
+      label="✓ Confirmed California state benefit"
+      contact={
+        <>
+          <p><span className="text-stone-400">Apply: </span>calvet.ca.gov</p>
+          <p><span className="text-stone-400">Also: </span>Local County Veteran Service Officer (CVSO)</p>
+        </>
+      }
+    >
+      <ul className="space-y-1.5 mb-4">
+        {[
+          "Waives mandatory system-wide tuition and fees at any California Community College, CSU, or UC campus",
+          "Plan A: unmarried child (14–27) or spouse of totally service-connected disabled veteran OR surviving unremarried spouse of service-connected death",
+          "Plan B: child of veteran who died of service-connected disability (income limit applies — $22,273 for 2025–26)",
+          "Does NOT cover: books, parking, or room and board",
+        ].map((b, i) => <EdBullet key={i} text={b} />)}
+      </ul>
+    </EdCardShell>
+  );
+}
+
+function NcScholarshipCard() {
+  return (
+    <EdCardShell
+      title="NC Scholarship for Children of Wartime Veterans"
+      label="✓ Confirmed North Carolina state benefit"
+      contact={
+        <p><span className="text-stone-400">Apply: </span>NC Division of Veterans Affairs — milvets.nc.gov</p>
+      }
+    >
+      <ul className="space-y-1.5 mb-4">
+        {[
+          "Free tuition for 8 semesters at North Carolina state colleges — covers tuition, room, board, and fees",
+          "Eligible: children of wartime veterans who are 100% disabled or died in service",
+          "Child must be under 25 at time of application",
+          "Qualifying criteria must have occurred during a period of war",
+        ].map((b, i) => <EdBullet key={i} text={b} />)}
+      </ul>
+    </EdCardShell>
+  );
+}
+
+function parseEdInline(text: string): React.ReactNode[] {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((p, i) =>
+    i % 2 === 1 ? <strong key={i} className="font-semibold text-stone-800">{p}</strong> : p
+  );
+}
+
+function parseEdMarkdown(raw: string) {
+  const lines = raw.split("\n");
+  const nodes: Array<{ type: "ul"; items: string[] } | { type: "p"; text: string }> = [];
+  let buf: string[] = [];
+  function flush() { if (buf.length) { nodes.push({ type: "ul", items: [...buf] }); buf = []; } }
+  for (const line of lines) {
+    if (/^[-*] /.test(line)) { buf.push(line.slice(2)); }
+    else if (line.trim() === "" || line.startsWith("#")) { flush(); }
+    else { flush(); nodes.push({ type: "p", text: line }); }
+  }
+  flush();
+  return nodes;
+}
+
+function StateEdAiCard({ profile }: { profile: Profile }) {
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch("/api/state-education", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            state: profile.state,
+            isPT: profile.va_pt_designation === "yes",
+            rating: profile.va_disability_rating,
+            scDeath: profile.service_connected_death === "yes",
+          }),
+        });
+        if (!res.ok || !res.body) throw new Error("Failed");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (!cancelled) setContent((prev) => prev + decoder.decode(value, { stream: true }));
+        }
+      } catch {
+        if (!cancelled) setFetchError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [profile.state, profile.va_pt_designation, profile.va_disability_rating, profile.service_connected_death]);
+
+  const nodes = parseEdMarkdown(content);
+
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <h3 className="font-serif text-base font-semibold text-stone-900 flex-1">
+          {profile.state} — Education Benefits for Surviving Families
+        </h3>
+        <span className="text-xs font-medium text-amber-600">◎ Verify with your state veterans affairs office</span>
+      </div>
+      {loading && !content && (
+        <div className="space-y-2 animate-pulse">
+          <div className="h-3 bg-stone-100 rounded w-4/5" />
+          <div className="h-3 bg-stone-100 rounded w-3/5" />
+          <div className="h-3 bg-stone-100 rounded w-4/5" />
+        </div>
+      )}
+      {fetchError && (
+        <p className="text-sm text-stone-500">Unable to load state-specific education benefits. Check with your state veterans affairs office.</p>
+      )}
+      {content && (
+        <div className="space-y-2">
+          {nodes.map((node, i) =>
+            node.type === "ul" ? (
+              <ul key={i} className="space-y-1.5">
+                {node.items.map((item, j) => (
+                  <li key={j} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
+                    <span className="text-amber-400 mt-1 shrink-0 text-xs">●</span>
+                    <span>{parseEdInline(item)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p key={i} className="text-sm text-stone-600 leading-relaxed">{parseEdInline(node.text)}</p>
+            )
+          )}
+          {loading && (
+            <div className="flex items-center gap-1.5 text-xs text-stone-400 mt-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+              Loading…
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const HARDCODED_ED_STATES = ["Virginia", "Texas", "Florida", "California", "North Carolina"];
+
+export function StateEdSection({ profile }: { profile: Profile }) {
+  const state = profile.state;
+  if (!state) return null;
+
+  const isMilitary = profile.occupation_type === "military_veteran";
+  const isPT = profile.va_pt_designation === "yes";
+  const scDeath = profile.service_connected_death === "yes";
+  const rating = profile.va_disability_rating ?? "";
+  const rating90plus = ["90", "100"].includes(rating);
+  const rating100 = rating === "100";
+
+  let card: React.ReactNode = null;
+
+  // Hardcoded state cards — eligibility conditions are inherently military-specific
+  if (state === "Virginia") {
+    card = <VmsdepCard />;
+  } else if (state === "Texas" && (scDeath || rating100 || isPT)) {
+    card = <HazlewoodCard />;
+  } else if (state === "Florida" && (isPT || scDeath)) {
+    card = <FloridaCsddvCard />;
+  } else if (state === "California" && (scDeath || rating100)) {
+    card = <CalVetCard />;
+  } else if (state === "North Carolina" && (scDeath || rating100)) {
+    card = <NcScholarshipCard />;
+  } else if (state && !HARDCODED_ED_STATES.includes(state) && isMilitary) {
+    // AI card only for military profiles in non-hardcoded states
+    card = <StateEdAiCard profile={profile} />;
+  }
+
+  if (!card) return null;
+
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-emerald-600 select-none">◎</span>
+        <h2 className="font-serif text-xl font-semibold text-stone-900">State Education Benefits for Your Family</h2>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-4">
+        Many states offer free or reduced college tuition for surviving spouses and dependent children — benefits that exist separately from and in addition to federal programs like DEA and the Fry Scholarship.
+      </p>
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
+        <p className="text-xs text-amber-800 leading-relaxed">
+          <span className="font-semibold">⚠ Important: </span>
+          Some state education benefits require you to NOT have already made an irrevocable federal DEA or Fry Scholarship election. Check state eligibility BEFORE electing a federal program.
+        </p>
+      </div>
+      {card}
+    </section>
+  );
+}
+
+// ── VSO / Nonprofit Organizations ────────────────────────────────────
+
+type OrgDef = {
+  id: string;
+  name: string;
+  tagline: string;
+  what: string[];
+  contact?: string;
+  website: string;
+  websiteLabel?: string;
+  highlight?: boolean;
+};
+
+function getOrgs(p: Profile): OrgDef[] {
+  const isFirstResponder = p.occupation_type === "law_enforcement" || p.occupation_type === "firefighter";
+  const isLineOfDuty = p.service_connected_death === "yes";
+  const hasMarine = Array.isArray(p.branches_served) && p.branches_served.includes("marines");
+
+  const orgs: OrgDef[] = [];
+
+  if (isLineOfDuty || isFirstResponder) {
+    orgs.push({
+      id: "t2t",
+      name: "Tunnel to Towers Foundation",
+      tagline: "May pay off your mortgage — apply immediately",
+      what: isFirstResponder
+        ? [
+            "Fallen First Responder Home Program — pays off the mortgage for a surviving spouse with dependent children",
+            "Smart Home Program — mortgage-free smart homes for catastrophically injured first responders",
+          ]
+        : [
+            "Gold Star Family Home Program — pays off the mortgage for a surviving spouse with dependent children when a service member dies in the line of duty",
+            "Smart Home Program — mortgage-free smart homes for catastrophically injured veterans",
+          ],
+      contact: "1-718-987-1931",
+      website: "t2t.org",
+      highlight: true,
+    });
+  }
+
+  orgs.push({
+    id: "taps",
+    name: "TAPS — Tragedy Assistance Program for Survivors",
+    tagline: "Free support for all military surviving families",
+    what: [
+      "Free peer-based emotional support for all who have lost a military loved one",
+      "Good Grief Camps for children of fallen service members",
+      "Survivor seminars and retreats nationwide",
+      "24/7 crisis support line: 1-800-959-8277",
+    ],
+    contact: "1-800-959-8277 (24/7)",
+    website: "taps.org",
+  });
+
+  orgs.push({
+    id: "wwp",
+    name: "Wounded Warrior Project — Survivor Outreach Services",
+    tagline: "Free — contact to connect with a support coordinator",
+    what: [
+      "Connects surviving families with dedicated support coordinators",
+      "Financial assistance programs",
+      "Mental health and counseling resources",
+      "Caregiver support programs",
+    ],
+    website: "woundedwarriorproject.org/programs/survivor-outreach-services",
+    websiteLabel: "woundedwarriorproject.org",
+  });
+
+  if (hasMarine) {
+    orgs.push({
+      id: "mcsf",
+      name: "Marine Corps Scholarship Foundation",
+      tagline: "Scholarships for children of Marines",
+      what: [
+        "Education scholarships for children of Marines and FMF Corpsmen",
+        "Need-based scholarships for undergraduate and vocational programs",
+      ],
+      website: "mcsf.org",
+    });
+  }
+
+  orgs.push({
+    id: "gsw",
+    name: "Gold Star Wives of America",
+    tagline: "Support network specifically for surviving spouses",
+    what: [
+      "Peer support network and advocacy for surviving military spouses",
+      "Local chapters nationwide",
+    ],
+    website: "goldstarwives.org",
+  });
+
+  orgs.push({
+    id: "hftw",
+    name: "Hope For The Warriors",
+    tagline: "Transition and wellness support for surviving families",
+    what: [
+      "Transition and wellness support for service members and families",
+      "Spouse and caregiver support programs",
+    ],
+    website: "hopeforthewarriors.org",
+  });
+
+  return orgs;
+}
+
+function OrgCard({ org }: { org: OrgDef }) {
+  if (org.highlight) {
+    return (
+      <div className="col-span-full rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-amber-50 p-6 shadow-sm">
+        <div className="flex flex-wrap items-start gap-3 mb-4">
+          <div className="flex-1 min-w-0">
+            <span className="inline-flex items-center rounded-full bg-rose-100 border border-rose-300 px-2.5 py-0.5 text-xs font-semibold text-rose-800 mb-2">
+              ⚡ Act Immediately
+            </span>
+            <h3 className="font-serif text-lg font-semibold text-stone-900">{org.name}</h3>
+            <p className="text-sm font-medium text-rose-700 mt-0.5">{org.tagline}</p>
+          </div>
+        </div>
+        <ul className="space-y-2 mb-4">
+          {org.what.map((w, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-stone-700 leading-relaxed">
+              <span className="text-rose-400 mt-1 shrink-0 text-xs">●</span>
+              {w}
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          {org.contact && (
+            <p><span className="text-stone-400">Phone: </span><span className="font-medium text-stone-700">{org.contact}</span></p>
+          )}
+          <p>
+            <span className="text-stone-400">Website: </span>
+            <a href={`https://${org.website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-amber-700 underline hover:text-amber-800">
+              {org.websiteLabel ?? org.website}
+            </a>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <h3 className="font-serif text-base font-semibold text-stone-900 mb-0.5">{org.name}</h3>
+      <p className="text-xs font-medium text-amber-700 mb-3">{org.tagline}</p>
+      <ul className="space-y-1.5 mb-4">
+        {org.what.map((w, i) => (
+          <li key={i} className="flex items-start gap-2 text-xs text-stone-500 leading-relaxed">
+            <span className="text-stone-300 mt-1 shrink-0">●</span>
+            {w}
+          </li>
+        ))}
+      </ul>
+      <div className="space-y-0.5 text-xs">
+        {org.contact && (
+          <p><span className="text-stone-400">Contact: </span><span className="text-stone-600">{org.contact}</span></p>
+        )}
+        <p>
+          <span className="text-stone-400">Website: </span>
+          <a href={`https://${org.website}`} target="_blank" rel="noopener noreferrer" className="text-amber-600 underline hover:text-amber-700">
+            {org.websiteLabel ?? org.website}
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function OrgsSection({ profile }: { profile: Profile }) {
+  const orgs = getOrgs(profile);
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-amber-500 select-none">◈</span>
+        <h2 className="font-serif text-xl font-semibold text-stone-900">Organizations Here to Help</h2>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-5">
+        Beyond government benefits, these organizations exist specifically to support families like yours. All services listed are free.
+      </p>
+      <div className="grid gap-4 md:grid-cols-2">
+        {orgs.map((org) => <OrgCard key={org.id} org={org} />)}
+      </div>
+    </section>
   );
 }
 
@@ -621,6 +1185,10 @@ export default function BenefitsGuide({
           <StateCard state={profile.state} />
         </section>
       )}
+
+      <StateEdSection profile={profile} />
+
+      <OrgsSection profile={profile} />
 
       <RcsbpSection profile={profile} guardian={!!veteranName} />
 

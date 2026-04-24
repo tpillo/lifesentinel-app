@@ -21,6 +21,7 @@ type FormData = {
   status: string;
   va_disability_rating: string;
   va_pt_designation: string;
+  pt_award_date: string;
   service_connected_death: string;
   retirement_type: string;
   rcsbp_election: string;
@@ -325,6 +326,7 @@ export default function ProfileSetupPage() {
     status: "",
     va_disability_rating: "",
     va_pt_designation: "",
+    pt_award_date: "",
     service_connected_death: "",
     retirement_type: "",
     rcsbp_election: "",
@@ -358,6 +360,7 @@ export default function ProfileSetupPage() {
           status: profile.status ?? "",
           va_disability_rating: profile.va_disability_rating ?? "",
           va_pt_designation: profile.va_pt_designation ?? "",
+          pt_award_date: profile.pt_award_date ?? "",
           service_connected_death: profile.service_connected_death ?? "",
           retirement_type: profile.retirement_type ?? "",
           rcsbp_election: profile.rcsbp_election ?? "",
@@ -565,6 +568,15 @@ export default function ProfileSetupPage() {
                         <option value="pending">Pending</option>
                       </select>
                     </div>
+                    {form.va_pt_designation === "yes" && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700">P&amp;T Award Date</label>
+                        <p className="mt-1 text-xs text-stone-400 leading-relaxed">
+                          This allows Life Sentinel to automatically calculate whether your spouse qualifies for the enhanced DIC rate — an additional $360.85/month for life — based on the 8-year continuous P&amp;T requirement.
+                        </p>
+                        <input type="date" value={form.pt_award_date} onChange={(e) => set("pt_award_date", e.target.value)} className={inputClass} />
+                      </div>
+                    )}
                   </div>
                   {isDeceased && (
                     <div>
@@ -858,6 +870,15 @@ export default function ProfileSetupPage() {
                         <option value="pending">Pending</option>
                       </select>
                     </div>
+                    {form.va_pt_designation === "yes" && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700">P&amp;T Award Date</label>
+                        <p className="mt-1 text-xs text-stone-400 leading-relaxed">
+                          This allows Life Sentinel to automatically calculate whether your spouse qualifies for the enhanced DIC rate — an additional $360.85/month for life — based on the 8-year continuous P&amp;T requirement.
+                        </p>
+                        <input type="date" value={form.pt_award_date} onChange={(e) => set("pt_award_date", e.target.value)} className={inputClass} />
+                      </div>
+                    )}
                   </div>
 
                   {/* Service-connected death — only if deceased */}
