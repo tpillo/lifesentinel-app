@@ -783,7 +783,7 @@ export default function BenefitsPage() {
               <h2 className="font-serif text-xl font-semibold text-stone-900">Federal Survivor Benefits</h2>
               <span className="ml-auto text-xs text-stone-400">{benefits.length} benefits identified</span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
               {benefits.map((b) => <BenefitCard key={b.id} b={b} />)}
             </div>
           </section>
