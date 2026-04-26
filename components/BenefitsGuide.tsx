@@ -319,7 +319,7 @@ function EligBadge({ e }: { e: Eligibility }) {
 function BenefitCard({ b }: { b: BenefitDef }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-stone-200 bg-white p-4 md:p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
         <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">{b.title}</h3>
         <EligBadge e={b.eligibility} />
@@ -729,6 +729,228 @@ export function StateEdSection({ profile }: { profile: Profile }) {
     <div className="mt-4">
       {card}
     </div>
+  );
+}
+
+// ── Digital Estate ────────────────────────────────────────────────────
+
+function AppleLegacyCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-stone-400 text-base select-none">⌘</span>
+        <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Apple Legacy Contact</h3>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-3">
+        Designate someone to access your Apple ID, photos, messages, and iCloud data after death.
+      </p>
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+          <p className="text-xs font-semibold text-emerald-800 mb-1">Can access</p>
+          <ul className="space-y-0.5 text-xs text-emerald-700">
+            {["Photos", "iCloud Drive", "Notes", "Contacts", "Calendar", "Messages"].map((i) => (
+              <li key={i}>● {i}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-xl bg-stone-50 border border-stone-100 px-3 py-2">
+          <p className="text-xs font-semibold text-stone-600 mb-1">Cannot access</p>
+          <ul className="space-y-0.5 text-xs text-stone-500">
+            {["Purchased content", "Passwords", "Payment info"].map((i) => (
+              <li key={i}>● {i}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+        <a href="https://apple.com/legal/privacy/data/en/legacy-contact" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-600 underline hover:text-amber-700">
+          apple.com/legal — Legacy Contact →
+        </a>
+        <button onClick={() => setOpen(!open)} className="text-xs text-amber-600 hover:text-amber-700 transition font-medium">
+          {open ? "Less ↑" : "How to set up ↓"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 rounded-xl bg-stone-50 px-4 py-3 text-xs text-stone-600 leading-relaxed">
+          <strong className="text-stone-700">Settings → [Your Name] → Password &amp; Security → Legacy Contact.</strong> Your designated person will need the Access Key you generate plus a death certificate to request access from Apple.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GoogleInactiveCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-stone-400 text-base select-none">◉</span>
+        <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Google Inactive Account Manager</h3>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-3">
+        Designate someone to access or download your Google data after a period of inactivity. Notify up to 10 people and share specific products.
+      </p>
+      <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-2.5 mb-3">
+        <p className="text-xs font-medium text-amber-900">
+          Covers: Gmail · Drive · Photos · YouTube · Contacts · Calendar
+        </p>
+      </div>
+      <p className="text-xs text-stone-400 leading-relaxed mb-3">
+        Can also set account to be deleted automatically after the inactivity period expires.
+      </p>
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+        <a href="https://myaccount.google.com/inactive-account-manager" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-600 underline hover:text-amber-700">
+          Google Inactive Account Manager →
+        </a>
+        <button onClick={() => setOpen(!open)} className="text-xs text-amber-600 hover:text-amber-700 transition font-medium">
+          {open ? "Less ↑" : "How to set up ↓"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 rounded-xl bg-stone-50 px-4 py-3 text-xs text-stone-600 leading-relaxed">
+          <strong className="text-stone-700">myaccount.google.com → Data &amp; Privacy → More options → Make a plan for your account.</strong> Set an inactivity period (3–18 months), add trusted contacts, and choose which products each person can access or download.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PasswordManagerCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-stone-400 text-base select-none">⚿</span>
+        <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Password Manager Access</h3>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-3">
+        Without access to your password manager, your family may be permanently locked out of critical accounts. Store your master password or emergency access in your LifeSentinel vault.
+      </p>
+      <ul className="space-y-2 mb-3">
+        {[
+          { name: "1Password", detail: "Print the Emergency Kit and store it in your vault" },
+          { name: "Bitwarden", detail: "Emergency Access feature — designate a trusted contact directly in the app" },
+          { name: "LastPass", detail: "Emergency Access feature — set a waiting period before access is granted" },
+        ].map((item) => (
+          <li key={item.name} className="flex items-start gap-2 text-xs text-stone-600 leading-relaxed">
+            <span className="text-amber-400 mt-0.5 shrink-0">●</span>
+            <span><strong className="text-stone-700">{item.name}:</strong> {item.detail}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+        <span className="text-xs text-stone-400">Store credentials in your vault</span>
+        <button onClick={() => setOpen(!open)} className="text-xs text-amber-600 hover:text-amber-700 transition font-medium">
+          {open ? "Less ↑" : "Why this matters ↓"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-800 leading-relaxed">
+          Your password manager holds the keys to email, banking, insurance portals, and government accounts. If your family can't get in, they may be unable to access accounts needed to settle your estate or claim benefits.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SocialMediaCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-stone-400 text-base select-none">◎</span>
+        <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Social Media Memorialization</h3>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-3">
+        Most platforms allow you to designate a legacy contact or request memorialization after death. Set this up now so your family doesn&apos;t have to navigate it in grief.
+      </p>
+      <ul className="space-y-2 mb-3">
+        {[
+          { platform: "Facebook / Instagram", detail: "Designate a Legacy Contact at facebook.com/settings → Memorialization Settings. They can manage tributes and download content but cannot log in as you." },
+          { platform: "Twitter / X", detail: "No legacy contact feature — family must submit a death certificate to request deactivation or memorialization." },
+          { platform: "LinkedIn", detail: "Family can request memorialization or removal via linkedin.com/help." },
+        ].map((item) => (
+          <li key={item.platform} className="flex items-start gap-2 text-xs text-stone-600 leading-relaxed">
+            <span className="text-amber-400 mt-0.5 shrink-0">●</span>
+            <span><strong className="text-stone-700">{item.platform}:</strong> {item.detail}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+        <span className="text-xs text-stone-400">facebook.com/settings → Memorialization</span>
+        <button onClick={() => setOpen(!open)} className="text-xs text-amber-600 hover:text-amber-700 transition font-medium">
+          {open ? "Less ↑" : "Tip ↓"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 rounded-xl bg-stone-50 px-4 py-3 text-xs text-stone-600 leading-relaxed">
+          Store social media passwords in your password manager so family can access accounts directly if needed — even if the platform doesn&apos;t have a formal legacy process.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmailAccessCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-stone-400 text-base select-none">✉</span>
+        <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Email Account Access</h3>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-3">
+        Email accounts often contain benefit statements, insurance policies, and legal correspondence your family will need.
+      </p>
+      <ul className="space-y-2 mb-3">
+        {[
+          { provider: "Gmail", detail: "Covered by Google Inactive Account Manager — set it up there." },
+          { provider: "Outlook / Microsoft", detail: "Submit a death certificate to Microsoft for account closure or data access. microsoft.com/en-us/concern/deceased" },
+        ].map((item) => (
+          <li key={item.provider} className="flex items-start gap-2 text-xs text-stone-600 leading-relaxed">
+            <span className="text-amber-400 mt-0.5 shrink-0">●</span>
+            <span><strong className="text-stone-700">{item.provider}:</strong> {item.detail}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+        <a href="https://microsoft.com/en-us/concern/deceased" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-600 underline hover:text-amber-700">
+          microsoft.com — deceased account →
+        </a>
+        <button onClick={() => setOpen(!open)} className="text-xs text-amber-600 hover:text-amber-700 transition font-medium">
+          {open ? "Less ↑" : "Tip ↓"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 rounded-xl bg-stone-50 px-4 py-3 text-xs text-stone-600 leading-relaxed">
+          Forward important emails to a shared family account, or store email credentials in your password manager vault so family can access them when needed.
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function DigitalEstateSection() {
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-amber-500 select-none">◈</span>
+        <h2 className="font-serif text-xl font-semibold text-stone-900">Digital Estate</h2>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed mb-5">
+        Your digital life has real value — photos, documents, accounts, and memories that your family may need access to. Taking 5 minutes now to set these up ensures nothing important is lost.
+      </p>
+      <div className="grid gap-4 md:grid-cols-2">
+        <AppleLegacyCard />
+        <GoogleInactiveCard />
+        <PasswordManagerCard />
+        <SocialMediaCard />
+        <div className="md:col-span-2">
+          <EmailAccessCard />
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1160,6 +1382,8 @@ export default function BenefitsGuide({
       )}
 
       <OrgsSection profile={profile} />
+
+      <DigitalEstateSection />
 
       <RcsbpSection profile={profile} guardian={!!veteranName} />
 

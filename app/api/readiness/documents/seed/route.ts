@@ -133,6 +133,26 @@ const DEFAULT_SEED: SeedItem[] = [
     item_key: "vso_memberships_stored",
     item_label: "Veteran Service Organization Memberships Stored in Vault",
   },
+  {
+    category: "Digital Estate",
+    item_key: "apple_legacy_contact",
+    item_label: "Apple Legacy Contact Designated",
+  },
+  {
+    category: "Digital Estate",
+    item_key: "google_inactive_account_manager",
+    item_label: "Google Inactive Account Manager Set Up",
+  },
+  {
+    category: "Digital Estate",
+    item_key: "password_manager_emergency_access",
+    item_label: "Password Manager Emergency Access Configured",
+  },
+  {
+    category: "Digital Estate",
+    item_key: "social_media_legacy_contacts",
+    item_label: "Social Media Legacy Contacts Designated",
+  },
 ];
 
 export async function GET() {

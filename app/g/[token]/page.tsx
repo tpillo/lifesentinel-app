@@ -684,7 +684,7 @@ export default function GuardianOverviewPage() {
 
         {/* 3 — Documents */}
         {presentItems.length > 0 && (
-          <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-stone-200 bg-white p-5 md:p-8 shadow-sm">
             <h2 className="font-serif text-2xl font-semibold text-stone-900 mb-2">
               Important Documents {veteranName ? `${veteranName} Left For You` : "Left For You"}
             </h2>
@@ -709,7 +709,7 @@ export default function GuardianOverviewPage() {
         )}
 
         {notYetAdded.length > 0 && (
-          <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-stone-200 bg-white p-5 md:p-8 shadow-sm">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-serif text-2xl font-semibold text-stone-900">

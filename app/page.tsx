@@ -127,7 +127,7 @@ export default function Home() {
             Built for those who protect others
           </div>
 
-          <h1 className="font-serif text-5xl font-semibold tracking-tight text-stone-900 leading-tight md:text-6xl lg:text-7xl max-w-4xl mx-auto">
+          <h1 className="font-serif text-4xl font-semibold tracking-tight text-stone-900 leading-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl mx-auto">
             Prepared for life. Ready for whatever comes next.
           </h1>
 
@@ -409,20 +409,19 @@ export default function Home() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-stone-200 bg-white py-10">
-        <div className="mx-auto max-w-6xl px-6 md:px-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+        <div className="mx-auto max-w-6xl px-6 md:px-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-amber-600 select-none">❧</span>
-            <span className="font-serif text-sm font-semibold text-stone-900">LifeSentinel</span>
+            <span className="font-serif text-sm font-semibold text-stone-900">Life Sentinel</span>
           </div>
-          <p className="font-serif text-sm text-stone-400 italic">
+          <p className="font-serif text-sm text-stone-400 italic hidden md:block">
             &ldquo;Prepared for life. Ready for whatever comes next.&rdquo;
           </p>
-          <Link
-            href="/login"
-            className="text-xs text-stone-400 hover:text-amber-700 transition"
-          >
-            Sign In
-          </Link>
+          <div className="flex items-center gap-4 text-xs text-stone-400">
+            <Link href="/privacy" className="hover:text-amber-700 transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-amber-700 transition">Terms of Service</Link>
+            <Link href="/login" className="hover:text-amber-700 transition">Sign In</Link>
+          </div>
         </div>
       </footer>
     </div>

@@ -77,7 +77,7 @@ export default function DashboardHeader() {
 
       {/* Mobile menu drawer */}
       {menuOpen && (
-        <div className="lg:hidden border-t border-stone-100 bg-white px-6 pb-5 pt-3 space-y-1">
+        <div className="lg:hidden border-t border-stone-100 bg-white px-6 pb-5 pt-3 space-y-1 max-h-[80vh] overflow-y-auto">
           {navLinks.map((link) => {
             const active = pathname === link.href || pathname?.startsWith(link.href);
             return (

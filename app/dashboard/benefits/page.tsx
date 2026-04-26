@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/DashboardHeader";
-import { RcsbpSection, OrgsSection, StateEdSection } from "@/components/BenefitsGuide";
+import { RcsbpSection, OrgsSection, StateEdSection, DigitalEstateSection } from "@/components/BenefitsGuide";
 import { trackEvent } from "@/lib/gtag";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -658,17 +658,17 @@ export default function BenefitsPage() {
   return (
     <div className="min-h-screen bg-[#faf8f5]">
       <DashboardHeader />
-      <main className="mx-auto max-w-4xl px-6 py-8 md:px-8 space-y-6">
+      <main className="mx-auto max-w-6xl px-6 py-8 md:px-8 space-y-6">
 
         {/* Header */}
-        <div className="rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-800 to-stone-900 px-6 py-8 md:px-8 md:py-10 shadow-lg">
+        <div className="rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-800 to-stone-900 px-6 py-8 md:px-10 md:py-10 shadow-lg">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-600/40 bg-amber-600/20 px-3 py-1 text-xs font-medium text-amber-300 mb-4">
             ◆ Post-Death Survivor Benefits
           </div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-white md:text-4xl">
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-white sm:text-3xl md:text-4xl">
             Family Benefits Guide
           </h1>
-          <p className="mt-3 text-stone-300 text-sm leading-relaxed max-w-xl">
+          <p className="mt-3 text-stone-300 text-sm leading-relaxed max-w-2xl">
             A personalized summary of every federal and state benefit your family may be entitled
             to after your passing — based on your service history, disability rating, and state.
           </p>
@@ -733,137 +733,154 @@ export default function BenefitsPage() {
           </div>
         )}
 
-        {/* Federal Benefits */}
-        {!profileLoading && benefits.length > 0 && (
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-amber-500 select-none">✦</span>
-              <h2 className="font-serif text-xl font-semibold text-stone-900">Federal Survivor Benefits</h2>
-              <span className="ml-auto text-xs text-stone-400">{benefits.length} benefits identified</span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {benefits.map((b) => <BenefitCard key={b.id} b={b} />)}
-            </div>
-          </section>
-        )}
+        {/* Two-column layout on large screens */}
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-        {/* State Benefits */}
-        {!profileLoading && profile?.state && (
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-amber-500 select-none">⌂</span>
-              <h2 className="font-serif text-xl font-semibold text-stone-900">
-                State Benefits — {profile.state}
-              </h2>
-            </div>
-            {hasHardcodedState ? (
-              <StateCard state={profile.state} />
-            ) : (
-              <div className="rounded-2xl border border-amber-100 bg-amber-50/40 px-5 py-4">
-                <p className="text-sm text-amber-800 leading-relaxed">
-                  State-specific survivor benefits for <strong>{profile.state}</strong> are included in the detailed
-                  analysis below. Look for the State Benefits section in the report.
+          {/* Left column — benefit cards & sections */}
+          <div className="flex-1 min-w-0 space-y-6">
+
+            {/* Federal Benefits */}
+            {!profileLoading && benefits.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-amber-500 select-none">✦</span>
+                  <h2 className="font-serif text-xl font-semibold text-stone-900">Federal Survivor Benefits</h2>
+                  <span className="ml-auto text-xs text-stone-400">{benefits.length} benefits identified</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {benefits.map((b) => <BenefitCard key={b.id} b={b} />)}
+                </div>
+              </section>
+            )}
+
+            {/* State Benefits */}
+            {!profileLoading && profile?.state && (
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-amber-500 select-none">⌂</span>
+                  <h2 className="font-serif text-xl font-semibold text-stone-900">
+                    State Benefits — {profile.state}
+                  </h2>
+                </div>
+                {hasHardcodedState ? (
+                  <StateCard state={profile.state} />
+                ) : (
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50/40 px-5 py-4">
+                    <p className="text-sm text-amber-800 leading-relaxed">
+                      State-specific survivor benefits for <strong>{profile.state}</strong> are included in the detailed
+                      analysis to the right.
+                    </p>
+                    <p className="mt-1 text-xs text-amber-600">Verify with your state VA office</p>
+                  </div>
+                )}
+                <StateEdSection profile={profile} />
+              </section>
+            )}
+
+            {/* Organizations Here to Help */}
+            {!profileLoading && profile && <OrgsSection profile={profile} />}
+
+            {/* Digital Estate */}
+            {!profileLoading && <DigitalEstateSection />}
+
+            {/* Parks & Recreation note */}
+            {isMilitary && (
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
+                <span className="text-stone-400 text-base select-none shrink-0 mt-0.5">❋</span>
+                <p className="text-xs text-stone-500 leading-relaxed">
+                  After your passing, your family may qualify for additional recreation benefits based on cause of death.
+                  Life Sentinel will surface these automatically for your Guardian.
                 </p>
-                <p className="mt-1 text-xs text-amber-600">Verify with your state VA office</p>
               </div>
             )}
-            <StateEdSection profile={profile} />
-          </section>
-        )}
 
-        {/* Organizations Here to Help */}
-        {!profileLoading && profile && <OrgsSection profile={profile} />}
+            {/* RCSBP */}
+            {!profileLoading && profile && <RcsbpSection profile={profile} />}
 
-        {/* Parks & Recreation note */}
-        {isMilitary && (
-          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
-            <span className="text-stone-400 text-base select-none shrink-0 mt-0.5">❋</span>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              After your passing, your family may qualify for additional recreation benefits based on cause of death.
-              Life Sentinel will surface these automatically for your Guardian.
-            </p>
-          </div>
-        )}
+            {/* Deadlines */}
+            {!profileLoading && <DeadlineTimeline />}
 
-        {/* AI Streaming — Detailed Analysis */}
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-amber-500 select-none">◈</span>
-            <h2 className="font-serif text-xl font-semibold text-stone-900">Detailed Benefits Analysis</h2>
-            {streamLoading && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-stone-400 ml-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Generating…
-              </span>
-            )}
-          </div>
-
-          {streamError && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-5">
-              <p className="text-sm font-semibold text-red-900 mb-1">Unable to generate report</p>
-              <p className="text-sm text-red-700">{streamError}</p>
-              <button
-                onClick={generate}
-                className="mt-3 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
-              >
-                Try again
-              </button>
-            </div>
-          )}
-
-          {(streamLoading || markdown) && (
-            <div className="rounded-3xl border border-stone-200 bg-white px-5 py-6 md:px-8 md:py-8 shadow-sm">
-              {streamLoading && !markdown && <StreamingSkeleton />}
-              {markdown && <BenefitsContent markdown={markdown} />}
-              {streamLoading && markdown && (
-                <div className="mt-4 flex items-center gap-2 text-xs text-stone-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  Generating…
+            {/* VSO Note */}
+            {!profileLoading && (
+              <div className="rounded-2xl border border-stone-200 bg-white px-6 py-5 flex items-start gap-4">
+                <span className="text-amber-500 text-xl select-none shrink-0 mt-0.5">◎</span>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900 mb-1">Need help filing?</p>
+                  <p className="text-sm text-stone-500 leading-relaxed">
+                    Veterans Service Organizations (VSOs) provide free claims assistance — they can help your
+                    family file every claim at no cost.{" "}
+                    <a
+                      href="https://www.va.gov/decision-reviews/get-help-with-your-decision"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-600 underline hover:text-amber-700"
+                    >
+                      Find a VSO at va.gov
+                    </a>
+                  </p>
                 </div>
-              )}
-            </div>
-          )}
-        </section>
+              </div>
+            )}
 
-        {/* RCSBP */}
-        {!profileLoading && profile && <RcsbpSection profile={profile} />}
+            {/* Disclaimer */}
+            {!profileLoading && (
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 px-6 py-5">
+                <p className="text-xs text-stone-500 leading-relaxed">
+                  <span className="font-semibold text-stone-600">Disclaimer: </span>
+                  This is a starting point for research, not legal or financial advice. Benefit amounts,
+                  eligibility rules, and programs change over time. Always verify with the VA, SSA, your
+                  state veterans affairs office, or a VA-accredited attorney before making decisions.
+                </p>
+              </div>
+            )}
 
-        {/* Deadlines */}
-        {!profileLoading && <DeadlineTimeline />}
+          </div>
 
-        {/* VSO Note */}
-        {!profileLoading && (
-          <div className="rounded-2xl border border-stone-200 bg-white px-6 py-5 flex items-start gap-4">
-            <span className="text-amber-500 text-xl select-none shrink-0 mt-0.5">◎</span>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-1">Need help filing?</p>
-              <p className="text-sm text-stone-500 leading-relaxed">
-                Veterans Service Organizations (VSOs) provide free claims assistance — they can help your
-                family file every claim at no cost.{" "}
-                <a
-                  href="https://www.va.gov/decision-reviews/get-help-with-your-decision"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-amber-600 underline hover:text-amber-700"
-                >
-                  Find a VSO at va.gov
-                </a>
-              </p>
+          {/* Right column — AI Analysis (sticky sidebar) */}
+          <div className="w-full lg:w-[420px] shrink-0">
+            <div className="lg:sticky lg:top-6">
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-amber-500 select-none">◈</span>
+                  <h2 className="font-serif text-xl font-semibold text-stone-900">Detailed Analysis</h2>
+                  {streamLoading && (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-stone-400 ml-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      Generating…
+                    </span>
+                  )}
+                </div>
+
+                {streamError && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-5">
+                    <p className="text-sm font-semibold text-red-900 mb-1">Unable to generate report</p>
+                    <p className="text-sm text-red-700">{streamError}</p>
+                    <button
+                      onClick={generate}
+                      className="mt-3 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                )}
+
+                {(streamLoading || markdown) && (
+                  <div className="rounded-3xl border border-stone-200 bg-white px-5 py-6 md:px-6 md:py-7 shadow-sm max-h-[80vh] overflow-y-auto">
+                    {streamLoading && !markdown && <StreamingSkeleton />}
+                    {markdown && <BenefitsContent markdown={markdown} />}
+                    {streamLoading && markdown && (
+                      <div className="mt-4 flex items-center gap-2 text-xs text-stone-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        Generating…
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
             </div>
           </div>
-        )}
 
-        {/* Disclaimer */}
-        {!profileLoading && (
-          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-6 py-5">
-            <p className="text-xs text-stone-500 leading-relaxed">
-              <span className="font-semibold text-stone-600">Disclaimer: </span>
-              This is a starting point for research, not legal or financial advice. Benefit amounts,
-              eligibility rules, and programs change over time. Always verify with the VA, SSA, your
-              state veterans affairs office, or a VA-accredited attorney before making decisions.
-            </p>
-          </div>
-        )}
+        </div>
 
       </main>
     </div>
