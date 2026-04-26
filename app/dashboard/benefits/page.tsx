@@ -733,6 +733,20 @@ export default function BenefitsPage() {
           </div>
         )}
 
+        {/* Federal Benefits — 3-col grid */}
+        {!profileLoading && benefits.length > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-amber-500 select-none">✦</span>
+              <h2 className="font-serif text-xl font-semibold text-stone-900">Federal Survivor Benefits</h2>
+              <span className="ml-auto text-xs text-stone-400">{benefits.length} benefits identified</span>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
+              {benefits.map((b) => <BenefitCard key={b.id} b={b} />)}
+            </div>
+          </section>
+        )}
+
         {/* AI Detailed Analysis — full width */}
         {!profileLoading && profile && (
           <section>
@@ -772,20 +786,6 @@ export default function BenefitsPage() {
                 )}
               </div>
             )}
-          </section>
-        )}
-
-        {/* Federal Benefits — 3-col grid */}
-        {!profileLoading && benefits.length > 0 && (
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-amber-500 select-none">✦</span>
-              <h2 className="font-serif text-xl font-semibold text-stone-900">Federal Survivor Benefits</h2>
-              <span className="ml-auto text-xs text-stone-400">{benefits.length} benefits identified</span>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
-              {benefits.map((b) => <BenefitCard key={b.id} b={b} />)}
-            </div>
           </section>
         )}
 
