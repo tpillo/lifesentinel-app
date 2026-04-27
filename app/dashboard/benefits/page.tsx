@@ -283,6 +283,20 @@ function getBenefits(p: Profile): BenefitDef[] {
       });
     }
 
+    // Federal Recreation Pass
+    if (scDeath || isActiveduty) {
+      list.push({
+        id: "recreation-fed",
+        title: "Gold Star Family — Federal Recreation Pass",
+        amount: "Free annual America the Beautiful pass — access to 2,000+ national parks, forests, and federal lands",
+        description: "Immediate family members of service members who died on active duty may qualify for a free annual federal lands pass. Covers entrance fees at national parks, national forests, wildlife refuges, and BLM sites nationwide.",
+        eligibility: "verify",
+        contact: "USGS Store: store.usgs.gov/recreational-passes or 1-888-275-8747",
+        howToApply: "Apply at store.usgs.gov/recreational-passes. You will need a copy of the DD Form 1300 (Report of Casualty) as proof of eligibility.",
+        confirmed: false,
+      });
+    }
+
     // SGLI/VGLI
     list.push({
       id: "sgli",
@@ -310,6 +324,20 @@ function getBenefits(p: Profile): BenefitDef[] {
     howToApply: "Call SSA at 1-800-772-1213 or visit a local Social Security office. Benefits are not automatic.",
     confirmed: true,
   });
+
+  // State Recreation Pass
+  if (isMilitary) {
+    list.push({
+      id: "recreation-state",
+      title: "State Parks — Surviving Family Pass",
+      amount: "Free or discounted state park access — varies by state",
+      description: "Many states offer free or reduced-fee state park passes for surviving spouses and children of veterans who died from a service-connected cause or in the line of duty. Eligibility rules and benefits vary significantly by state.",
+      eligibility: "verify",
+      contact: "Contact your state Department of Veterans Affairs or state parks office",
+      howToApply: "Search '[your state] state park pass surviving spouse veteran' or contact your state veterans affairs office. Typically requires a copy of the death certificate and VA determination letter.",
+      confirmed: false,
+    });
+  }
 
   return list;
 }
@@ -835,16 +863,6 @@ export default function BenefitsPage() {
           </div>
         )}
 
-        {/* Parks note */}
-        {isMilitary && (
-          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
-            <span className="text-stone-400 text-base select-none shrink-0 mt-0.5">❋</span>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              After your passing, your family may qualify for additional recreation benefits based on cause of death.
-              Life Sentinel will surface these automatically for your Guardian.
-            </p>
-          </div>
-        )}
 
         {/* VSO + Disclaimer — side by side on lg */}
         {!profileLoading && (
