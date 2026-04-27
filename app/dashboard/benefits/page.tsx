@@ -615,6 +615,7 @@ export default function BenefitsPage() {
   const [streamLoading, setStreamLoading] = useState(false);
   const [streamDone, setStreamDone] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   async function generate() {
@@ -794,7 +795,24 @@ export default function BenefitsPage() {
             {(streamLoading || markdown) && (
               <div className="rounded-3xl border border-stone-200 bg-white px-6 py-7 md:px-8 md:py-8 shadow-sm">
                 {streamLoading && !markdown && <StreamingSkeleton />}
-                {markdown && <BenefitsContent markdown={markdown} />}
+                {markdown && (
+                  <>
+                    <div className={analysisOpen ? "" : "max-h-64 overflow-hidden relative"}>
+                      <BenefitsContent markdown={markdown} />
+                      {!analysisOpen && (
+                        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent" />
+                      )}
+                    </div>
+                    {!streamLoading && (
+                      <button
+                        onClick={() => setAnalysisOpen(!analysisOpen)}
+                        className="mt-4 w-full rounded-xl border border-stone-200 py-2 text-xs font-medium text-amber-600 hover:text-amber-700 hover:bg-stone-50 transition"
+                      >
+                        {analysisOpen ? "Show less ↑" : "Show full analysis ↓"}
+                      </button>
+                    )}
+                  </>
+                )}
                 {streamLoading && markdown && (
                   <div className="mt-4 flex items-center gap-2 text-xs text-stone-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
