@@ -325,20 +325,6 @@ function getBenefits(p: Profile): BenefitDef[] {
     confirmed: true,
   });
 
-  // State Recreation Pass
-  if (isMilitary) {
-    list.push({
-      id: "recreation-state",
-      title: "State Parks — Surviving Family Pass",
-      amount: "Free or discounted state park access — varies by state",
-      description: "Many states offer free or reduced-fee state park passes for surviving spouses and children of veterans who died from a service-connected cause or in the line of duty. Eligibility rules and benefits vary significantly by state.",
-      eligibility: "verify",
-      contact: "Contact your state Department of Veterans Affairs or state parks office",
-      howToApply: "Search '[your state] state park pass surviving spouse veteran' or contact your state veterans affairs office. Typically requires a copy of the death certificate and VA determination letter.",
-      confirmed: false,
-    });
-  }
-
   return list;
 }
 
@@ -844,6 +830,20 @@ export default function BenefitsPage() {
                   </div>
                 )}
                 <StateEdSection profile={profile} />
+                {profile.occupation_type === "military_veteran" && (
+                  <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+                      <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">State Parks — Surviving Family Pass</h3>
+                      <span className="shrink-0 inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-medium text-amber-700">◎ Verify Eligibility</span>
+                    </div>
+                    <p className="text-sm text-stone-500 leading-relaxed mb-3">
+                      Many states offer free or reduced-fee state park passes for surviving spouses and children of veterans who died from a service-connected cause or in the line of duty. Eligibility rules vary by state.
+                    </p>
+                    <p className="text-xs text-stone-400">
+                      Contact your state Department of Veterans Affairs or state parks office to verify.
+                    </p>
+                  </div>
+                )}
               </section>
             )}
 
