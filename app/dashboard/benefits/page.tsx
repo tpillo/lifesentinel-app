@@ -398,70 +398,61 @@ function EligBadge({ e }: { e: Eligibility }) {
 function BenefitCard({ b }: { b: BenefitDef }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm flex flex-col">
       <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
         <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">{b.title}</h3>
         <EligBadge e={b.eligibility} />
       </div>
 
-      {b.amount && (
-        <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-2.5 mb-3">
-          <p className="text-xs font-medium text-amber-900 leading-relaxed whitespace-pre-line">{b.amount}</p>
-        </div>
-      )}
-
-      <p className="text-sm text-stone-500 leading-relaxed mb-3">{b.description}</p>
-
-      {b.qualificationNote && (
-        <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-3 mb-3">
-          <p className="text-xs text-stone-500 leading-relaxed">
-            <span className="font-semibold text-stone-700">Does this family qualify? </span>
-            {b.qualificationNote}
-          </p>
-        </div>
-      )}
-
-      {b.enhancementNote && (
-        <div className={`rounded-xl border px-4 py-3 mb-3 ${
-          b.enhancementNote.startsWith("✓")
-            ? "border-emerald-200 bg-emerald-50/50"
-            : b.enhancementNote.startsWith("⚠")
-            ? "border-amber-200 bg-amber-50/50"
-            : "border-stone-200 bg-stone-50"
-        }`}>
-          <p className="text-xs leading-relaxed text-stone-700">{b.enhancementNote}</p>
-        </div>
-      )}
-
-      <div className="space-y-1 text-xs mb-3">
-        {b.form && (
-          <p><span className="text-stone-400">Form: </span><span className="font-medium text-stone-700">{b.form}</span></p>
-        )}
-        {b.contact && (
-          <p><span className="text-stone-400">Contact: </span><span className="text-stone-600">{b.contact}</span></p>
-        )}
-        {b.deadline && (
-          <p className="font-medium text-red-600">⚠ Deadline: {b.deadline}</p>
-        )}
-      </div>
-
-      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-        <span className={`text-xs font-medium ${b.confirmed ? "text-emerald-600" : "text-amber-600"}`}>
-          {b.confirmed ? "✓ Confirmed benefit" : "Verify with your state VA office"}
-        </span>
-        <button
-          onClick={() => setOpen(!open)}
-          className="text-xs text-amber-600 hover:text-amber-700 transition font-medium"
-        >
-          {open ? "Hide ↑" : "How to apply ↓"}
-        </button>
-      </div>
+      <p className={`text-sm text-stone-500 leading-relaxed flex-1 ${open ? "" : "line-clamp-3"}`}>
+        {b.description}
+      </p>
 
       {open && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-3">
+          {b.amount && (
+            <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-2.5">
+              <p className="text-xs font-medium text-amber-900 leading-relaxed whitespace-pre-line">{b.amount}</p>
+            </div>
+          )}
+
+          {b.qualificationNote && (
+            <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-3">
+              <p className="text-xs text-stone-500 leading-relaxed">
+                <span className="font-semibold text-stone-700">Does this family qualify? </span>
+                {b.qualificationNote}
+              </p>
+            </div>
+          )}
+
+          {b.enhancementNote && (
+            <div className={`rounded-xl border px-4 py-3 ${
+              b.enhancementNote.startsWith("✓")
+                ? "border-emerald-200 bg-emerald-50/50"
+                : b.enhancementNote.startsWith("⚠")
+                ? "border-amber-200 bg-amber-50/50"
+                : "border-stone-200 bg-stone-50"
+            }`}>
+              <p className="text-xs leading-relaxed text-stone-700">{b.enhancementNote}</p>
+            </div>
+          )}
+
+          <div className="space-y-1 text-xs">
+            {b.form && (
+              <p><span className="text-stone-400">Form: </span><span className="font-medium text-stone-700">{b.form}</span></p>
+            )}
+            {b.contact && (
+              <p><span className="text-stone-400">Contact: </span><span className="text-stone-600">{b.contact}</span></p>
+            )}
+            {b.deadline && (
+              <p className="font-medium text-red-600">⚠ Deadline: {b.deadline}</p>
+            )}
+          </div>
+
           <p className="text-xs text-stone-500 leading-relaxed rounded-xl bg-stone-50 px-4 py-3">
             {b.howToApply}
           </p>
+
           {b.plainLanguageNote && (
             <p className="text-xs text-stone-600 leading-relaxed rounded-xl border border-amber-100 bg-amber-50/50 px-4 py-3">
               <span className="font-semibold text-amber-800">Example: </span>{b.plainLanguageNote}
@@ -469,6 +460,18 @@ function BenefitCard({ b }: { b: BenefitDef }) {
           )}
         </div>
       )}
+
+      <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
+        <span className={`text-xs font-medium ${b.confirmed ? "text-emerald-600" : "text-amber-600"}`}>
+          {b.confirmed ? "✓ Confirmed benefit" : "Verify with your state VA office"}
+        </span>
+        <button
+          onClick={() => setOpen(!open)}
+          className="text-xs text-amber-600 hover:text-amber-700 transition font-medium"
+        >
+          {open ? "Less ↑" : "More details ↓"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -741,7 +744,7 @@ export default function BenefitsPage() {
               <h2 className="font-serif text-xl font-semibold text-stone-900">Federal Survivor Benefits</h2>
               <span className="ml-auto text-xs text-stone-400">{benefits.length} benefits identified</span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {benefits.map((b) => <BenefitCard key={b.id} b={b} />)}
             </div>
           </section>
