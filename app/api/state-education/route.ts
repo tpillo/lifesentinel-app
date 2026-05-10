@@ -54,7 +54,13 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const buffer: string[] = [];
 
-  // Synchronous start — event listeners, no async/await inside
+  let resolveDone!: () => void;
+  let rejectDone!: (err: unknown) => void;
+  const streamDone = new Promise<void>((resolve, reject) => {
+    resolveDone = resolve;
+    rejectDone = reject;
+  });
+
   const readable = new ReadableStream({
     start(controller) {
       stream.on("text", (text) => {
@@ -68,19 +74,24 @@ export async function POST(req: Request) {
       stream.on("error", (err) => {
         console.error("[state-education] stream error:", err);
         controller.error(err);
+        rejectDone(err);
       });
       stream.on("end", () => {
         controller.close();
+        resolveDone();
       });
     },
   });
 
-  // Hoisted to route handler scope so Vercel registers it for post-response execution
   if (userId) {
     const capturedUserId = userId;
     after(async () => {
-      await stream.finalMessage();
-      await saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL);
+      try {
+        await streamDone;
+        await saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL);
+      } catch (err) {
+        console.error("[state-education] after() failed:", err);
+      }
     });
   }
 
