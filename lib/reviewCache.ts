@@ -20,7 +20,15 @@ export async function getCachedReview(
     .eq("user_id", userId)
     .eq("review_type", reviewType)
     .maybeSingle();
-  if (error || !data) return null;
+  if (error) {
+    console.error("[reviewCache] getCachedReview FAILED:", { userId, reviewType, message: error.message });
+    return null;
+  }
+  if (!data) {
+    console.log("[reviewCache] cache miss:", { userId, reviewType });
+    return null;
+  }
+  console.log("[reviewCache] cache hit:", { userId, reviewType });
   return data;
 }
 
@@ -31,7 +39,7 @@ export async function saveCachedReview(
   content: string,
   model: string
 ): Promise<void> {
-  await supabaseAdmin.from("cached_reviews").upsert(
+  const { error } = await supabaseAdmin.from("cached_reviews").upsert(
     {
       user_id: userId,
       review_type: reviewType,
@@ -42,4 +50,9 @@ export async function saveCachedReview(
     },
     { onConflict: "user_id,review_type" }
   );
+  if (error) {
+    console.error("[reviewCache] saveCachedReview FAILED:", { userId, reviewType, code: error.code, message: error.message, details: error.details });
+  } else {
+    console.log("[reviewCache] saveCachedReview ok:", { userId, reviewType, contentChars: content.length });
+  }
 }
