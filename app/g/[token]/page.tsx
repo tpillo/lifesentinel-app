@@ -31,6 +31,7 @@ type VeteranProfile = {
   branches_served: string[] | null
   retirement_branch: string | null
   primary_service_branch: string | null
+  va_rating_date: string | null
 }
 
 type OverviewResponse = {

@@ -22,6 +22,7 @@ type FormData = {
   va_disability_rating: string;
   va_pt_designation: string;
   pt_award_date: string;
+  va_rating_date: string;
   service_connected_death: string;
   retirement_type: string;
   rcsbp_election: string;
@@ -327,6 +328,7 @@ export default function ProfileSetupPage() {
     va_disability_rating: "",
     va_pt_designation: "",
     pt_award_date: "",
+    va_rating_date: "",
     service_connected_death: "",
     retirement_type: "",
     rcsbp_election: "",
@@ -361,6 +363,7 @@ export default function ProfileSetupPage() {
           va_disability_rating: profile.va_disability_rating ?? "",
           va_pt_designation: profile.va_pt_designation ?? "",
           pt_award_date: profile.pt_award_date ?? "",
+          va_rating_date: profile.va_rating_date ?? "",
           service_connected_death: profile.service_connected_death ?? "",
           retirement_type: profile.retirement_type ?? "",
           rcsbp_election: profile.rcsbp_election ?? "",
@@ -860,6 +863,12 @@ export default function ProfileSetupPage() {
                         ))}
                       </select>
                     </div>
+                    {form.va_disability_rating && form.va_disability_rating !== "none" && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700">VA Rating Effective Date</label>
+                        <input type="date" value={form.va_rating_date} onChange={(e) => set("va_rating_date", e.target.value)} className={inputClass} />
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-stone-700">Permanent &amp; Total (P&amp;T) Designation</label>

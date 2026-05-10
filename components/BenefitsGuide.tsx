@@ -7,6 +7,7 @@ export type Profile = {
   va_disability_rating?: string | null;
   va_pt_designation?: string | null;
   pt_award_date?: string | null;
+  va_rating_date?: string | null;
   service_connected_death?: string | null;
   state?: string | null;
   num_dependents?: number | null;
