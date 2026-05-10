@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   const prompt = buildStateEdPrompt(fields);
-  const stream = await anthropic.messages.stream({
+  const stream = anthropic.messages.stream({
     model: STATE_ED_MODEL,
     max_tokens: 600,
     messages: [{ role: "user", content: prompt }],
@@ -53,31 +53,36 @@ export async function POST(req: Request) {
 
   const encoder = new TextEncoder();
   const buffer: string[] = [];
-  const capturedUserId = userId;
 
+  // Synchronous start — event listeners, no async/await inside
   const readable = new ReadableStream({
-    async start(controller) {
-      for await (const event of stream) {
-        if (
-          event.type === "content_block_delta" &&
-          event.delta.type === "text_delta"
-        ) {
-          const chunk = event.delta.text
-            .replace(/^---+\s*$/gm, "")
-            .replace(/^\*\*\*+\s*$/gm, "")
-            .replace(/^___+\s*$/gm, "");
-          controller.enqueue(encoder.encode(chunk));
-          buffer.push(chunk);
-        }
-      }
-      controller.close();
-      if (capturedUserId) {
-        after(() =>
-          saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL)
-        );
-      }
+    start(controller) {
+      stream.on("text", (text) => {
+        const cleaned = text
+          .replace(/^---+\s*$/gm, "")
+          .replace(/^\*\*\*+\s*$/gm, "")
+          .replace(/^___+\s*$/gm, "");
+        controller.enqueue(encoder.encode(cleaned));
+        buffer.push(cleaned);
+      });
+      stream.on("error", (err) => {
+        console.error("[state-education] stream error:", err);
+        controller.error(err);
+      });
+      stream.on("end", () => {
+        controller.close();
+      });
     },
   });
+
+  // Hoisted to route handler scope so Vercel registers it for post-response execution
+  if (userId) {
+    const capturedUserId = userId;
+    after(async () => {
+      await stream.finalMessage();
+      await saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL);
+    });
+  }
 
   return new Response(readable, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
