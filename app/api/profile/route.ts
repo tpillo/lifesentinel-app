@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { prewarmBenefitsCache, prewarmStateEdCache } from "@/lib/generateReviews";
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -58,6 +59,17 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Pre-warm review caches in the background — does not block the save response
+  void Promise.all([
+    prewarmBenefitsCache(user.id, body),
+    prewarmStateEdCache(user.id, {
+      state: String(body.state ?? ""),
+      isPT: body.va_pt_designation === "yes",
+      rating: String(body.va_disability_rating ?? ""),
+      scDeath: body.service_connected_death === "yes",
+    }),
+  ]).catch((err) => console.error("[profile] prewarm error:", err));
 
   return NextResponse.json({ ok: true });
 }

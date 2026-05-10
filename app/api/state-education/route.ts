@@ -1,4 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
+import { STATE_ED_MODEL, buildStateEdPrompt } from "@/lib/generateReviews";
+import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/reviewCache";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -13,42 +16,44 @@ export async function POST(req: Request) {
     return new Response("Invalid JSON", { status: 400 });
   }
 
-  const { state, isPT, rating, scDeath } = body;
+  const { state, isPT = false, rating = "", scDeath = false } = body;
   if (!state) return new Response("Missing state", { status: 400 });
 
-  const prompt = `You are a veteran benefits expert helping a surviving military family understand state education benefits available to them in ${state}.
+  const fields = { state, isPT, rating, scDeath };
 
-Veteran profile:
-- State: ${state}
-- VA Disability Rating: ${rating || "Not specified"}
-- Permanent & Total (P&T) Designation: ${isPT ? "Yes" : "No"}
-- Service-Connected Death: ${scDeath ? "Yes" : "No"}
+  // Attempt to resolve the authenticated user for caching (gracefully skipped if unauthenticated)
+  let userId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id ?? null;
+  } catch {
+    // unauthenticated context — proceed without caching
+  }
 
-Provide a concise, accurate summary of ${state}'s education benefit programs for surviving spouses and dependent children of veterans or service members. For each program that exists, cover:
-- Program name and administering agency
-- What it covers (tuition, fees, stipends, credit hour limits)
-- Who qualifies and any age limits
-- Residency requirements
-- How to apply (website, phone number)
-- Any interaction or conflict with federal programs like DEA (Chapter 35) or the Fry Scholarship that this family should know about
+  const profileHash = computeProfileHash(fields as unknown as Record<string, unknown>);
 
-If ${state} does not have a dedicated state education benefit program, say so clearly and advise them to contact the ${state} Department of Veterans Affairs or equivalent office.
+  // Cache hit — return instantly
+  if (userId) {
+    const cached = await getCachedReview(userId, "state_education");
+    if (cached && cached.profile_hash === profileHash && cached.model === STATE_ED_MODEL) {
+      return new Response(cached.content, {
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }
+  }
 
-CRITICAL RULES:
-- Only describe programs that genuinely exist in ${state}. Do not invent or fabricate programs.
-- Do NOT use markdown tables.
-- Do NOT use horizontal rules (---, ***, ___).
-- Use bullet points and short paragraphs.
-- Keep the response practical and under 300 words.
-- Do not use headers (##, ###) — just use bold text and bullets.`;
-
+  const prompt = buildStateEdPrompt(fields);
   const stream = await anthropic.messages.stream({
-    model: "claude-sonnet-4-6",
+    model: STATE_ED_MODEL,
     max_tokens: 600,
     messages: [{ role: "user", content: prompt }],
   });
 
   const encoder = new TextEncoder();
+  const buffer: string[] = [];
+  const capturedUserId = userId;
+
   const readable = new ReadableStream({
     async start(controller) {
       for await (const event of stream) {
@@ -61,9 +66,19 @@ CRITICAL RULES:
             .replace(/^\*\*\*+\s*$/gm, "")
             .replace(/^___+\s*$/gm, "");
           controller.enqueue(encoder.encode(chunk));
+          buffer.push(chunk);
         }
       }
       controller.close();
+      if (capturedUserId) {
+        void saveCachedReview(
+          capturedUserId,
+          "state_education",
+          profileHash,
+          buffer.join(""),
+          STATE_ED_MODEL
+        );
+      }
     },
   });
 

@@ -1,0 +1,173 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/reviewCache";
+
+export const BENEFITS_MODEL = "claude-sonnet-4-6";
+export const STATE_ED_MODEL = "claude-sonnet-4-6";
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// ── Prompt builders ────────────────────────────────────────────────────────────
+
+export function buildBenefitsPrompt(profile: Record<string, unknown> | null): string {
+  const occ = (profile?.occupation_type as string) ?? "unknown";
+  const occLabel =
+    occ === "law_enforcement" ? "Law Enforcement Officer"
+    : occ === "military_veteran" ? "Military Service Member / Veteran"
+    : occ === "firefighter" ? "Firefighter / First Responder"
+    : "Civilian";
+
+  const ptLabel =
+    profile?.va_pt_designation === "yes" ? "Yes"
+    : profile?.va_pt_designation === "pending" ? "Pending"
+    : profile?.va_pt_designation === "no" ? "No"
+    : "Unknown";
+
+  const lines: string[] = [
+    "You are a veteran benefits advisor helping a family understand what they are entitled to after a veteran's passing.",
+    "",
+    "Based on this veteran's profile, generate a clear, compassionate, organized summary of ALL post-death benefits their family qualifies for.",
+    "Cover federal benefits, state benefits, and important deadlines. Be specific about dollar amounts where known, eligibility requirements,",
+    "required forms, and who to contact. Focus only on survivor/post-death benefits — not benefits for the living veteran.",
+    "",
+    "## Veteran Profile",
+    `- Occupation: ${occLabel}`,
+  ];
+
+  if (profile?.branch) lines.push(`- Branch of Service: ${profile.branch}`);
+  if (profile?.status) lines.push(`- Service Status: ${profile.status}`);
+  if (profile?.state) lines.push(`- State of Residence: ${profile.state}`);
+  if (profile?.years_of_service) lines.push(`- Years of Service: ${profile.years_of_service}`);
+  if (profile?.va_disability_rating) lines.push(`- VA Combined Disability Rating: ${profile.va_disability_rating === "none" ? "None" : profile.va_disability_rating + "%"}`);
+  if (profile?.va_pt_designation) lines.push(`- Permanent & Total (P&T) Designation: ${ptLabel}`);
+  if (profile?.service_connected_death) lines.push(`- Cause of Death Service-Connected: ${profile.service_connected_death}`);
+  if (profile?.marital_status) lines.push(`- Marital Status: ${profile.marital_status}`);
+  if (profile?.num_dependents != null) lines.push(`- Number of Dependent Children Under 23: ${profile.num_dependents}`);
+  if (profile?.department_type) lines.push(`- Department Type: ${profile.department_type}`);
+  if (profile?.career_volunteer) lines.push(`- Career/Volunteer: ${profile.career_volunteer}`);
+
+  lines.push(
+    "",
+    "## Report Sections",
+    "",
+    "### 1. Federal Survivor Benefits",
+    "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, Fry Scholarship, VA Burial Benefits, VA Home Loan for surviving spouse, SGLI/VGLI, and Social Security survivor benefits. Include 2026 dollar amounts, eligibility conditions, required forms, and contacts.",
+    "",
+    "### 2. State-Specific Benefits",
+    `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and any special programs. Be specific about current law and how to apply. Note which benefits transfer to a new residence.`,
+    "",
+    "### 3. Healthcare for Survivors",
+    "Cover CHAMPVA (if not already addressed), TRICARE if applicable, and state health program options for surviving family members.",
+    "",
+    "### 4. Education Benefits for Dependents",
+    "Cover DEA/Chapter 35, Fry Scholarship (if applicable), state tuition waivers for the veteran's state, and any other education benefits for dependent children or surviving spouse.",
+    "",
+    "### 5. Additional Resources & Less-Known Benefits",
+    "Highlight any less-known benefits specific to this veteran's profile — such as CHAMPVA dental, state veteran license plate fee waivers, burial benefits, Gold Star family programs, or income tax exemptions.",
+    "",
+    "## Critical Accuracy Requirements",
+    "- DIC remarriage rule: the correct age is 55, NOT 57. As of 2021, surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC permanently. Do not use age 57 anywhere.",
+    "- DIC base rate: $1,699.36/month (2026). Do not use approximate or rounded figures.",
+    "- DIC 8-year enhancement: +$360.85/month (not a child allowance — this is the 8-year rule for spouses).",
+    "- DIC per child: +$421.00/month per dependent child under 18.",
+    "- DIC transitional benefit: +$342.00/month for first 2 years if surviving spouse has dependent children.",
+    "",
+    "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
+    "Do NOT use markdown tables under any circumstances. Use bullet points for all lists including DIC breakdowns.",
+    "Do NOT use horizontal rules or dividers of any kind — no ---, no ***, no ___. Never output three or more dashes, asterisks, or underscores on a line. Use ## and ### headings to separate sections instead.",
+    "Write in a warm, clear, family-friendly tone. This report will be read by a grieving family — be compassionate and practical.",
+  );
+
+  return lines.join("\n");
+}
+
+export function buildStateEdPrompt(fields: {
+  state: string;
+  isPT: boolean;
+  rating: string;
+  scDeath: boolean;
+}): string {
+  const { state, isPT, rating, scDeath } = fields;
+  return `You are a veteran benefits expert helping a surviving military family understand state education benefits available to them in ${state}.
+
+Veteran profile:
+- State: ${state}
+- VA Disability Rating: ${rating || "Not specified"}
+- Permanent & Total (P&T) Designation: ${isPT ? "Yes" : "No"}
+- Service-Connected Death: ${scDeath ? "Yes" : "No"}
+
+Provide a concise, accurate summary of ${state}'s education benefit programs for surviving spouses and dependent children of veterans or service members. For each program that exists, cover:
+- Program name and administering agency
+- What it covers (tuition, fees, stipends, credit hour limits)
+- Who qualifies and any age limits
+- Residency requirements
+- How to apply (website, phone number)
+- Any interaction or conflict with federal programs like DEA (Chapter 35) or the Fry Scholarship that this family should know about
+
+If ${state} does not have a dedicated state education benefit program, say so clearly and advise them to contact the ${state} Department of Veterans Affairs or equivalent office.
+
+CRITICAL RULES:
+- Only describe programs that genuinely exist in ${state}. Do not invent or fabricate programs.
+- Do NOT use markdown tables.
+- Do NOT use horizontal rules (---, ***, ___).
+- Use bullet points and short paragraphs.
+- Keep the response practical and under 300 words.
+- Do not use headers (##, ###) — just use bold text and bullets.`;
+}
+
+// ── Hash field extractors ──────────────────────────────────────────────────────
+
+export function benefitsHashFields(profile: Record<string, unknown>): Record<string, unknown> {
+  return {
+    occupation_type: profile?.occupation_type ?? null,
+    branch: profile?.branch ?? null,
+    status: profile?.status ?? null,
+    state: profile?.state ?? null,
+    years_of_service: profile?.years_of_service ?? null,
+    va_disability_rating: profile?.va_disability_rating ?? null,
+    va_pt_designation: profile?.va_pt_designation ?? null,
+    service_connected_death: profile?.service_connected_death ?? null,
+    marital_status: profile?.marital_status ?? null,
+    num_dependents: profile?.num_dependents ?? null,
+    department_type: profile?.department_type ?? null,
+    career_volunteer: profile?.career_volunteer ?? null,
+  };
+}
+
+// ── Pre-warm functions (non-streaming, called from profile route) ──────────────
+
+export async function prewarmBenefitsCache(
+  userId: string,
+  profile: Record<string, unknown>
+): Promise<void> {
+  const profileHash = computeProfileHash(benefitsHashFields(profile));
+  const cached = await getCachedReview(userId, "benefits");
+  if (cached && cached.profile_hash === profileHash && cached.model === BENEFITS_MODEL) return;
+
+  const response = await anthropic.messages.create({
+    model: BENEFITS_MODEL,
+    max_tokens: 8192,
+    messages: [{ role: "user", content: buildBenefitsPrompt(profile) }],
+  });
+  const content =
+    response.content[0]?.type === "text" ? response.content[0].text : "";
+  await saveCachedReview(userId, "benefits", profileHash, content, BENEFITS_MODEL);
+}
+
+export async function prewarmStateEdCache(
+  userId: string,
+  fields: { state: string; isPT: boolean; rating: string; scDeath: boolean }
+): Promise<void> {
+  if (!fields.state) return;
+  const profileHash = computeProfileHash(fields as unknown as Record<string, unknown>);
+  const cached = await getCachedReview(userId, "state_education");
+  if (cached && cached.profile_hash === profileHash && cached.model === STATE_ED_MODEL) return;
+
+  const response = await anthropic.messages.create({
+    model: STATE_ED_MODEL,
+    max_tokens: 600,
+    messages: [{ role: "user", content: buildStateEdPrompt(fields) }],
+  });
+  const content =
+    response.content[0]?.type === "text" ? response.content[0].text : "";
+  await saveCachedReview(userId, "state_education", profileHash, content, STATE_ED_MODEL);
+}
