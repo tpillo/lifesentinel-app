@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { STATE_ED_MODEL, buildStateEdPrompt } from "@/lib/generateReviews";
 import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/reviewCache";
@@ -71,12 +72,8 @@ export async function POST(req: Request) {
       }
       controller.close();
       if (capturedUserId) {
-        void saveCachedReview(
-          capturedUserId,
-          "state_education",
-          profileHash,
-          buffer.join(""),
-          STATE_ED_MODEL
+        after(() =>
+          saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL)
         );
       }
     },

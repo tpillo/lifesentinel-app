@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   BENEFITS_MODEL,
@@ -68,13 +68,8 @@ export async function POST() {
             }
           }
           controller.close();
-          // Fire-and-forget cache save after stream completes
-          void saveCachedReview(
-            userId,
-            "benefits",
-            profileHash,
-            buffer.join(""),
-            BENEFITS_MODEL
+          after(() =>
+            saveCachedReview(userId, "benefits", profileHash, buffer.join(""), BENEFITS_MODEL)
           );
         } catch (err) {
           console.error("[benefits] stream error:", err);
