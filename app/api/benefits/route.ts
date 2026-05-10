@@ -44,10 +44,9 @@ export async function POST() {
   const prompt = buildBenefitsPrompt(profile);
 
   try {
-    const stream = await anthropic.messages.create({
+    const stream = anthropic.messages.stream({
       model: BENEFITS_MODEL,
       max_tokens: 8192,
-      stream: true,
       messages: [{ role: "user", content: prompt }],
     });
 
