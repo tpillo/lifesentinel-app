@@ -2,6 +2,9 @@ import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prewarmBenefitsCache, prewarmStateEdCache } from "@/lib/generateReviews";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const supabase = await createClient();
 
