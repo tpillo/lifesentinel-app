@@ -10,6 +10,8 @@ export const maxDuration = 60;
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: Request) {
+  console.log("[state-education] POST received");
+
   let body: { state?: string; isPT?: boolean; rating?: string; scDeath?: boolean } = {};
   try {
     body = await req.json();
@@ -21,8 +23,8 @@ export async function POST(req: Request) {
   if (!state) return new Response("Missing state", { status: 400 });
 
   const fields = { state, isPT, rating, scDeath };
+  console.log("[state-education] fields", fields);
 
-  // Attempt to resolve the authenticated user for caching (gracefully skipped if unauthenticated)
   let userId: string | null = null;
   try {
     const supabase = await createClient();
@@ -31,34 +33,80 @@ export async function POST(req: Request) {
   } catch {
     // unauthenticated context — proceed without caching
   }
+  console.log("[state-education] auth", { userId: userId ?? "unauthenticated" });
 
   const profileHash = computeProfileHash(fields as unknown as Record<string, unknown>);
+  console.log("[state-education] profile hash computed", { profileHash });
 
-  // Cache hit — return instantly
   if (userId) {
     const cached = await getCachedReview(userId, "state_education");
-    if (cached && cached.profile_hash === profileHash && cached.model === STATE_ED_MODEL) {
+    const hashMatch = cached?.profile_hash === profileHash;
+    const modelMatch = cached?.model === STATE_ED_MODEL;
+    console.log("[state-education] cache check", { hit: !!cached, hashMatch, modelMatch });
+
+    if (cached && hashMatch && modelMatch) {
+      console.log("[state-education] returning cached response", { contentChars: cached.content.length });
       return new Response(cached.content, {
         headers: { "Content-Type": "text/plain; charset=utf-8" },
       });
     }
   }
 
+  console.log("[state-education] cache miss — starting LLM stream");
+
   try {
-    const response = await anthropic.messages.create({
+    const stream = anthropic.messages.stream({
       model: STATE_ED_MODEL,
       max_tokens: 600,
       messages: [{ role: "user", content: buildStateEdPrompt(fields) }],
     });
 
-    const content =
-      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const capturedUserId = userId;
+    const encoder = new TextEncoder();
+    const buffer: string[] = [];
 
-    if (userId) {
-      await saveCachedReview(userId, "state_education", profileHash, content, STATE_ED_MODEL);
-    }
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          console.log("[state-education] stream start");
+          let eventCount = 0;
 
-    return new Response(content, {
+          for await (const event of stream) {
+            eventCount++;
+            if (
+              event.type === "content_block_delta" &&
+              event.delta.type === "text_delta"
+            ) {
+              const text = event.delta.text
+                .replace(/^---+\s*$/gm, "")
+                .replace(/^\*\*\*+\s*$/gm, "")
+                .replace(/^___+\s*$/gm, "");
+              controller.enqueue(encoder.encode(text));
+              buffer.push(text);
+            }
+          }
+
+          console.log("[state-education] for-await loop completed", {
+            eventCount,
+            totalChars: buffer.join("").length,
+          });
+
+          if (capturedUserId) {
+            console.log("[state-education] calling saveCachedReview");
+            await saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL);
+            console.log("[state-education] saveCachedReview returned");
+          }
+
+          controller.close();
+          console.log("[state-education] controller closed");
+        } catch (err) {
+          console.error("[state-education] start() error:", err);
+          controller.error(err);
+        }
+      },
+    });
+
+    return new Response(readable, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (err: unknown) {

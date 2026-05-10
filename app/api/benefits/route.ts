@@ -18,42 +18,88 @@ export const maxDuration = 60;
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST() {
+  console.log("[benefits] POST received");
+
   const supabase = await createClient();
 
   const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) {
+    console.log("[benefits] unauthorized");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  console.log("[benefits] authenticated", { userId: user.id });
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
+  console.log("[benefits] profile fetched", { hasProfile: !!profile });
 
   const profileHash = computeProfileHash(benefitsHashFields(profile ?? {}));
+  console.log("[benefits] profile hash computed", { profileHash });
 
-  // Cache hit — return instantly, no LLM call
   const cached = await getCachedReview(user.id, "benefits");
-  if (cached && cached.profile_hash === profileHash && cached.model === BENEFITS_MODEL) {
+  const hashMatch = cached?.profile_hash === profileHash;
+  const modelMatch = cached?.model === BENEFITS_MODEL;
+  console.log("[benefits] cache check", { hit: !!cached, hashMatch, modelMatch });
+
+  if (cached && hashMatch && modelMatch) {
+    console.log("[benefits] returning cached response", { contentChars: cached.content.length });
     return new Response(cached.content, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
 
+  console.log("[benefits] cache miss — starting LLM stream");
+
   try {
-    const response = await anthropic.messages.create({
+    const stream = anthropic.messages.stream({
       model: BENEFITS_MODEL,
       max_tokens: 8192,
       messages: [{ role: "user", content: buildBenefitsPrompt(profile) }],
     });
 
-    const content =
-      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const userId = user.id;
+    const buffer: string[] = [];
 
-    await saveCachedReview(user.id, "benefits", profileHash, content, BENEFITS_MODEL);
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          console.log("[benefits] stream start");
+          let eventCount = 0;
 
-    return new Response(content, {
+          for await (const event of stream) {
+            eventCount++;
+            if (
+              event.type === "content_block_delta" &&
+              event.delta.type === "text_delta"
+            ) {
+              const text = event.delta.text;
+              controller.enqueue(new TextEncoder().encode(text));
+              buffer.push(text);
+            }
+          }
+
+          console.log("[benefits] for-await loop completed", {
+            eventCount,
+            totalChars: buffer.join("").length,
+          });
+
+          console.log("[benefits] calling saveCachedReview");
+          await saveCachedReview(userId, "benefits", profileHash, buffer.join(""), BENEFITS_MODEL);
+          console.log("[benefits] saveCachedReview returned");
+
+          controller.close();
+          console.log("[benefits] controller closed");
+        } catch (err) {
+          console.error("[benefits] start() error:", err);
+          controller.error(err);
+        }
+      },
+    });
+
+    return new Response(readable, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (err: unknown) {
