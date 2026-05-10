@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-const BUCKET = "VAULT";
+const BUCKET = "vault";
 
 export async function POST(req: Request) {
   const { token, fullPath } = await req.json();
