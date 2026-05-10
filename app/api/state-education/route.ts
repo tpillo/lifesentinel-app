@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { after } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { STATE_ED_MODEL, buildStateEdPrompt } from "@/lib/generateReviews";
 import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/reviewCache";
@@ -44,58 +44,26 @@ export async function POST(req: Request) {
     }
   }
 
-  const prompt = buildStateEdPrompt(fields);
-  const stream = anthropic.messages.stream({
-    model: STATE_ED_MODEL,
-    max_tokens: 600,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  const encoder = new TextEncoder();
-  const buffer: string[] = [];
-
-  let resolveDone!: () => void;
-  let rejectDone!: (err: unknown) => void;
-  const streamDone = new Promise<void>((resolve, reject) => {
-    resolveDone = resolve;
-    rejectDone = reject;
-  });
-
-  const readable = new ReadableStream({
-    start(controller) {
-      stream.on("text", (text) => {
-        const cleaned = text
-          .replace(/^---+\s*$/gm, "")
-          .replace(/^\*\*\*+\s*$/gm, "")
-          .replace(/^___+\s*$/gm, "");
-        controller.enqueue(encoder.encode(cleaned));
-        buffer.push(cleaned);
-      });
-      stream.on("error", (err) => {
-        console.error("[state-education] stream error:", err);
-        controller.error(err);
-        rejectDone(err);
-      });
-      stream.on("end", () => {
-        controller.close();
-        resolveDone();
-      });
-    },
-  });
-
-  if (userId) {
-    const capturedUserId = userId;
-    after(async () => {
-      try {
-        await streamDone;
-        await saveCachedReview(capturedUserId, "state_education", profileHash, buffer.join(""), STATE_ED_MODEL);
-      } catch (err) {
-        console.error("[state-education] after() failed:", err);
-      }
+  try {
+    const response = await anthropic.messages.create({
+      model: STATE_ED_MODEL,
+      max_tokens: 600,
+      messages: [{ role: "user", content: buildStateEdPrompt(fields) }],
     });
-  }
 
-  return new Response(readable, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
-  });
+    const content =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+
+    if (userId) {
+      await saveCachedReview(userId, "state_education", profileHash, content, STATE_ED_MODEL);
+    }
+
+    return new Response(content, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to generate state education report";
+    console.error("[state-education] API error:", err);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

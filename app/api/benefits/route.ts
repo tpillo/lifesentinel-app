@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { NextResponse, after } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   BENEFITS_MODEL,
@@ -41,53 +41,19 @@ export async function POST() {
     });
   }
 
-  const prompt = buildBenefitsPrompt(profile);
-
   try {
-    const stream = anthropic.messages.stream({
+    const response = await anthropic.messages.create({
       model: BENEFITS_MODEL,
       max_tokens: 8192,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: buildBenefitsPrompt(profile) }],
     });
 
-    const userId = user.id;
-    const buffer: string[] = [];
+    const content =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
 
-    let resolveDone!: () => void;
-    let rejectDone!: (err: unknown) => void;
-    const streamDone = new Promise<void>((resolve, reject) => {
-      resolveDone = resolve;
-      rejectDone = reject;
-    });
+    await saveCachedReview(user.id, "benefits", profileHash, content, BENEFITS_MODEL);
 
-    const readable = new ReadableStream({
-      start(controller) {
-        stream.on("text", (text) => {
-          controller.enqueue(new TextEncoder().encode(text));
-          buffer.push(text);
-        });
-        stream.on("error", (err) => {
-          console.error("[benefits] stream error:", err);
-          controller.error(err);
-          rejectDone(err);
-        });
-        stream.on("end", () => {
-          controller.close();
-          resolveDone();
-        });
-      },
-    });
-
-    after(async () => {
-      try {
-        await streamDone;
-        await saveCachedReview(userId, "benefits", profileHash, buffer.join(""), BENEFITS_MODEL);
-      } catch (err) {
-        console.error("[benefits] after() failed:", err);
-      }
-    });
-
-    return new Response(readable, {
+    return new Response(content, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (err: unknown) {
