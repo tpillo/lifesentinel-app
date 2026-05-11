@@ -37,7 +37,7 @@ const steps = [
   {
     number: "2",
     title: "Organize your vault",
-    body: "Upload critical documents, designate your Guardian, complete your readiness checklist.",
+    body: "Upload critical documents to the encrypted vault, or simply record where each one lives. Designate your Guardian and complete your readiness checklist.",
   },
   {
     number: "3",
@@ -151,7 +151,11 @@ export default function Home() {
             </a>
           </div>
 
-          <p className="mt-6 text-xs text-stone-400">
+          <p className="mt-5 text-sm text-stone-500 max-w-lg mx-auto">
+            No uploads required. Use the planning tools and just tell your family where your documents live.
+          </p>
+
+          <p className="mt-3 text-xs text-stone-400">
             No credit card required. Takes less than 10 minutes to set up.
           </p>
         </div>
@@ -262,6 +266,16 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          <div className="mt-10 rounded-3xl border border-amber-100 bg-amber-50/50 px-8 py-7">
+            <h3 className="font-serif text-lg font-semibold text-stone-900">
+              Your documents stay where you want them
+            </h3>
+            <p className="mt-3 text-stone-500 text-sm leading-relaxed">
+              Upload them to Life Sentinel&rsquo;s encrypted vault, keep them in your own cloud drive, or
+              just leave instructions on where to find them. The planning tools work either way.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -330,7 +344,18 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-10 rounded-3xl border border-stone-700 bg-stone-800/30 px-8 py-7 text-center">
+          <div className="mt-10 rounded-3xl border border-amber-700/30 bg-amber-950/20 px-8 py-8">
+            <p className="font-serif text-xl font-semibold text-amber-100">
+              The most secure document is the one you never upload.
+            </p>
+            <p className="mt-3 text-stone-400 text-sm leading-relaxed max-w-2xl">
+              Life Sentinel is designed to be useful even if you never upload a single file. Use our
+              encrypted storage if it fits your needs, or keep your documents in your preferred cloud
+              drive and use Life Sentinel to tell your family where to find them.
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-3xl border border-stone-700 bg-stone-800/30 px-8 py-7 text-center">
             <p className="text-stone-300 text-sm leading-relaxed max-w-2xl mx-auto">
               We will never sell your data, share it with advertisers, or use it for any purpose
               other than providing this service to you and your family. Your vault is yours alone.
@@ -378,7 +403,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 8. FINAL CTA ── */}
+      {/* ── 8. FAQ ── */}
+      <section className="bg-white py-24 border-t border-stone-200">
+        <div className="mx-auto max-w-4xl px-6 md:px-8">
+          <div className="text-center mb-14">
+            <p className="text-xs font-medium uppercase tracking-widest text-amber-600 mb-3">
+              Common questions
+            </p>
+            <h2 className="font-serif text-4xl font-semibold text-stone-900 md:text-5xl">
+              Frequently asked
+            </h2>
+          </div>
+
+          <div className="divide-y divide-stone-100">
+            <div className="py-8">
+              <h3 className="font-serif text-lg font-semibold text-stone-900">
+                Do I have to upload my documents?
+              </h3>
+              <p className="mt-3 text-stone-500 text-sm leading-relaxed">
+                No. Life Sentinel&rsquo;s planning tools, benefits guidance, and Digital Estate sections
+                all work without uploading anything. If you&rsquo;d rather keep documents in iCloud,
+                Google Drive, Proton Drive, or a safe deposit box, just record where they are so
+                your family can find them.
+              </p>
+            </div>
+            <div className="py-8">
+              <h3 className="font-serif text-lg font-semibold text-stone-900">
+                What is a Guardian and do I need one?
+              </h3>
+              <p className="mt-3 text-stone-500 text-sm leading-relaxed">
+                A Guardian is a trusted person — a spouse, adult child, or attorney — who gets
+                secure, time-limited access to your vault and readiness information when your family
+                needs it. You don&rsquo;t need to designate one to use Life Sentinel, but it&rsquo;s one of
+                the most valuable things you can set up.
+              </p>
+            </div>
+            <div className="py-8">
+              <h3 className="font-serif text-lg font-semibold text-stone-900">
+                Can I reach 100% readiness without uploading files?
+              </h3>
+              <p className="mt-3 text-stone-500 text-sm leading-relaxed">
+                Yes. The readiness score counts a document as secured whether you&rsquo;ve uploaded it
+                to the vault or recorded a location note describing where your family can find it.
+                Many users prefer to keep originals in a fireproof safe or with an attorney and
+                simply note that location in Life Sentinel.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 9. FINAL CTA ── */}
       <section className="bg-gradient-to-br from-amber-50 via-[#faf8f5] to-stone-100 py-28">
         <div className="mx-auto max-w-3xl px-6 md:px-8 text-center">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 border border-amber-200 text-3xl text-amber-600 mb-8 select-none">
