@@ -744,7 +744,7 @@ function AppleLegacyCard() {
         <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Apple Legacy Contact</h3>
       </div>
       <p className="text-sm text-stone-500 leading-relaxed mb-3">
-        Designate someone to access your Apple ID, photos, messages, and iCloud data after death.
+        Designate someone who can access your Apple ID, photos, messages, and iCloud data when your family needs them.
       </p>
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
@@ -864,7 +864,7 @@ function SocialMediaCard() {
         <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Social Media Memorialization</h3>
       </div>
       <p className="text-sm text-stone-500 leading-relaxed mb-3">
-        Most platforms allow you to designate a legacy contact or request memorialization after death. Set this up now so your family doesn&apos;t have to navigate it in grief.
+        Most platforms let you designate a legacy contact or set memorialization preferences in advance. Setting this up now spares your family from navigating it later.
       </p>
       <ul className="space-y-2 mb-3">
         {[
@@ -940,7 +940,7 @@ export function DigitalEstateSection() {
         <h2 className="font-serif text-xl font-semibold text-stone-900">Digital Estate</h2>
       </div>
       <p className="text-sm text-stone-500 leading-relaxed mb-5">
-        Your digital life has real value — photos, documents, accounts, and memories that your family may need access to. Taking 5 minutes now to set these up ensures nothing important is lost.
+        Your digital life has real value — photos, documents, accounts, and memories. Taking 5 minutes now to set these up makes sure your family can find what matters, when they need it.
       </p>
       <div className="grid gap-4 md:grid-cols-2">
         <AppleLegacyCard />
