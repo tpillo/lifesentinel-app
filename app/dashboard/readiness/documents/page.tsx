@@ -704,6 +704,13 @@ export default function ReadinessDocumentsPage() {
                                     placeholder="e.g. Safe combination is in 1Password under 'Home Safe'"
                                     className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
                                   />
+                                  <p className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-400 leading-relaxed">
+                                    <span className="mt-px select-none">◈</span>
+                                    <span>
+                                      <span className="font-medium text-stone-500">Tip:</span>{" "}
+                                      Avoid storing actual passwords, combinations, or PINs here. Instead, point to where they&rsquo;re stored — e.g., &ldquo;1Password vault,&rdquo; &ldquo;sealed envelope with attorney,&rdquo; or &ldquo;written inside the front cover of the family Bible.&rdquo;
+                                    </span>
+                                  </p>
                                 </div>
 
                                 <div>
