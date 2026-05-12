@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prewarmBenefitsCache, prewarmStateEdCache } from "@/lib/generateReviews";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -63,18 +63,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Pre-warm review caches after the response is sent
-  after(() =>
-    Promise.all([
-      prewarmBenefitsCache(user.id, body),
-      prewarmStateEdCache(user.id, {
-        state: String(body.state ?? ""),
-        isPT: body.va_pt_designation === "yes",
-        rating: String(body.va_disability_rating ?? ""),
-        scDeath: body.service_connected_death === "yes",
-      }),
-    ]).catch((err) => console.error("[profile] prewarm error:", err))
-  );
+  if (row.occupation_type) {
+    after(async () => {
+      try {
+        console.log("[prewarm] starting benefits pre-warm");
+        const t1 = Date.now();
+        await prewarmBenefitsCache(user.id, row);
+        console.log("[prewarm] benefits pre-warm complete", { elapsedMs: Date.now() - t1 });
+      } catch (err) {
+        console.error("[prewarm] benefits error:", err);
+      }
+
+      try {
+        console.log("[prewarm] starting state-ed pre-warm");
+        const t2 = Date.now();
+        await prewarmStateEdCache(user.id, {
+          state: row.state ?? "",
+          isPT: row.va_pt_designation === "yes",
+          rating: row.va_disability_rating ?? "",
+          scDeath: row.service_connected_death === "yes",
+        });
+        console.log("[prewarm] state-ed pre-warm complete", { elapsedMs: Date.now() - t2 });
+      } catch (err) {
+        console.error("[prewarm] state-ed error:", err);
+      }
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
