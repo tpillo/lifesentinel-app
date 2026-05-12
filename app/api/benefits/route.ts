@@ -13,7 +13,7 @@ import {
 } from "@/lib/reviewCache";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -56,7 +56,7 @@ export async function POST() {
     const startTime = Date.now();
     const response = await anthropic.messages.create({
       model: BENEFITS_MODEL,
-      max_tokens: 4000,
+      max_tokens: 8192,
       messages: [{ role: "user", content: buildBenefitsPrompt(profile) }],
     });
     const elapsed = Date.now() - startTime;

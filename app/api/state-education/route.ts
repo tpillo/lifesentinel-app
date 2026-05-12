@@ -5,7 +5,7 @@ import { STATE_ED_MODEL, buildStateEdPrompt } from "@/lib/generateReviews";
 import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/reviewCache";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
