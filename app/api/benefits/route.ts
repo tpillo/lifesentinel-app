@@ -21,7 +21,6 @@ export async function POST() {
   console.log("[benefits] POST received");
 
   const supabase = await createClient();
-
   const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) {
     console.log("[benefits] unauthorized");
@@ -51,55 +50,31 @@ export async function POST() {
     });
   }
 
-  console.log("[benefits] cache miss — starting LLM stream");
+  console.log("[benefits] cache miss — calling Anthropic (non-streaming)");
 
   try {
-    const stream = anthropic.messages.stream({
+    const startTime = Date.now();
+    const response = await anthropic.messages.create({
       model: BENEFITS_MODEL,
-      max_tokens: 8192,
+      max_tokens: 4000,
       messages: [{ role: "user", content: buildBenefitsPrompt(profile) }],
     });
+    const elapsed = Date.now() - startTime;
+    console.log("[benefits] Anthropic response received", { elapsedMs: elapsed, stopReason: response.stop_reason });
 
-    const userId = user.id;
-    const buffer: string[] = [];
+    const content = response.content[0]?.type === "text" ? response.content[0].text : "";
+    console.log("[benefits] extracted content", { contentChars: content.length });
 
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          console.log("[benefits] stream start");
-          let eventCount = 0;
+    if (!content) {
+      console.error("[benefits] empty content from Anthropic");
+      return NextResponse.json({ error: "Empty response from AI" }, { status: 500 });
+    }
 
-          for await (const event of stream) {
-            eventCount++;
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              const text = event.delta.text;
-              controller.enqueue(new TextEncoder().encode(text));
-              buffer.push(text);
-            }
-          }
+    console.log("[benefits] saving to cache");
+    await saveCachedReview(user.id, "benefits", profileHash, content, BENEFITS_MODEL);
+    console.log("[benefits] cache saved, returning response");
 
-          console.log("[benefits] for-await loop completed", {
-            eventCount,
-            totalChars: buffer.join("").length,
-          });
-
-          console.log("[benefits] calling saveCachedReview");
-          await saveCachedReview(userId, "benefits", profileHash, buffer.join(""), BENEFITS_MODEL);
-          console.log("[benefits] saveCachedReview returned");
-
-          controller.close();
-          console.log("[benefits] controller closed");
-        } catch (err) {
-          console.error("[benefits] start() error:", err);
-          controller.error(err);
-        }
-      },
-    });
-
-    return new Response(readable, {
+    return new Response(content, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (err: unknown) {
