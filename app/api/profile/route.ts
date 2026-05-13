@@ -78,9 +78,9 @@ export async function POST(req: Request) {
         console.log("[prewarm] starting state-ed pre-warm");
         const t2 = Date.now();
         await prewarmStateEdCache(user.id, {
-          state: row.state ?? "",
+          state: String(row.state ?? ""),
           isPT: row.va_pt_designation === "yes",
-          rating: row.va_disability_rating ?? "",
+          rating: String(row.va_disability_rating ?? ""),
           scDeath: row.service_connected_death === "yes",
         });
         console.log("[prewarm] state-ed pre-warm complete", { elapsedMs: Date.now() - t2 });
