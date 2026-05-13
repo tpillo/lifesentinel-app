@@ -216,9 +216,9 @@ export default function ReadinessDocumentsPage() {
     return m;
   }, [locations]);
 
-  // A category is complete if explicitly marked present OR has a location note
+  // A category is complete only when the user explicitly marks it protected
   function isComplete(doc: ReadinessDoc) {
-    return doc.is_present || (locationsByDocId.get(doc.id)?.length ?? 0) > 0;
+    return doc.is_present;
   }
 
   const total = docs.length;
@@ -241,7 +241,7 @@ export default function ReadinessDocumentsPage() {
     if (percent >= 50) {
       return {
         badge: "Building protection",
-        text: "Add documents or location notes by category, then mark each one protected when you feel it's covered.",
+        text: "Add documents or location notes by category, then mark each one complete when your family will be able to find what they need.",
       };
     }
     return {
@@ -754,7 +754,7 @@ export default function ReadinessDocumentsPage() {
                                 <div className="text-sm font-medium text-stone-700">Protection status</div>
                                 <div className="mt-1 text-xs text-stone-400">{statusLabel}</div>
                                 <div className="mt-2 text-sm text-stone-500">
-                                  Upload a document or record a location note — both count toward your score.
+                                  Upload a document or record where it lives, then mark the category complete when your family will be able to find what they need.
                                 </div>
                               </div>
                               <div className={badgeClass}>{badgeText}</div>

@@ -58,22 +58,11 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Fetch which readiness_document_ids have at least one location note
-    const { data: locationData } = await supabase
-      .from("document_locations")
-      .select("readiness_document_id")
-      .eq("user_id", user.id)
-      .not("readiness_document_id", "is", null)
-
-    const locatedDocIds = new Set(
-      (locationData ?? []).map((r) => r.readiness_document_id as string)
-    )
-
-    // An item is complete if explicitly marked present OR a location note exists for it
+    // An item is complete only when the user explicitly marks it protected
     const items = (data ?? []).map((row: ReadinessRow) => ({
       id: String(row.id),
       title: String(row.item_label ?? "Untitled"),
-      completed: Boolean(row.is_present) || locatedDocIds.has(String(row.id)),
+      completed: Boolean(row.is_present),
     }))
 
     const total = items.length
