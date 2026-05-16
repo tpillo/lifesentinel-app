@@ -40,13 +40,25 @@ export async function POST(req: Request) {
   const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", dateStyle: "medium", timeStyle: "short" });
 
   if (process.env.RESEND_API_KEY) {
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to: ADMIN_EMAIL,
-      subject: `Life Sentinel: New signup pending — ${email}`,
-      html: adminNotificationHtml({ email, ts, approveUrl, denyUrl }),
-      text: adminNotificationText({ email, ts, approveUrl, denyUrl }),
-    });
+    console.log("[signup-approval] sending admin email", { to: ADMIN_EMAIL, from: FROM_EMAIL, subject: `Life Sentinel: New signup pending — ${email}` });
+    try {
+      const { data, error: resendErr } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: ADMIN_EMAIL,
+        subject: `Life Sentinel: New signup pending — ${email}`,
+        html: adminNotificationHtml({ email, ts, approveUrl, denyUrl }),
+        text: adminNotificationText({ email, ts, approveUrl, denyUrl }),
+      });
+      if (resendErr) {
+        console.error("[signup-approval] admin email failed (Resend error):", resendErr);
+      } else {
+        console.log("[signup-approval] admin email sent:", { to: ADMIN_EMAIL, from: FROM_EMAIL, messageId: data?.id });
+      }
+    } catch (err) {
+      console.error("[signup-approval] admin email failed (exception):", err);
+    }
+  } else {
+    console.warn("[signup-approval] RESEND_API_KEY not set — skipping admin email");
   }
 
   return NextResponse.json({ ok: true });
