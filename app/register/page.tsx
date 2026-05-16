@@ -50,7 +50,7 @@ export default function RegisterPage() {
       });
     }
 
-    router.replace("/pending-approval");
+    router.replace("/waitlist");
   }
 
   if (confirmed) {

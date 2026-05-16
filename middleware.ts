@@ -30,6 +30,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // Check approval status — RLS policy allows users to read their own row
+  const { data: approval } = await supabase
+    .from("signup_approvals")
+    .select("status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!approval || approval.status === "pending") {
+    return NextResponse.redirect(new URL("/waitlist", request.url));
+  }
+
+  if (approval.status === "denied") {
+    return NextResponse.redirect(new URL("/waitlist?denied=true", request.url));
+  }
+
   return response;
 }
 
