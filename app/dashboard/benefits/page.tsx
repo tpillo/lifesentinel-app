@@ -670,6 +670,15 @@ export default function BenefitsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoading]);
 
+  // Mark benefits step as acknowledged for onboarding
+  useEffect(() => {
+    fetch("/api/profile/acknowledge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ field: "benefits_acknowledged_at" }),
+    });
+  }, []);
+
   const isMilitary = profile?.occupation_type === "military_veteran";
   const benefits = profile ? getBenefits(profile) : [];
   const hasHardcodedState = !!(profile?.state && STATE_INFO[profile.state]);

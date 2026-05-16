@@ -174,6 +174,15 @@ export default function ReadinessOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Mark readiness overview step as acknowledged for onboarding
+  useEffect(() => {
+    fetch("/api/profile/acknowledge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ field: "readiness_overview_acknowledged_at" }),
+    });
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 

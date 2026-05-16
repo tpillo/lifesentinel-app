@@ -28,7 +28,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace("/dashboard/readiness/overview");
+    router.replace("/dashboard");
   }
 
   return (
