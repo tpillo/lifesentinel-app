@@ -1187,37 +1187,47 @@ export function OrgsSection({ profile }: { profile: Profile }) {
   );
 }
 
-function DeadlineTimeline() {
+type TimelineItem = { text: string; audience: Audience[] };
+
+function DeadlineTimeline({ showVeteranContent }: { showVeteranContent: boolean }) {
   const groups = [
     {
       label: "Within 1 year of death",
       color: "red" as const,
       items: [
-        "File DIC claim (VA Form 21P-534EZ) — missing this deadline loses retroactive pay to date of death",
-        "File SGLI/VGLI life insurance claim (SGLV 8283) with OSGLI",
-        "Apply for Social Security survivor benefits (1-800-772-1213)",
-      ],
+        { text: "File DIC claim (VA Form 21P-534EZ) — missing this deadline loses retroactive pay to date of death", audience: ["veteran_family"] as Audience[] },
+        { text: "File SGLI/VGLI life insurance claim (SGLV 8283) with OSGLI", audience: ["veteran_family"] as Audience[] },
+        { text: "Apply for Social Security survivor benefits (1-800-772-1213)", audience: ["universal"] as Audience[] },
+      ] as TimelineItem[],
     },
     {
       label: "Within 2 years",
       color: "amber" as const,
       items: [
-        "Apply for CHAMPVA healthcare coverage (VA Form 10-10d)",
-        "Apply for surviving spouse property tax exemption transfer with your county",
-        "File VA burial allowance claim (VA Form 21P-530EZ)",
-      ],
+        { text: "Apply for CHAMPVA healthcare coverage (VA Form 10-10d)", audience: ["veteran_family"] as Audience[] },
+        { text: "Apply for surviving spouse property tax exemption transfer with your county", audience: ["veteran_family"] as Audience[] },
+        { text: "File VA burial allowance claim (VA Form 21P-530EZ)", audience: ["veteran_family"] as Audience[] },
+      ] as TimelineItem[],
     },
     {
       label: "Ongoing",
       color: "stone" as const,
       items: [
-        "DEA / Fry Scholarship — apply when a dependent is ready to start school",
-        "Update VA direct deposit and contact information",
-        "Notify VA of any marital status changes (affects CHAMPVA and DIC)",
-        "VA Home Loan — available when purchasing or refinancing a home",
-      ],
+        { text: "DEA / Fry Scholarship — apply when a dependent is ready to start school", audience: ["veteran_family"] as Audience[] },
+        { text: "Update VA direct deposit and contact information", audience: ["veteran_family"] as Audience[] },
+        { text: "Notify VA of any marital status changes (affects CHAMPVA and DIC)", audience: ["veteran_family"] as Audience[] },
+        { text: "VA Home Loan — available when purchasing or refinancing a home", audience: ["veteran", "veteran_family"] as Audience[] },
+      ] as TimelineItem[],
     },
-  ];
+  ].map(g => ({
+    ...g,
+    items: g.items.filter(item =>
+      item.audience.includes("universal") ||
+      (showVeteranContent && (item.audience.includes("veteran") || item.audience.includes("veteran_family")))
+    ),
+  })).filter(g => g.items.length > 0);
+
+  if (groups.length === 0) return null;
 
   const styles = {
     red: { dot: "bg-red-500", badge: "bg-red-50 border border-red-200 text-red-800", dash: "text-red-500" },
@@ -1248,7 +1258,7 @@ function DeadlineTimeline() {
                   {g.items.map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-stone-600 leading-relaxed">
                       <span className={`mt-1.5 shrink-0 ${s.dash}`}>—</span>
-                      {item}
+                      {item.text}
                     </li>
                   ))}
                 </ul>
@@ -1433,7 +1443,7 @@ export default function BenefitsGuide({
 
       <RcsbpSection profile={profile} guardian={!!veteranName} />
 
-      <DeadlineTimeline />
+      <DeadlineTimeline showVeteranContent={true} />
 
       <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-6 py-5 space-y-2">
         <p className="text-sm font-semibold text-stone-700">Need help filing claims?</p>
