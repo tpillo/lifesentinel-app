@@ -52,10 +52,10 @@ export async function POST(req: Request) {
     rcsbp_election: body.rcsbp_election ?? null,
     sbp_base_amount: body.sbp_base_amount ?? null,
     collecting_retired_pay: body.collecting_retired_pay ?? null,
-    veteran_family_member: body.veteran_family_member ?? null,
-    veteran_family_relationship: body.veteran_family_relationship ?? null,
-    veteran_family_sc_death: body.veteran_family_sc_death ?? null,
-    veteran_family_disability_rating: body.veteran_family_disability_rating ?? null,
+    veteran_family_member: body.veteran_family_member || null,
+    veteran_family_relationship: body.veteran_family_member === "yes" ? (body.veteran_family_relationship || null) : null,
+    veteran_family_sc_death: body.veteran_family_member === "yes" ? (body.veteran_family_sc_death || null) : null,
+    veteran_family_disability_rating: body.veteran_family_member === "yes" ? (body.veteran_family_disability_rating || null) : null,
     updated_at: now,
   };
 
