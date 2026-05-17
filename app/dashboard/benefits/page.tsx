@@ -51,10 +51,13 @@ type BenefitDef = {
   enhancementNote?: string;
 };
 
+type Audience = "veteran" | "veteran_family" | "civilian" | "universal";
+
 type StateInfo = {
   title: string;
   bullets: string[];
   howToApply: string;
+  audience: Audience[];
 };
 
 // ── Hardcoded state data ───────────────────────────────────────────────
@@ -68,6 +71,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Military SBP survivor benefits: up to $40,000 state income tax subtraction (2025+)",
     ],
     howToApply: "dvs.virginia.gov",
+    audience: ["veteran_family"],
   },
   Texas: {
     title: "Texas — Homestead Exemption",
@@ -76,6 +80,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving spouse of service member killed in line of duty: 100% homestead exemption",
     ],
     howToApply: "County Appraisal District — deadline April 30",
+    audience: ["veteran_family"],
   },
   Florida: {
     title: "Florida — Homestead Exemption",
@@ -83,6 +88,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving unremarried spouse of 100% P&T veteran: full homestead exemption",
     ],
     howToApply: "County Property Appraiser",
+    audience: ["veteran_family"],
   },
   "South Carolina": {
     title: "South Carolina — Property Tax Exemption",
@@ -90,6 +96,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving unremarried spouse: exemption on home + up to 5 acres (retroactive to 2022)",
     ],
     howToApply: "County Assessor",
+    audience: ["veteran_family"],
   },
   Michigan: {
     title: "Michigan — Homestead Exemption",
@@ -98,6 +105,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "No reapplication required after veteran's death (2025+)",
     ],
     howToApply: "County Assessor",
+    audience: ["veteran_family"],
   },
   Maryland: {
     title: "Maryland — Property Tax Exemption",
@@ -106,6 +114,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving spouse of line-of-duty death: full exemption",
     ],
     howToApply: "County Supervisor of Assessments",
+    audience: ["veteran_family"],
   },
   Wisconsin: {
     title: "Wisconsin — Property Tax Credit",
@@ -114,6 +123,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Claimed on state income tax return after WDVA verification",
     ],
     howToApply: "Wisconsin Department of Veterans Affairs",
+    audience: ["veteran_family"],
   },
   "North Carolina": {
     title: "North Carolina — Property Tax Exemption",
@@ -122,6 +132,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "$2,000 annual mortgage tax credit continues",
     ],
     howToApply: "County Tax Assessor",
+    audience: ["veteran_family"],
   },
   Pennsylvania: {
     title: "Pennsylvania — Property Tax Exemption",
@@ -129,6 +140,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Full exemption if household income below $114,637 (2025 limit) — surviving spouse may qualify",
     ],
     howToApply: "County Veterans Affairs Office",
+    audience: ["veteran_family"],
   },
   Oregon: {
     title: "Oregon — Property Tax Exemption",
@@ -136,6 +148,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "$26,303–$31,565 assessed value exemption continues for surviving spouse or partner",
     ],
     howToApply: "County Assessor",
+    audience: ["veteran_family"],
   },
 };
 
@@ -695,8 +708,14 @@ export default function BenefitsPage() {
   }, []);
 
   const isMilitary = profile?.occupation_type === "military_veteran";
+  const isVeteranFamily = !isMilitary && profile?.veteran_family_member === "yes";
+  const showVeteranContent = isMilitary || isVeteranFamily;
   const benefits = profile ? getBenefits(profile) : [];
-  const hasHardcodedState = !!(profile?.state && STATE_INFO[profile.state]);
+  const stateEntry = profile?.state ? STATE_INFO[profile.state] : null;
+  const hasHardcodedState = !!(stateEntry && stateEntry.audience.some(a =>
+    a === "universal" ||
+    (showVeteranContent && (a === "veteran" || a === "veteran_family"))
+  ));
 
   return (
     <div className="min-h-screen bg-[#faf8f5]">
@@ -853,8 +872,8 @@ export default function BenefitsPage() {
         {!profileLoading && profile && (
           <div className="grid gap-6 lg:grid-cols-2">
 
-            {/* State Benefits */}
-            {profile.state && (
+            {/* State Benefits — veteran and veteran-family only */}
+            {profile.state && showVeteranContent && (
               <section>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-amber-500 select-none">⌂</span>

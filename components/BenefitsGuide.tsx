@@ -47,10 +47,13 @@ type BenefitDef = {
   enhancementNote?: string;
 };
 
+type Audience = "veteran" | "veteran_family" | "civilian" | "universal";
+
 type StateInfo = {
   title: string;
   bullets: string[];
   howToApply: string;
+  audience: Audience[];
 };
 
 // ── Hardcoded state data ───────────────────────────────────────────────
@@ -64,6 +67,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Military SBP survivor benefits: up to $40,000 state income tax subtraction (2025+)",
     ],
     howToApply: "dvs.virginia.gov",
+    audience: ["veteran_family"],
   },
   Texas: {
     title: "Texas — Homestead Exemption",
@@ -72,6 +76,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving spouse of service member killed in line of duty: 100% homestead exemption",
     ],
     howToApply: "County Appraisal District — deadline April 30",
+    audience: ["veteran_family"],
   },
   Florida: {
     title: "Florida — Homestead Exemption",
@@ -79,6 +84,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving unremarried spouse of 100% P&T veteran: full homestead exemption",
     ],
     howToApply: "County Property Appraiser",
+    audience: ["veteran_family"],
   },
   "South Carolina": {
     title: "South Carolina — Property Tax Exemption",
@@ -86,6 +92,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving unremarried spouse: exemption on home + up to 5 acres (retroactive to 2022)",
     ],
     howToApply: "County Assessor",
+    audience: ["veteran_family"],
   },
   Michigan: {
     title: "Michigan — Homestead Exemption",
@@ -94,6 +101,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "No reapplication required after veteran's death (2025+)",
     ],
     howToApply: "County Assessor",
+    audience: ["veteran_family"],
   },
   Maryland: {
     title: "Maryland — Property Tax Exemption",
@@ -102,6 +110,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Surviving spouse of line-of-duty death: full exemption",
     ],
     howToApply: "County Supervisor of Assessments",
+    audience: ["veteran_family"],
   },
   Wisconsin: {
     title: "Wisconsin — Property Tax Credit",
@@ -110,6 +119,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Claimed on state income tax return after WDVA verification",
     ],
     howToApply: "Wisconsin Department of Veterans Affairs",
+    audience: ["veteran_family"],
   },
   "North Carolina": {
     title: "North Carolina — Property Tax Exemption",
@@ -118,6 +128,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "$2,000 annual mortgage tax credit continues",
     ],
     howToApply: "County Tax Assessor",
+    audience: ["veteran_family"],
   },
   Pennsylvania: {
     title: "Pennsylvania — Property Tax Exemption",
@@ -125,6 +136,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "Full exemption if household income below $114,637 (2025 limit) — surviving spouse may qualify",
     ],
     howToApply: "County Veterans Affairs Office",
+    audience: ["veteran_family"],
   },
   Oregon: {
     title: "Oregon — Property Tax Exemption",
@@ -132,6 +144,7 @@ const STATE_INFO: Record<string, StateInfo> = {
       "$26,303–$31,565 assessed value exemption continues for surviving spouse or partner",
     ],
     howToApply: "County Assessor",
+    audience: ["veteran_family"],
   },
 };
 
@@ -980,6 +993,7 @@ type OrgDef = {
   website: string;
   websiteLabel?: string;
   highlight?: boolean;
+  audience: Audience[];
 };
 
 function getOrgs(p: Profile): OrgDef[] {
@@ -1006,6 +1020,7 @@ function getOrgs(p: Profile): OrgDef[] {
       contact: "1-718-987-1931",
       website: "t2t.org",
       highlight: true,
+      audience: ["veteran_family", "civilian"],
     });
   }
 
@@ -1021,6 +1036,7 @@ function getOrgs(p: Profile): OrgDef[] {
     ],
     contact: "1-800-959-8277 (24/7)",
     website: "taps.org",
+    audience: ["veteran_family"],
   });
 
   orgs.push({
@@ -1035,6 +1051,7 @@ function getOrgs(p: Profile): OrgDef[] {
     ],
     website: "woundedwarriorproject.org/programs/survivor-outreach-services",
     websiteLabel: "woundedwarriorproject.org",
+    audience: ["veteran_family"],
   });
 
   if (hasMarine) {
@@ -1047,6 +1064,7 @@ function getOrgs(p: Profile): OrgDef[] {
         "Need-based scholarships for undergraduate and vocational programs",
       ],
       website: "mcsf.org",
+      audience: ["veteran_family"],
     });
   }
 
@@ -1059,6 +1077,7 @@ function getOrgs(p: Profile): OrgDef[] {
       "Local chapters nationwide",
     ],
     website: "goldstarwives.org",
+    audience: ["veteran_family"],
   });
 
   orgs.push({
@@ -1070,6 +1089,7 @@ function getOrgs(p: Profile): OrgDef[] {
       "Spouse and caregiver support programs",
     ],
     website: "hopeforthewarriors.org",
+    audience: ["veteran_family"],
   });
 
   return orgs;
@@ -1139,7 +1159,18 @@ function OrgCard({ org }: { org: OrgDef }) {
 }
 
 export function OrgsSection({ profile }: { profile: Profile }) {
-  const orgs = getOrgs(profile);
+  const isMilitary = profile.occupation_type === "military_veteran";
+  const isVeteranFamily = !isMilitary && profile.veteran_family_member === "yes";
+  const isFirstResponder = profile.occupation_type === "law_enforcement" || profile.occupation_type === "firefighter";
+
+  const orgs = getOrgs(profile).filter((o) =>
+    o.audience.includes("universal") ||
+    ((isMilitary || isVeteranFamily) && (o.audience.includes("veteran_family") || o.audience.includes("veteran"))) ||
+    (!isMilitary && isFirstResponder && o.audience.includes("civilian"))
+  );
+
+  if (orgs.length === 0) return null;
+
   return (
     <section>
       <div className="flex items-center gap-3 mb-2">
