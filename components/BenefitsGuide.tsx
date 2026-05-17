@@ -23,6 +23,10 @@ export type Profile = {
   branches_served?: string[] | null;
   retirement_branch?: string | null;
   primary_service_branch?: string | null;
+  veteran_family_member?: string | null;
+  veteran_family_relationship?: string | null;
+  veteran_family_sc_death?: string | null;
+  veteran_family_disability_rating?: string | null;
 };
 
 type Eligibility = "yes" | "verify";
@@ -608,7 +612,17 @@ function parseEdMarkdown(raw: string) {
   return nodes;
 }
 
-function StateEdAiCard({ profile }: { profile: Profile }) {
+function StateEdAiCard({
+  state,
+  isPT,
+  rating,
+  scDeath,
+}: {
+  state: string;
+  isPT: boolean;
+  rating: string;
+  scDeath: boolean;
+}) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
@@ -620,12 +634,7 @@ function StateEdAiCard({ profile }: { profile: Profile }) {
         const res = await fetch("/api/state-education", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            state: profile.state,
-            isPT: profile.va_pt_designation === "yes",
-            rating: profile.va_disability_rating,
-            scDeath: profile.service_connected_death === "yes",
-          }),
+          body: JSON.stringify({ state, isPT, rating, scDeath }),
         });
         if (!res.ok || !res.body) throw new Error("Failed");
         const reader = res.body.getReader();
@@ -643,7 +652,7 @@ function StateEdAiCard({ profile }: { profile: Profile }) {
     }
     load();
     return () => { cancelled = true; };
-  }, [profile.state, profile.va_pt_designation, profile.va_disability_rating, profile.service_connected_death]);
+  }, [state, isPT, rating, scDeath]);
 
   const nodes = parseEdMarkdown(content);
 
@@ -651,7 +660,7 @@ function StateEdAiCard({ profile }: { profile: Profile }) {
     <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <h3 className="font-serif text-base font-semibold text-stone-900 flex-1">
-          {profile.state} — Education Benefits for Surviving Families
+          {state} — Education Benefits for Surviving Families
         </h3>
         <span className="text-xs font-medium text-amber-600">◎ Verify with your state veterans affairs office</span>
       </div>
@@ -700,15 +709,21 @@ export function StateEdSection({ profile }: { profile: Profile }) {
   if (!state) return null;
 
   const isMilitary = profile.occupation_type === "military_veteran";
-  const isPT = profile.va_pt_designation === "yes";
-  const scDeath = profile.service_connected_death === "yes";
-  const rating = profile.va_disability_rating ?? "";
-  const rating90plus = ["90", "100"].includes(rating);
+  const isVeteranFamily = !isMilitary && profile.veteran_family_member === "yes";
+  if (!isMilitary && !isVeteranFamily) return null;
+
+  // For veteran family members, use the veteran's data from the family fields
+  const isPT = isMilitary ? profile.va_pt_designation === "yes" : false;
+  const scDeath = isMilitary
+    ? profile.service_connected_death === "yes"
+    : profile.veteran_family_sc_death === "yes";
+  const rating = isMilitary
+    ? (profile.va_disability_rating ?? "")
+    : (profile.veteran_family_disability_rating ?? "");
   const rating100 = rating === "100";
 
   let card: React.ReactNode = null;
 
-  // Hardcoded state cards — eligibility conditions are inherently military-specific
   if (state === "Virginia") {
     card = <VmsdepCard />;
   } else if (state === "Texas" && (scDeath || rating100 || isPT)) {
@@ -719,9 +734,8 @@ export function StateEdSection({ profile }: { profile: Profile }) {
     card = <CalVetCard />;
   } else if (state === "North Carolina" && (scDeath || rating100)) {
     card = <NcScholarshipCard />;
-  } else if (state && !HARDCODED_ED_STATES.includes(state) && isMilitary) {
-    // AI card only for military profiles in non-hardcoded states
-    card = <StateEdAiCard profile={profile} />;
+  } else if (!HARDCODED_ED_STATES.includes(state)) {
+    card = <StateEdAiCard state={state} isPT={isPT} rating={rating} scDeath={scDeath} />;
   }
 
   if (!card) return null;

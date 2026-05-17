@@ -27,6 +27,10 @@ type Profile = {
   sbp_base_amount?: string | null;
   collecting_retired_pay?: string | null;
   branches_served?: string[] | null;
+  veteran_family_member?: string | null;
+  veteran_family_relationship?: string | null;
+  veteran_family_sc_death?: string | null;
+  veteran_family_disability_rating?: string | null;
 };
 
 type Eligibility = "yes" | "verify";
@@ -154,19 +158,26 @@ function getDicEnhancementNote(ptAwardDate: string | null | undefined, isPT: boo
 
 function getBenefits(p: Profile): BenefitDef[] {
   const isMilitary = p.occupation_type === "military_veteran";
-  const rating = p.va_disability_rating;
-  const isPT = p.va_pt_designation === "yes";
-  const isPTPending = p.va_pt_designation === "pending";
-  const scDeath = p.service_connected_death === "yes";
-  const scUnknown = p.service_connected_death === "unknown";
-  const isActiveduty = p.status === "active_duty";
+  const isVeteranFamily = !isMilitary && p.veteran_family_member === "yes";
+
+  // For veteran family members, use the veteran's data from the family fields
+  const rating = isMilitary ? p.va_disability_rating : isVeteranFamily ? p.veteran_family_disability_rating : null;
+  const isPT = isMilitary && p.va_pt_designation === "yes";
+  const isPTPending = isMilitary && p.va_pt_designation === "pending";
+  const scDeath = isMilitary
+    ? p.service_connected_death === "yes"
+    : isVeteranFamily ? p.veteran_family_sc_death === "yes" : false;
+  const scUnknown = isMilitary
+    ? p.service_connected_death === "unknown"
+    : isVeteranFamily ? p.veteran_family_sc_death === "unknown" : false;
+  const isActiveduty = isMilitary && p.status === "active_duty";
   const hasSpouse = ["married", "widowed"].includes(p.marital_status ?? "");
   const rating100 = rating === "100";
   const highRating = ["70", "80", "90", "100"].includes(rating ?? "");
 
   const list: BenefitDef[] = [];
 
-  if (isMilitary) {
+  if (isMilitary || isVeteranFamily) {
     // DIC
     const dicElig: Eligibility | null =
       scDeath ? "yes" :
@@ -196,18 +207,20 @@ function getBenefits(p: Profile): BenefitDef[] {
       });
     }
 
-    // Survivors Pension
-    list.push({
-      id: "pension",
-      title: "Survivors Pension",
-      amount: "Up to $10,726/year (no dependents) · Up to $14,051/year (with one child)",
-      description: "Income-based pension for surviving family members of wartime veterans. Not disability-based — eligibility depends on income and financial need. The veteran must have served during a wartime period.",
-      eligibility: "verify",
-      form: "VA Form 21P-534EZ",
-      contact: "VA: 1-800-827-1000",
-      howToApply: "File VA Form 21P-534EZ at va.gov. A VSO can help assess income eligibility.",
-      confirmed: true,
-    });
+    // Survivors Pension — only when veteran's own record is on file
+    if (isMilitary) {
+      list.push({
+        id: "pension",
+        title: "Survivors Pension",
+        amount: "Up to $10,726/year (no dependents) · Up to $14,051/year (with one child)",
+        description: "Income-based pension for surviving family members of wartime veterans. Not disability-based — eligibility depends on income and financial need. The veteran must have served during a wartime period.",
+        eligibility: "verify",
+        form: "VA Form 21P-534EZ",
+        contact: "VA: 1-800-827-1000",
+        howToApply: "File VA Form 21P-534EZ at va.gov. A VSO can help assess income eligibility.",
+        confirmed: true,
+      });
+    }
 
     // CHAMPVA
     const champvaElig: Eligibility | null =
@@ -257,8 +270,8 @@ function getBenefits(p: Profile): BenefitDef[] {
       });
     }
 
-    // VA Burial — always for military
-    list.push({
+    // VA Burial — military veterans only
+    if (isMilitary) list.push({
       id: "burial",
       title: "VA Burial Benefits",
       amount: "National cemetery burial: free (veteran, spouse, dependents)\nBurial allowance: up to $796 (service-connected) or $300 (non-service-connected)\nGrave marker/headstone: free · Presidential Memorial Certificate: free",
@@ -298,19 +311,21 @@ function getBenefits(p: Profile): BenefitDef[] {
       });
     }
 
-    // SGLI/VGLI
-    list.push({
-      id: "sgli",
-      title: "SGLI / VGLI Life Insurance",
-      amount: "SGLI (active duty): up to $500,000 · VGLI (veteran): per coverage elected",
-      description: "Life insurance payable to designated beneficiaries. SGLI covers active duty service members. VGLI is the conversion option for veterans post-separation. Separate from VA compensation — file promptly.",
-      eligibility: "verify",
-      form: "SGLV 8283",
-      contact: "OSGLI: 1-800-419-1473",
-      deadline: "File SGLI claim within 1 year of death",
-      howToApply: "File form SGLV 8283 with OSGLI. Call 1-800-419-1473 for claims assistance.",
-      confirmed: true,
-    });
+    // SGLI/VGLI — military only
+    if (isMilitary) {
+      list.push({
+        id: "sgli",
+        title: "SGLI / VGLI Life Insurance",
+        amount: "SGLI (active duty): up to $500,000 · VGLI (veteran): per coverage elected",
+        description: "Life insurance payable to designated beneficiaries. SGLI covers active duty service members. VGLI is the conversion option for veterans post-separation. Separate from VA compensation — file promptly.",
+        eligibility: "verify",
+        form: "SGLV 8283",
+        contact: "OSGLI: 1-800-419-1473",
+        deadline: "File SGLI claim within 1 year of death",
+        howToApply: "File form SGLV 8283 with OSGLI. Call 1-800-419-1473 for claims assistance.",
+        confirmed: true,
+      });
+    }
   }
 
   // Social Security — all occupation types

@@ -52,6 +52,10 @@ export async function POST(req: Request) {
     rcsbp_election: body.rcsbp_election ?? null,
     sbp_base_amount: body.sbp_base_amount ?? null,
     collecting_retired_pay: body.collecting_retired_pay ?? null,
+    veteran_family_member: body.veteran_family_member ?? null,
+    veteran_family_relationship: body.veteran_family_relationship ?? null,
+    veteran_family_sc_death: body.veteran_family_sc_death ?? null,
+    veteran_family_disability_rating: body.veteran_family_disability_rating ?? null,
     updated_at: now,
   };
 
@@ -77,11 +81,17 @@ export async function POST(req: Request) {
       try {
         console.log("[prewarm] starting state-ed pre-warm");
         const t2 = Date.now();
+        const isVeteranFamilyMember =
+          row.occupation_type !== "military_veteran" && row.veteran_family_member === "yes";
         await prewarmStateEdCache(user.id, {
           state: String(row.state ?? ""),
-          isPT: row.va_pt_designation === "yes",
-          rating: String(row.va_disability_rating ?? ""),
-          scDeath: row.service_connected_death === "yes",
+          isPT: isVeteranFamilyMember ? false : row.va_pt_designation === "yes",
+          rating: isVeteranFamilyMember
+            ? String(row.veteran_family_disability_rating ?? "")
+            : String(row.va_disability_rating ?? ""),
+          scDeath: isVeteranFamilyMember
+            ? row.veteran_family_sc_death === "yes"
+            : row.service_connected_death === "yes",
         });
         console.log("[prewarm] state-ed pre-warm complete", { elapsedMs: Date.now() - t2 });
       } catch (err) {

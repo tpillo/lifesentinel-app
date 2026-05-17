@@ -8,14 +8,142 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ── Prompt builders ────────────────────────────────────────────────────────────
 
+const DIC_ACCURACY = [
+  "## Critical Accuracy Requirements",
+  "- DIC remarriage rule: the correct age is 55, NOT 57. As of 2021, surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC permanently. Do not use age 57 anywhere.",
+  "- DIC base rate: $1,699.36/month (2026). Do not use approximate or rounded figures.",
+  "- DIC 8-year enhancement: +$360.85/month (not a child allowance — this is the 8-year rule for spouses).",
+  "- DIC per child: +$421.00/month per dependent child under 18.",
+  "- DIC transitional benefit: +$342.00/month for first 2 years if surviving spouse has dependent children.",
+];
+
+const FORMAT_RULES = [
+  "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
+  "Do NOT use markdown tables under any circumstances. Use bullet points for all lists including DIC breakdowns.",
+  "Do NOT use horizontal rules or dividers of any kind — no ---, no ***, no ___. Never output three or more dashes, asterisks, or underscores on a line. Use ## and ### headings to separate sections instead.",
+  "Write in a warm, clear, family-friendly tone. This report will be read by a family — be compassionate and practical.",
+];
+
 export function buildBenefitsPrompt(profile: Record<string, unknown> | null): string {
   const occ = (profile?.occupation_type as string) ?? "unknown";
-  const occLabel =
-    occ === "law_enforcement" ? "Law Enforcement Officer"
-    : occ === "military_veteran" ? "Military Service Member / Veteran"
-    : occ === "firefighter" ? "Firefighter / First Responder"
-    : "Civilian";
+  const isMilitaryVet = occ === "military_veteran";
+  const isVeteranFamily = !isMilitaryVet && profile?.veteran_family_member === "yes";
 
+  // ── Veteran family member (non-military user who is a vet's spouse/child/etc.) ──
+  if (isVeteranFamily) {
+    const rel = (profile?.veteran_family_relationship as string) || "";
+    const relLabel =
+      rel === "spouse" ? "spouse" :
+      rel === "child" ? "dependent child" :
+      rel === "parent" ? "parent" :
+      rel === "sibling" ? "sibling" :
+      "family member";
+    const famRating = profile?.veteran_family_disability_rating as string | null | undefined;
+    const famScDeath = profile?.veteran_family_sc_death as string | null | undefined;
+
+    const lines: string[] = [
+      "You are a veteran benefits advisor helping a family member of a veteran understand what survivor benefits they qualify for.",
+      "",
+      `This account is set up by the veteran's ${relLabel} — the veteran may have already passed or they are planning ahead for their family.`,
+      "Generate a clear, compassionate, organized summary of ALL post-death benefits this family qualifies for as survivors of a veteran.",
+      "Cover federal benefits, state benefits, and important deadlines. Be specific about dollar amounts, eligibility requirements, required forms, and who to contact.",
+      "",
+      "## Veteran Profile",
+      `- Account holder's relationship to veteran: ${relLabel}`,
+    ];
+    if (profile?.state) lines.push(`- State of Residence: ${profile.state}`);
+    if (famRating) lines.push(`- Veteran's VA Disability Rating: ${famRating === "none" ? "None" : famRating + "%"}`);
+    if (famScDeath) lines.push(`- Veteran's Death Service-Connected: ${famScDeath}`);
+    if (profile?.marital_status) lines.push(`- Marital Status: ${profile.marital_status}`);
+    if (profile?.num_dependents != null) lines.push(`- Number of Dependent Children Under 23: ${profile.num_dependents}`);
+
+    lines.push(
+      "",
+      "## Report Sections",
+      "",
+      "### 1. Federal Survivor Benefits",
+      "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, VA Burial Benefits, SGLI/VGLI, and Social Security survivor benefits. Include 2026 dollar amounts, eligibility conditions, required forms, and contacts.",
+      "",
+      "### 2. State-Specific Benefits",
+      `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and special programs. Note which benefits transfer if the surviving spouse moves.`,
+      "",
+      "### 3. Healthcare for Survivors",
+      "Cover CHAMPVA eligibility, TRICARE if applicable, and state health program options for surviving family members.",
+      "",
+      "### 4. Education Benefits for Dependents",
+      "Cover DEA/Chapter 35, state tuition waivers, and any other education benefits for dependent children or surviving spouse.",
+      "",
+      "### 5. Additional Resources & Less-Known Benefits",
+      "Highlight any less-known benefits — burial benefits, Gold Star family programs, income tax exemptions, state veteran license plate waivers.",
+      "",
+      ...DIC_ACCURACY,
+      "",
+      ...FORMAT_RULES,
+    );
+    return lines.join("\n");
+  }
+
+  // ── Non-military, not veteran family (LEO / firefighter / civilian) ──────────
+  if (!isMilitaryVet) {
+    const occLabel =
+      occ === "law_enforcement" ? "Law Enforcement Officer"
+      : occ === "firefighter" ? "Firefighter / First Responder"
+      : "Civilian";
+    const isLEO = occ === "law_enforcement";
+    const isFF = occ === "firefighter";
+    const sectionOffset = isLEO || isFF ? 1 : 0;
+
+    const lines: string[] = [
+      `You are a survivor benefits advisor helping the family of a ${occLabel} understand what financial benefits they are entitled to after their passing.`,
+      "",
+      "Generate a clear, compassionate, organized summary of the survivor benefits this family may qualify for.",
+      "Be specific about dollar amounts where known, eligibility requirements, required forms, and who to contact.",
+      "Focus only on post-death survivor benefits — not benefits for the living person.",
+      "",
+      "## Profile",
+      `- Occupation: ${occLabel}`,
+    ];
+    if (profile?.state) lines.push(`- State of Residence: ${profile.state}`);
+    if (profile?.years_of_service) lines.push(`- Years of Service: ${profile.years_of_service}`);
+    if (profile?.marital_status) lines.push(`- Marital Status: ${profile.marital_status}`);
+    if (profile?.num_dependents != null) lines.push(`- Number of Dependent Children: ${profile.num_dependents}`);
+    if (isLEO && profile?.department_type) lines.push(`- Department Type: ${profile.department_type}`);
+    if (isFF && profile?.career_volunteer) lines.push(`- Career/Volunteer: ${profile.career_volunteer}`);
+
+    lines.push(
+      "",
+      "## Report Sections",
+      "",
+      "### 1. Social Security Survivor Benefits",
+      "Cover monthly survivor payments to spouse and children, lump-sum death benefit ($255), eligibility requirements. Include 2026 benefit amounts and how to apply via SSA.",
+      "",
+    );
+
+    if (isLEO || isFF) {
+      lines.push(
+        "### 2. Public Safety Officer Benefit (PSOB)",
+        `Cover the federal Public Safety Officers' Benefit Act — the lump-sum payment (indexed annually, ~$413,000 for 2024) available to survivors of ${isLEO ? "officers" : "firefighters and first responders"} who die in the line of duty. Cover who qualifies, the application process through DOJ/COPS, and common reasons claims are denied.`,
+        "",
+      );
+    }
+
+    lines.push(
+      `### ${2 + sectionOffset}. State-Specific Survivor Benefits`,
+      `Cover survivor benefits available in ${profile?.state ?? "this state"} — state pension survivor provisions (if public employee), workers' compensation death benefits, state-funded life insurance programs, and any state programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families.`,
+      "",
+      `### ${3 + sectionOffset}. Employer, Union & Insurance Benefits`,
+      "Cover employer-provided life insurance, union death benefits, pension survivor provisions, COBRA health continuation, and accidental death & dismemberment (AD&D) benefits where applicable.",
+      "",
+      `### ${4 + sectionOffset}. Additional Resources & Less-Known Benefits`,
+      `Highlight programs specific to this profile — state-funded education assistance for survivor children, property tax relief for surviving spouses, emergency funds from professional associations, and any relevant state or local programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families.`,
+      "",
+      "Do NOT include VA/military-specific benefits like DIC, CHAMPVA, or DEA unless this person has documented veteran status.",
+      ...FORMAT_RULES,
+    );
+    return lines.join("\n");
+  }
+
+  // ── Military veteran (original prompt) ──────────────────────────────────────
   const ptLabel =
     profile?.va_pt_designation === "yes" ? "Yes"
     : profile?.va_pt_designation === "pending" ? "Pending"
@@ -30,7 +158,7 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
     "required forms, and who to contact. Focus only on survivor/post-death benefits — not benefits for the living veteran.",
     "",
     "## Veteran Profile",
-    `- Occupation: ${occLabel}`,
+    `- Occupation: Military Service Member / Veteran`,
   ];
 
   if (profile?.branch) lines.push(`- Branch of Service: ${profile.branch}`);
@@ -64,17 +192,9 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
     "### 5. Additional Resources & Less-Known Benefits",
     "Highlight any less-known benefits specific to this veteran's profile — such as CHAMPVA dental, state veteran license plate fee waivers, burial benefits, Gold Star family programs, or income tax exemptions.",
     "",
-    "## Critical Accuracy Requirements",
-    "- DIC remarriage rule: the correct age is 55, NOT 57. As of 2021, surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC permanently. Do not use age 57 anywhere.",
-    "- DIC base rate: $1,699.36/month (2026). Do not use approximate or rounded figures.",
-    "- DIC 8-year enhancement: +$360.85/month (not a child allowance — this is the 8-year rule for spouses).",
-    "- DIC per child: +$421.00/month per dependent child under 18.",
-    "- DIC transitional benefit: +$342.00/month for first 2 years if surviving spouse has dependent children.",
+    ...DIC_ACCURACY,
     "",
-    "Format using ## for main sections, ### for subsections, **bold** for key terms and dollar amounts, and bullet points for lists.",
-    "Do NOT use markdown tables under any circumstances. Use bullet points for all lists including DIC breakdowns.",
-    "Do NOT use horizontal rules or dividers of any kind — no ---, no ***, no ___. Never output three or more dashes, asterisks, or underscores on a line. Use ## and ### headings to separate sections instead.",
-    "Write in a warm, clear, family-friendly tone. This report will be read by a grieving family — be compassionate and practical.",
+    ...FORMAT_RULES,
   );
 
   return lines.join("\n");
@@ -130,6 +250,10 @@ export function benefitsHashFields(profile: Record<string, unknown>): Record<str
     num_dependents: profile?.num_dependents ?? null,
     department_type: profile?.department_type ?? null,
     career_volunteer: profile?.career_volunteer ?? null,
+    veteran_family_member: profile?.veteran_family_member ?? null,
+    veteran_family_relationship: profile?.veteran_family_relationship ?? null,
+    veteran_family_sc_death: profile?.veteran_family_sc_death ?? null,
+    veteran_family_disability_rating: profile?.veteran_family_disability_rating ?? null,
   };
 }
 
