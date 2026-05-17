@@ -203,11 +203,25 @@ function getBenefits(p: Profile): BenefitDef[] {
         ? "Yes — because the cause of death was service-connected."
         : "Verify — contact the VA to confirm eligibility based on the veteran's service record.";
 
+      const showTransitionalLine =
+        (p.num_dependents != null && p.num_dependents > 0) ||
+        p.veteran_family_relationship === "spouse";
+      const dicAmount = [
+        "$1,699.36/month — paid to all qualifying surviving spouses, tax-free, for life",
+        "+$360.85/month — if veteran was rated 100% disabled for 8+ continuous years before death AND you were married during those same 8 years (total: $2,060.21)",
+        "+$421.00/month — per dependent child under 18",
+        ...(showTransitionalLine ? ["+$342.00/month — transitional benefit for first 2 years after death if you have dependent children"] : []),
+      ].join("\n");
+
+      const dicDescription = isMilitary
+        ? "DIC is a monthly payment the VA makes to surviving spouses for life. The surviving spouse's income and assets do NOT affect eligibility — this is not need-based. Eligibility is based on the veteran's service history and disability rating. Must not have remarried — except if remarriage occurs at age 55 or older, in which case DIC continues uninterrupted. Surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC payments permanently."
+        : "DIC is a monthly payment the VA makes to surviving spouses for life. Your income and assets do NOT affect eligibility — this is not need-based. Eligibility is based on the veteran's service history and disability rating. Must not have remarried — except if remarriage occurs at age 55 or older, in which case DIC continues uninterrupted. Surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC payments permanently.";
+
       list.push({
         id: "dic",
         title: "DIC — Dependency & Indemnity Compensation",
-        amount: "$1,699.36/month — paid to all qualifying surviving spouses, tax-free, for life\n+$360.85/month — if veteran was rated 100% disabled for 8+ continuous years before death AND you were married during those same 8 years (total: $2,060.21)\n+$421.00/month — per dependent child under 18\n+$342.00/month — transitional benefit for first 2 years after death if you have dependent children",
-        description: "DIC is a monthly payment the VA makes to surviving spouses for life. Your income and assets do NOT affect eligibility — this is not means-tested. Eligibility is based on the veteran's service history and disability rating, not financial need. Must not have remarried — except if remarriage occurs at age 55 or older, in which case DIC continues uninterrupted. Surviving spouses who remarry at age 55 or older keep DIC. Remarriage before age 55 ends DIC payments permanently.",
+        amount: dicAmount,
+        description: dicDescription,
         eligibility: dicElig,
         form: "VA Form 21P-534EZ",
         contact: "VA: 1-800-827-1000",
@@ -741,8 +755,11 @@ export default function BenefitsPage() {
             Family Benefits Guide
           </h1>
           <p className="mt-3 text-stone-300 text-sm leading-relaxed max-w-2xl">
-            A personalized summary of every federal and state benefit your family may be entitled
-            to after your passing — based on your service history, disability rating, and state.
+            {isMilitary
+              ? "A personalized summary of every federal and state benefit your family may be entitled to after your passing — based on your service history, disability rating, and state."
+              : isVeteranFamily
+              ? "A personalized summary of every federal and state benefit you may be entitled to — based on your spouse's service record and your state."
+              : "A personalized summary of every federal and state benefit your family may be entitled to — based on your situation and your state."}
           </p>
           {profile && (
             <div className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -779,7 +796,7 @@ export default function BenefitsPage() {
             <div>
               <p className="text-sm font-semibold text-amber-900 mb-1">Complete your profile to see personalized benefits</p>
               <p className="text-sm text-amber-700 mb-3 leading-relaxed">
-                Your profile helps us show only the benefits your family qualifies for — tailored to your state, service history, and disability rating.
+                Your profile helps us show only the benefits your family qualifies for — tailored to your specific situation.
               </p>
               <Link
                 href="/profile-setup"
@@ -796,8 +813,12 @@ export default function BenefitsPage() {
           <div className="rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
             <span className="text-stone-400 text-base select-none shrink-0 mt-0.5">↻</span>
             <p className="text-xs text-stone-500 leading-relaxed">
-              <strong className="text-stone-700">Keep your profile current.</strong> A VA disability rating increase,
-              new P&amp;T designation, change in dependents, or remarriage can unlock additional benefits.{" "}
+              <strong className="text-stone-700">Keep your profile current.</strong>{" "}
+              {isMilitary
+                ? "A VA disability rating increase, new P&T designation, change in dependents, or remarriage can unlock additional benefits."
+                : isVeteranFamily
+                ? "A change in your spouse's VA disability rating, P&T designation, your dependents, or your marital status can unlock additional benefits."
+                : "Updates to your state, marital status, or dependents can affect your survivor benefits and the personalized analysis."}{" "}
               <Link href="/profile-setup" className="text-amber-600 underline hover:text-amber-700">
                 Update your profile →
               </Link>
@@ -944,8 +965,8 @@ export default function BenefitsPage() {
               <div>
                 <p className="text-sm font-semibold text-stone-900 mb-1">Need help filing?</p>
                 <p className="text-sm text-stone-500 leading-relaxed">
-                  Veterans Service Organizations (VSOs) provide free claims assistance — they can help your
-                  family file every claim at no cost.{" "}
+                  Veterans Service Organizations (VSOs) provide free claims assistance —{" "}
+                  {isMilitary ? "they can help your family file every claim at no cost." : "they can help you file every claim at no cost."}{" "}
                   <a
                     href="https://www.va.gov/decision-reviews/get-help-with-your-decision"
                     target="_blank"
