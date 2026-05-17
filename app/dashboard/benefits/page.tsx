@@ -524,7 +524,7 @@ function BenefitCard({ b }: { b: BenefitDef }) {
         </span>
         <button
           onClick={() => setOpen(!open)}
-          className="text-xs text-amber-600 hover:text-amber-700 transition font-medium"
+          className="text-xs text-amber-600 hover:text-amber-800 hover:underline cursor-pointer transition font-medium"
         >
           {open ? "Less ↑" : "More details ↓"}
         </button>
