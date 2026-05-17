@@ -31,7 +31,7 @@ export default function DashboardHeader() {
   return (
     <header className="border-b border-stone-200 bg-white relative z-40">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-8">
-        <Link href="/" className="flex items-center" onClick={() => setMenuOpen(false)}>
+        <Link href="/dashboard" className="flex items-center" onClick={() => setMenuOpen(false)}>
           <Logo />
         </Link>
 

@@ -98,7 +98,7 @@ export default function Home() {
           </Link>
           {loggedIn ? (
             <Link
-              href="/dashboard/readiness/overview"
+              href="/dashboard"
               className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
             >
               Go to Dashboard
