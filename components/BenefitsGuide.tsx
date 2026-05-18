@@ -715,8 +715,6 @@ function StateEdAiCard({
   );
 }
 
-const HARDCODED_ED_STATES = ["Virginia", "Texas", "Florida", "California", "North Carolina"];
-
 export function StateEdSection({ profile }: { profile: Profile }) {
   const state = profile.state;
   if (!state) return null;
@@ -735,23 +733,23 @@ export function StateEdSection({ profile }: { profile: Profile }) {
     : (profile.veteran_family_disability_rating ?? "");
   const rating100 = rating === "100";
 
-  let card: React.ReactNode = null;
+  const aiCard = <StateEdAiCard state={state} isPT={isPT} rating={rating} scDeath={scDeath} />;
+
+  let card: React.ReactNode;
 
   if (state === "Virginia") {
     card = <VmsdepCard />;
-  } else if (state === "Texas" && (scDeath || rating100 || isPT)) {
-    card = <HazlewoodCard />;
-  } else if (state === "Florida" && (isPT || scDeath)) {
-    card = <FloridaCsddvCard />;
-  } else if (state === "California" && (scDeath || rating100)) {
-    card = <CalVetCard />;
-  } else if (state === "North Carolina" && (scDeath || rating100)) {
-    card = <NcScholarshipCard />;
-  } else if (!HARDCODED_ED_STATES.includes(state)) {
-    card = <StateEdAiCard state={state} isPT={isPT} rating={rating} scDeath={scDeath} />;
+  } else if (state === "Texas") {
+    card = (scDeath || rating100 || isPT) ? <HazlewoodCard /> : aiCard;
+  } else if (state === "Florida") {
+    card = (isPT || scDeath) ? <FloridaCsddvCard /> : aiCard;
+  } else if (state === "California") {
+    card = (scDeath || rating100) ? <CalVetCard /> : aiCard;
+  } else if (state === "North Carolina") {
+    card = (scDeath || rating100) ? <NcScholarshipCard /> : aiCard;
+  } else {
+    card = aiCard;
   }
-
-  if (!card) return null;
 
   return (
     <div className="mt-4">
