@@ -630,11 +630,15 @@ function StateEdAiCard({
   isPT,
   rating,
   scDeath,
+  isVeteranFamily,
+  relationship,
 }: {
   state: string;
   isPT: boolean;
   rating: string;
   scDeath: boolean;
+  isVeteranFamily: boolean;
+  relationship: string | null;
 }) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
@@ -647,7 +651,7 @@ function StateEdAiCard({
         const res = await fetch("/api/state-education", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ state, isPT, rating, scDeath }),
+          body: JSON.stringify({ state, isPT, rating, scDeath, isVeteranFamily, relationship }),
         });
         if (!res.ok || !res.body) throw new Error("Failed");
         const reader = res.body.getReader();
@@ -665,7 +669,7 @@ function StateEdAiCard({
     }
     load();
     return () => { cancelled = true; };
-  }, [state, isPT, rating, scDeath]);
+  }, [state, isPT, rating, scDeath, isVeteranFamily, relationship]);
 
   const nodes = parseEdMarkdown(content);
 
@@ -732,8 +736,9 @@ export function StateEdSection({ profile }: { profile: Profile }) {
     ? (profile.va_disability_rating ?? "")
     : (profile.veteran_family_disability_rating ?? "");
   const rating100 = rating === "100";
+  const relationship = isVeteranFamily ? (profile.veteran_family_relationship ?? null) : null;
 
-  const aiCard = <StateEdAiCard state={state} isPT={isPT} rating={rating} scDeath={scDeath} />;
+  const aiCard = <StateEdAiCard state={state} isPT={isPT} rating={rating} scDeath={scDeath} isVeteranFamily={isVeteranFamily} relationship={relationship} />;
 
   let card: React.ReactNode;
 

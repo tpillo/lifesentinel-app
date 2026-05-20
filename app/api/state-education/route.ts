@@ -12,17 +12,17 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export async function POST(req: Request) {
   console.log("[state-education] POST received");
 
-  let body: { state?: string; isPT?: boolean; rating?: string; scDeath?: boolean } = {};
+  let body: { state?: string; isPT?: boolean; rating?: string; scDeath?: boolean; isVeteranFamily?: boolean; relationship?: string | null } = {};
   try {
     body = await req.json();
   } catch {
     return new Response("Invalid JSON", { status: 400 });
   }
 
-  const { state, isPT = false, rating = "", scDeath = false } = body;
+  const { state, isPT = false, rating = "", scDeath = false, isVeteranFamily = false, relationship = null } = body;
   if (!state) return new Response("Missing state", { status: 400 });
 
-  const fields = { state, isPT, rating, scDeath };
+  const fields = { state, isPT, rating, scDeath, isVeteranFamily, relationship };
   console.log("[state-education] fields", fields);
 
   let userId: string | null = null;

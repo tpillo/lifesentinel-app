@@ -205,23 +205,52 @@ export function buildStateEdPrompt(fields: {
   isPT: boolean;
   rating: string;
   scDeath: boolean;
+  isVeteranFamily?: boolean;
+  relationship?: string | null;
 }): string {
-  const { state, isPT, rating, scDeath } = fields;
-  return `You are a veteran benefits expert helping a surviving military family understand state education benefits available to them in ${state}.
+  const { state, isPT, rating, scDeath, isVeteranFamily = false, relationship } = fields;
+
+  const relLabel =
+    relationship === "child" ? "dependent child"
+    : relationship === "parent" ? "parent"
+    : relationship === "sibling" ? "sibling"
+    : "surviving spouse";
+
+  const profileLines = [
+    `- State: ${state}`,
+    `- VA Disability Rating: ${rating || "Not specified"}`,
+    `- Permanent & Total (P&T) Designation: ${isPT ? "Yes" : "No"}`,
+    `- Service-Connected Death: ${scDeath ? "Yes" : "No"}`,
+  ].join("\n");
+
+  let intro: string;
+  let addressLine: string;
+
+  if (isVeteranFamily) {
+    if (scDeath) {
+      intro = `You are a state benefits expert helping a ${relLabel} of a veteran who died from a service-connected cause understand state education benefits in ${state}. Address this person directly — they are the surviving family member, not the veteran.`;
+      addressLine = `As a surviving ${relLabel}, you or your dependents may qualify for the following programs in ${state}:`;
+    } else {
+      intro = `You are a state benefits expert helping a ${relLabel} of a military veteran understand state education benefits that may be available in ${state}. Address this person directly as the family member — not the veteran.`;
+      addressLine = `Based on your veteran's service history and eligibility, you or your dependents may qualify for the following programs in ${state}:`;
+    }
+  } else {
+    intro = `You are a veteran benefits expert helping a military veteran plan ahead for their family in ${state}. The veteran wants to understand what state education benefits their surviving family could access.`;
+    addressLine = `Based on your service profile, your surviving spouse and dependents may qualify for the following education programs in ${state}:`;
+  }
+
+  return `${intro}
 
 Veteran profile:
-- State: ${state}
-- VA Disability Rating: ${rating || "Not specified"}
-- Permanent & Total (P&T) Designation: ${isPT ? "Yes" : "No"}
-- Service-Connected Death: ${scDeath ? "Yes" : "No"}
+${profileLines}
 
-Provide a concise, accurate summary of ${state}'s education benefit programs for surviving spouses and dependent children of veterans or service members. For each program that exists, cover:
+${addressLine}
 - Program name and administering agency
 - What it covers (tuition, fees, stipends, credit hour limits)
 - Who qualifies and any age limits
 - Residency requirements
 - How to apply (website, phone number)
-- Any interaction or conflict with federal programs like DEA (Chapter 35) or the Fry Scholarship that this family should know about
+- Any interaction or conflict with federal programs like DEA (Chapter 35) or the Fry Scholarship
 
 If ${state} does not have a dedicated state education benefit program, say so clearly and advise them to contact the ${state} Department of Veterans Affairs or equivalent office.
 
@@ -279,7 +308,7 @@ export async function prewarmBenefitsCache(
 
 export async function prewarmStateEdCache(
   userId: string,
-  fields: { state: string; isPT: boolean; rating: string; scDeath: boolean }
+  fields: { state: string; isPT: boolean; rating: string; scDeath: boolean; isVeteranFamily?: boolean; relationship?: string | null }
 ): Promise<void> {
   if (!fields.state) return;
   const profileHash = computeProfileHash(fields as unknown as Record<string, unknown>);

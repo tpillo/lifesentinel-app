@@ -92,6 +92,8 @@ export async function POST(req: Request) {
           scDeath: isVeteranFamilyMember
             ? row.veteran_family_sc_death === "yes"
             : row.service_connected_death === "yes",
+          isVeteranFamily: isVeteranFamilyMember,
+          relationship: isVeteranFamilyMember ? (row.veteran_family_relationship as string | null ?? null) : null,
         });
         console.log("[prewarm] state-ed pre-warm complete", { elapsedMs: Date.now() - t2 });
       } catch (err) {
