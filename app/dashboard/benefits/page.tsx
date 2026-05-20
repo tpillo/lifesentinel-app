@@ -150,6 +150,18 @@ const STATE_INFO: Record<string, StateInfo> = {
     howToApply: "County Assessor",
     audience: ["veteran_family"],
   },
+  California: {
+    title: "California — Disabled Veterans' Property Tax Exemption",
+    bullets: [
+      "Basic exemption: reduces assessed value by $180,671 — for veterans rated 100% service-connected disabled OR rated Individual Unemployability (TDIU) and paid at the 100% rate",
+      "Low-income exemption: reduces assessed value by $271,009 — same eligibility plus total household income (including VA disability compensation) under $81,131 for 2026; requires annual recertification by February 15",
+      "Unremarried surviving spouse may qualify in two ways: (1) spouse of a veteran who would have qualified, or (2) spouse of a veteran who died from a service-connected injury or disease — even if the veteran was not 100% rated before death",
+      "California does not offer a partial exemption for sub-100% ratings — this is an all-or-nothing benefit",
+      "Apply at your county assessor's office using BOE Form 261-G; surviving spouses must reapply after the veteran's death",
+    ],
+    howToApply: "boe.ca.gov/proptaxes/dv_exemption.htm — county assessor's office (BOE Form 261-G)",
+    audience: ["veteran_family"],
+  },
 };
 
 // ── Benefit eligibility logic ──────────────────────────────────────────
