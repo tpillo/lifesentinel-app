@@ -428,14 +428,52 @@ export default function ProfileSetupPage() {
     setSaving(true);
     setError(null);
     try {
+      const isMil    = form.occupation_type === "military_veteran";
+      const isLEO   = form.occupation_type === "law_enforcement";
+      const isFF    = form.occupation_type === "firefighter";
+      const isVetFam = !isMil && form.veteran_family_member === "yes";
+
+      const payload = {
+        // ── universal ────────────────────────────────────────────────
+        occupation_type: form.occupation_type,
+        state:           form.state,
+        full_name:       form.full_name,
+        date_of_birth:   form.date_of_birth,
+        marital_status:  form.marital_status,
+        num_dependents:  Number(form.num_dependents),
+        // ── veteran family (non-military only) ───────────────────────
+        veteran_family_member:            isMil ? null : form.veteran_family_member,
+        veteran_family_relationship:      isVetFam ? form.veteran_family_relationship      : null,
+        veteran_family_sc_death:          isVetFam ? form.veteran_family_sc_death          : null,
+        veteran_family_disability_rating: isVetFam ? form.veteran_family_disability_rating : null,
+        // ── military-only ─────────────────────────────────────────────
+        branch:                 isMil ? form.branch                 : null,
+        branches_served:        isMil ? form.branches_served        : null,
+        retirement_branch:      isMil ? form.retirement_branch      : null,
+        primary_service_branch: isMil ? form.primary_service_branch : null,
+        status:                 isMil || isLEO || isFF ? form.status : null,
+        years_of_service:       isMil || isLEO || isFF ? (form.years_of_service ? Number(form.years_of_service) : null) : null,
+        va_disability_rating:   isMil ? form.va_disability_rating   : null,
+        va_pt_designation:      isMil ? form.va_pt_designation      : null,
+        pt_award_date:          isMil ? form.pt_award_date          : null,
+        va_rating_date:         isMil ? form.va_rating_date         : null,
+        service_connected_death: isMil ? form.service_connected_death : null,
+        retirement_type:        isMil ? form.retirement_type        : null,
+        rcsbp_election:         isMil ? form.rcsbp_election         : null,
+        sbp_base_amount:        isMil ? form.sbp_base_amount        : null,
+        collecting_retired_pay: isMil ? form.collecting_retired_pay : null,
+        // ── LEO-only ──────────────────────────────────────────────────
+        department_type:  isLEO ? form.department_type  : null,
+        // ── firefighter-only ──────────────────────────────────────────
+        career_volunteer: isFF  ? form.career_volunteer : null,
+        // ── civilian-only ─────────────────────────────────────────────
+        occupation: form.occupation_type === "civilian" ? form.occupation : null,
+      };
+
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          years_of_service: form.years_of_service ? Number(form.years_of_service) : null,
-          num_dependents: Number(form.num_dependents),
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save profile");

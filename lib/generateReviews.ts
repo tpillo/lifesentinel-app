@@ -165,13 +165,11 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
   if (profile?.status) lines.push(`- Service Status: ${profile.status}`);
   if (profile?.state) lines.push(`- State of Residence: ${profile.state}`);
   if (profile?.years_of_service) lines.push(`- Years of Service: ${profile.years_of_service}`);
-  if (profile?.va_disability_rating) lines.push(`- VA Combined Disability Rating: ${profile.va_disability_rating === "none" ? "None" : profile.va_disability_rating + "%"}`);
-  if (profile?.va_pt_designation) lines.push(`- Permanent & Total (P&T) Designation: ${ptLabel}`);
-  if (profile?.service_connected_death) lines.push(`- Cause of Death Service-Connected: ${profile.service_connected_death}`);
+  if (isMilitaryVet && profile?.va_disability_rating) lines.push(`- VA Combined Disability Rating: ${profile.va_disability_rating === "none" ? "None" : profile.va_disability_rating + "%"}`);
+  if (isMilitaryVet && profile?.va_pt_designation) lines.push(`- Permanent & Total (P&T) Designation: ${ptLabel}`);
+  if (isMilitaryVet && profile?.service_connected_death) lines.push(`- Cause of Death Service-Connected: ${profile.service_connected_death}`);
   if (profile?.marital_status) lines.push(`- Marital Status: ${profile.marital_status}`);
   if (profile?.num_dependents != null) lines.push(`- Number of Dependent Children Under 23: ${profile.num_dependents}`);
-  if (profile?.department_type) lines.push(`- Department Type: ${profile.department_type}`);
-  if (profile?.career_volunteer) lines.push(`- Career/Volunteer: ${profile.career_volunteer}`);
 
   lines.push(
     "",

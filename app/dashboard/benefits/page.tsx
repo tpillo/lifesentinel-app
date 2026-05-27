@@ -666,15 +666,15 @@ export default function BenefitsPage() {
               {profile.state && (
                 <span className="rounded-full bg-stone-700 px-3 py-1 text-stone-300">⌂ {profile.state}</span>
               )}
-              {profile.va_disability_rating && profile.va_disability_rating !== "none" && (
+              {showVeteranContent && profile.va_disability_rating && profile.va_disability_rating !== "none" && (
                 <span className="rounded-full bg-stone-700 px-3 py-1 text-stone-300">
                   {profile.va_disability_rating}% Disability Rating
                 </span>
               )}
-              {profile.va_pt_designation === "yes" && (
+              {showVeteranContent && profile.va_pt_designation === "yes" && (
                 <span className="rounded-full bg-amber-700/60 px-3 py-1 text-amber-200">P&T Designation</span>
               )}
-              {profile.service_connected_death === "yes" && (
+              {showVeteranContent && profile.service_connected_death === "yes" && (
                 <span className="rounded-full bg-red-900/60 px-3 py-1 text-red-200">Service-Connected Death</span>
               )}
             </div>
