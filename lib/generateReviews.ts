@@ -4,6 +4,12 @@ import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/rev
 export const BENEFITS_MODEL = "claude-sonnet-4-6";
 export const STATE_ED_MODEL = "claude-sonnet-4-6";
 
+// Bump this string whenever buildBenefitsPrompt() changes in a way that should
+// produce different output. Date-string format: "YYYY-MM-DD". Cosmetic edits
+// (whitespace, internal comments) do not require a bump. Prompt logic, section
+// wording, constraint additions, or accuracy rule changes do.
+export const BENEFITS_PROMPT_VERSION = "2026-05-31";
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ── Prompt builders ────────────────────────────────────────────────────────────
@@ -282,6 +288,7 @@ CRITICAL RULES:
 
 export function benefitsHashFields(profile: Record<string, unknown>): Record<string, unknown> {
   return {
+    _prompt_version: BENEFITS_PROMPT_VERSION,
     occupation_type: profile?.occupation_type ?? null,
     branch: profile?.branch ?? null,
     status: profile?.status ?? null,
