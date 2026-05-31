@@ -10,7 +10,7 @@ Production: **lifesentinelfamily.com** — deployed on Vercel Pro (auto-deploy f
 
 | Layer | Detail |
 |---|---|
-| Framework | Next.js 14 App Router, TypeScript, Tailwind CSS |
+| Framework | Next.js 16 App Router, TypeScript, Tailwind CSS |
 | Database | Supabase Postgres — RLS on all 14 user-data tables |
 | Auth | Supabase Auth |
 | AI | Anthropic API — `claude-sonnet-4-6`, non-streaming, `maxDuration: 180`, `max_tokens: 8192` |
