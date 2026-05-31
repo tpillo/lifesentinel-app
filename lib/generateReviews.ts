@@ -24,6 +24,17 @@ const FORMAT_RULES = [
   "Write in a warm, clear, family-friendly tone. This report will be read by a family — be compassionate and practical.",
 ];
 
+const STATE_ACCURACY_CONSTRAINTS = [
+  "## State & Federal Benefit Amount Accuracy — Critical Rules",
+  "- Do NOT generate specific dollar amounts for state property tax exemptions, exclusions, assessed value reductions, income caps, or deductions. These figures are set by annual legislative action and can vary by county — quoting them from training data risks giving materially wrong financial guidance to real families.",
+  "- Do NOT characterize policy outcomes with absolute phrases like 'complete exemption', 'full waiver', '$0 in property taxes', or 'entire assessed value excluded' unless the relevant statute unambiguously provides a blanket full exemption for this exact situation. Describe what the program does, not the final dollar or tax outcome.",
+  "- If the user's state has a benefit card displayed above this analysis, reference it explicitly: use language like 'See the [Benefit Name] card above for current figures and eligibility details.' Do not repeat, expand on, or contradict the amounts shown there.",
+  "- You MAY describe what a benefit does at a high level (e.g., 'California offers a Disabled Veterans\\' Property Tax Exemption that reduces the assessed value of the primary residence for qualifying veterans or their surviving spouses').",
+  "- You MAY cite statutes by number (e.g., 'under NC General Statute 105-277.1C').",
+  "- You MAY describe qualitative eligibility criteria: VA rating thresholds, remarriage rules, residency requirements, income tier categories — without quoting specific dollar cutoffs.",
+  "- For federal benefits other than DIC (whose amounts are pinned in the Critical Accuracy Requirements above): do not quote specific dollar figures for CHAMPVA cost-sharing caps, DEA monthly stipends, VA burial allowances, or similar programs. Describe the benefit qualitatively and direct the reader to va.gov or the relevant program page for current rates.",
+];
+
 export function buildBenefitsPrompt(profile: Record<string, unknown> | null): string {
   const occ = (profile?.occupation_type as string) ?? "unknown";
   const isMilitaryVet = occ === "military_veteran";
@@ -62,10 +73,10 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
       "## Report Sections",
       "",
       "### 1. Federal Survivor Benefits",
-      "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, VA Burial Benefits, SGLI/VGLI, and Social Security survivor benefits. Include 2026 dollar amounts, eligibility conditions, required forms, and contacts.",
+      "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, VA Burial Benefits, SGLI/VGLI, and Social Security survivor benefits. Cover eligibility conditions, required forms, and contacts. For DIC, use the amounts in the Critical Accuracy Requirements section below. For all other federal benefits, describe qualitatively and direct readers to va.gov for current rates.",
       "",
       "### 2. State-Specific Benefits",
-      `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and special programs. Note which benefits transfer if the surviving spouse moves.`,
+      `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and special programs. Describe what each program does and who qualifies. Note which benefits transfer if the surviving spouse moves. Apply the State & Federal Benefit Amount Accuracy rules below.`,
       "",
       "### 3. Healthcare for Survivors",
       "Cover CHAMPVA eligibility, TRICARE if applicable, and state health program options for surviving family members.",
@@ -75,6 +86,8 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
       "",
       "### 5. Additional Resources & Less-Known Benefits",
       "Highlight any less-known benefits — burial benefits, Gold Star family programs, income tax exemptions, state veteran license plate waivers.",
+      "",
+      ...STATE_ACCURACY_CONSTRAINTS,
       "",
       ...DIC_ACCURACY,
       "",
@@ -129,7 +142,7 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
 
     lines.push(
       `### ${2 + sectionOffset}. State-Specific Survivor Benefits`,
-      `Cover survivor benefits available in ${profile?.state ?? "this state"} — state pension survivor provisions (if public employee), workers' compensation death benefits, state-funded life insurance programs, and any state programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families.`,
+      `Cover survivor benefits available in ${profile?.state ?? "this state"} — state pension survivor provisions (if public employee), workers' compensation death benefits, state-funded life insurance programs, and any state programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families. Describe what each program does and who qualifies; do not generate specific dollar amounts for state benefits. Apply the State & Federal Benefit Amount Accuracy rules below.`,
       "",
       `### ${3 + sectionOffset}. Employer, Union & Insurance Benefits`,
       "Cover employer-provided life insurance, union death benefits, pension survivor provisions, COBRA health continuation, and accidental death & dismemberment (AD&D) benefits where applicable.",
@@ -138,6 +151,8 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
       `Highlight programs specific to this profile — state-funded education assistance for survivor children, property tax relief for surviving spouses, emergency funds from professional associations, and any relevant state or local programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families.`,
       "",
       "Do NOT include VA/military-specific benefits like DIC, CHAMPVA, or DEA unless this person has documented veteran status.",
+      ...STATE_ACCURACY_CONSTRAINTS,
+      "",
       ...FORMAT_RULES,
     );
     return lines.join("\n");
@@ -176,10 +191,10 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
     "## Report Sections",
     "",
     "### 1. Federal Survivor Benefits",
-    "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, Fry Scholarship, VA Burial Benefits, VA Home Loan for surviving spouse, SGLI/VGLI, and Social Security survivor benefits. Include 2026 dollar amounts, eligibility conditions, required forms, and contacts.",
+    "Cover DIC, Survivors Pension, CHAMPVA, DEA/Chapter 35, Fry Scholarship, VA Burial Benefits, VA Home Loan for surviving spouse, SGLI/VGLI, and Social Security survivor benefits. Cover eligibility conditions, required forms, and contacts. For DIC, use the amounts in the Critical Accuracy Requirements section below. For all other federal benefits, describe qualitatively and direct readers to va.gov for current rates.",
     "",
     "### 2. State-Specific Benefits",
-    `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and any special programs. Be specific about current law and how to apply. Note which benefits transfer to a new residence.`,
+    `Cover survivor benefits available in ${profile?.state ?? "the veteran's state"} — property tax exemptions, income tax benefits, state pension survivor benefits, education waivers, and any special programs. Describe what each program does and who qualifies; do not generate specific dollar amounts for state exemptions. Note which benefits transfer to a new residence. Apply the State & Federal Benefit Amount Accuracy rules below.`,
     "",
     "### 3. Healthcare for Survivors",
     "Cover CHAMPVA (if not already addressed), TRICARE if applicable, and state health program options for surviving family members.",
@@ -189,6 +204,8 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
     "",
     "### 5. Additional Resources & Less-Known Benefits",
     "Highlight any less-known benefits specific to this veteran's profile — such as CHAMPVA dental, state veteran license plate fee waivers, burial benefits, Gold Star family programs, or income tax exemptions.",
+    "",
+    ...STATE_ACCURACY_CONSTRAINTS,
     "",
     ...DIC_ACCURACY,
     "",
