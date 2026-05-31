@@ -517,7 +517,7 @@ export default function ProfileSetupPage() {
 
           {/* Occupation */}
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8">
-            <h2 className="font-serif text-lg font-semibold text-stone-900 mb-5">Occupation</h2>
+            <h2 className="font-serif text-lg font-semibold text-stone-900 mb-5">What best describes you?</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {OCCUPATION_OPTIONS.map((opt) => (
                 <button
@@ -675,7 +675,7 @@ export default function ProfileSetupPage() {
 
               {form.occupation_type === "civilian" && (
                 <div>
-                  <label className="block text-sm font-medium text-stone-700">Occupation</label>
+                  <label className="block text-sm font-medium text-stone-700">What do you do?</label>
                   <input type="text" value={form.occupation} onChange={(e) => set("occupation", e.target.value)} className={inputClass} placeholder="e.g. Teacher, Software Engineer, Nurse…" />
                 </div>
               )}
@@ -830,9 +830,7 @@ export default function ProfileSetupPage() {
         {/* ── Step 1 — Occupation Type ── */}
         {step === 1 && (
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8">
-            <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
-              What best describes your occupation?
-            </h2>
+            <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">What best describes you?</h2>
             <p className="text-sm text-stone-500 mb-6 leading-relaxed">
               This helps us find the right benefits programs for your family — they vary
               significantly between military, law enforcement, and civilian employees.
@@ -1051,7 +1049,7 @@ export default function ProfileSetupPage() {
               {/* ── Civilian ── */}
               {form.occupation_type === "civilian" && (
                 <div>
-                  <label className="block text-sm font-medium text-stone-700">Occupation</label>
+                  <label className="block text-sm font-medium text-stone-700">What do you do?</label>
                   <input
                     type="text"
                     value={form.occupation}
