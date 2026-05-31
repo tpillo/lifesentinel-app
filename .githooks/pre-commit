@@ -1,0 +1,38 @@
+#!/bin/bash
+# Life Sentinel pre-commit hook: typecheck + lint staged files
+# Install once per clone: git config core.hooksPath .githooks
+#
+# Lints only staged .ts/.tsx files so pre-existing errors in untouched files
+# don't block unrelated commits. Typecheck runs project-wide (it must — types
+# are global). Fix pre-existing lint errors as a dedicated task, not as noise
+# on every commit.
+
+set -e
+
+echo "⧖ Running typecheck (project-wide)..."
+if ! npx tsc --noEmit 2>&1; then
+  echo ""
+  echo "✗ Typecheck failed. Fix type errors before committing."
+  exit 1
+fi
+echo "✓ Typecheck passed."
+
+# Collect staged .ts and .tsx files
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+
+if [ -z "$STAGED" ]; then
+  echo "✓ No staged TypeScript files — skipping lint."
+  exit 0
+fi
+
+echo ""
+echo "⧖ Linting staged files..."
+if ! npx eslint $STAGED --max-warnings 0 2>&1; then
+  echo ""
+  echo "✗ Lint failed on staged files. Fix errors before committing."
+  exit 1
+fi
+echo "✓ Lint passed."
+
+echo ""
+echo "✓ Pre-commit checks passed."
