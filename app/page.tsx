@@ -123,7 +123,6 @@ export default function Home() {
 
         <div className="relative mx-auto max-w-6xl px-6 py-24 md:px-8 md:py-36 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-medium text-amber-800 mb-8">
-            <span className="text-amber-500">❧</span>
             Built for those who protect others
           </div>
 
@@ -197,9 +196,7 @@ export default function Home() {
       {/* ── 3. THE PROBLEM ── */}
       <section className="bg-stone-900 py-24">
         <div className="mx-auto max-w-4xl px-6 md:px-8 text-center">
-          <span className="text-amber-500 text-3xl select-none">❧</span>
-
-          <h2 className="mt-6 font-serif text-3xl font-semibold text-white md:text-4xl leading-snug">
+          <h2 className="font-serif text-3xl font-semibold text-white md:text-4xl leading-snug">
             Two crises at once.
           </h2>
 
@@ -364,45 +361,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 7. TESTIMONIAL PLACEHOLDER ── */}
-      <section className="bg-white py-24 border-t border-stone-200">
-        <div className="mx-auto max-w-4xl px-6 md:px-8 text-center">
-          <p className="text-xs font-medium uppercase tracking-widest text-amber-600 mb-3">
-            Trusted by families
-          </p>
-          <h2 className="font-serif text-4xl font-semibold text-stone-900 md:text-5xl mb-14">
-            What families are saying
-          </h2>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/40 p-8 flex flex-col gap-4"
-              >
-                <div className="text-2xl text-amber-300 select-none">&ldquo;</div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-full rounded bg-amber-100" />
-                  <div className="h-3 w-5/6 rounded bg-amber-100" />
-                  <div className="h-3 w-4/6 rounded bg-amber-100" />
-                </div>
-                <div className="flex items-center gap-3 pt-2 border-t border-amber-100">
-                  <div className="h-8 w-8 rounded-full bg-amber-200" />
-                  <div className="space-y-1">
-                    <div className="h-2.5 w-24 rounded bg-amber-100" />
-                    <div className="h-2 w-16 rounded bg-amber-100" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-10 text-xs text-stone-400 italic">
-            Testimonials coming soon — we&rsquo;re just getting started.
-          </p>
-        </div>
-      </section>
-
       {/* ── 8. FAQ ── */}
       <section className="bg-white py-24 border-t border-stone-200">
         <div className="mx-auto max-w-4xl px-6 md:px-8">
@@ -456,10 +414,6 @@ export default function Home() {
       {/* ── 9. FINAL CTA ── */}
       <section className="bg-gradient-to-br from-amber-50 via-[#faf8f5] to-stone-100 py-28">
         <div className="mx-auto max-w-3xl px-6 md:px-8 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 border border-amber-200 text-3xl text-amber-600 mb-8 select-none">
-            ❧
-          </div>
-
           <h2 className="font-serif text-4xl font-semibold text-stone-900 md:text-5xl leading-tight">
             Start protecting your family today.
           </h2>
@@ -486,7 +440,6 @@ export default function Home() {
       <footer className="border-t border-stone-200 bg-white py-10">
         <div className="mx-auto max-w-6xl px-6 md:px-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-amber-600 select-none">❧</span>
             <span className="font-serif text-sm font-semibold text-stone-900">Life Sentinel</span>
           </div>
           <p className="font-serif text-sm text-stone-400 italic hidden md:block">
