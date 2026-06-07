@@ -19,15 +19,15 @@ Production: **lifesentinelfamily.com** — deployed on Vercel Pro (auto-deploy f
 
 ## Personas
 
-Six served personas, gated at page, component, and AI prompt levels:
+Two first-class personas, gated at page, component, and AI prompt levels:
 
 | Persona | `occupation_type` value | Notes |
 |---|---|---|
 | Military / Veteran | `military_veteran` | Active duty, reserve, Guard, veteran |
 | Veteran Family | any + `veteran_family_member === "yes"` | Non-military user whose family member served |
-| Law Enforcement | `law_enforcement` | |
-| First Responder | `firefighter` | String is `"firefighter"` not `"first_responder"` |
 | Civilian | `civilian` | |
+
+`law_enforcement` and `firefighter` are **legacy `occupation_type` values** — preserved in the DB and enum for possible v2 FR EAP, but not first-class personas. At read time they normalize to `civilian` via `resolvePersona()` in `lib/resolvePersona.ts`. Do not add new branching on these values.
 
 **Derived predicates — always use these, never raw profile fields:**
 ```ts
@@ -36,7 +36,7 @@ const isVeteranFamily = !isMilitary && veteran_family_member === "yes";
 const showVeteranContent = isMilitary || isVeteranFamily;
 ```
 
-Persona-aware copy uses inline ternary branching at each site — no centralized helper function.
+Persona routing uses `resolvePersona()` in `lib/resolvePersona.ts` — all persona-dependent paths (benefits engine, cache hash, benefits page, BenefitsGuide, profile API) route through it. Inline ternaries at render sites use the resolved value, not raw `occupation_type`.
 
 **Multi-identity refactor** (replace `occupation_type` single-select with independent booleans) is pinned future work. Do not design around it yet.
 
@@ -81,4 +81,4 @@ Chain reference: `.claude/README.md`
 - Don't add npm dependencies without flagging to the human — document the reason and alternatives considered
 - Don't use `--no-verify` or `--no-gpg-sign` on git operations
 - Don't spread `...form` in profile submission payloads
-- Don't write persona-aware copy via a centralized helper — inline ternary at each site
+- Don't read `occupation_type` raw for persona branching — always route through `resolvePersona()` first
