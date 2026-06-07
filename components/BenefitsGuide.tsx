@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Audience, StateInfo, STATE_INFO } from "@/lib/stateData";
+import { Audience, STATE_INFO } from "@/lib/stateData";
+import { resolvePersona } from "@/lib/resolvePersona";
 
 export type Profile = {
   occupation_type?: string | null;
@@ -67,7 +68,7 @@ function getDicEnhancementNote(ptAwardDate: string | null | undefined, isPT: boo
 }
 
 export function getBenefits(p: Profile): BenefitDef[] {
-  const isMilitary = p.occupation_type === "military_veteran";
+  const isMilitary = resolvePersona(p.occupation_type) === "military_veteran";
   const rating = p.va_disability_rating;
   const isPT = p.va_pt_designation === "yes";
   const isPTPending = p.va_pt_designation === "pending";
@@ -624,7 +625,7 @@ export function StateEdSection({ profile }: { profile: Profile }) {
   const state = profile.state;
   if (!state) return null;
 
-  const isMilitary = profile.occupation_type === "military_veteran";
+  const isMilitary = resolvePersona(profile.occupation_type) === "military_veteran";
   const isVeteranFamily = !isMilitary && profile.veteran_family_member === "yes";
   if (!isMilitary && !isVeteranFamily) return null;
 
@@ -779,7 +780,7 @@ function PasswordManagerCard() {
       </div>
       {open && (
         <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-800 leading-relaxed">
-          Your password manager holds the keys to email, banking, insurance portals, and government accounts. If your family can't get in, they may be unable to access accounts needed to settle your estate or claim benefits.
+          Your password manager holds the keys to email, banking, insurance portals, and government accounts. If your family can&rsquo;t get in, they may be unable to access accounts needed to settle your estate or claim benefits.
         </div>
       )}
     </div>
@@ -901,26 +902,23 @@ type OrgDef = {
 };
 
 function getOrgs(p: Profile): OrgDef[] {
-  const isFirstResponder = p.occupation_type === "law_enforcement" || p.occupation_type === "firefighter";
+  // v2: FR path per Option B decision
+  // const isFirstResponder = p.occupation_type === "law_enforcement" || p.occupation_type === "firefighter";
   const isLineOfDuty = p.service_connected_death === "yes";
   const hasMarine = Array.isArray(p.branches_served) && p.branches_served.includes("marines");
 
   const orgs: OrgDef[] = [];
 
-  if (isLineOfDuty || isFirstResponder) {
+  if (isLineOfDuty) { // v2: FR path per Option B decision — was (isLineOfDuty || isFirstResponder)
     orgs.push({
       id: "t2t",
       name: "Tunnel to Towers Foundation",
       tagline: "May pay off your mortgage — apply immediately",
-      what: isFirstResponder
-        ? [
-            "Fallen First Responder Home Program — pays off the mortgage for a surviving spouse with dependent children",
-            "Smart Home Program — mortgage-free smart homes for catastrophically injured first responders",
-          ]
-        : [
-            "Gold Star Family Home Program — pays off the mortgage for a surviving spouse with dependent children when a service member dies in the line of duty",
-            "Smart Home Program — mortgage-free smart homes for catastrophically injured veterans",
-          ],
+      what: [
+        // v2: FR path per Option B decision — was isFirstResponder ? [...FR copy...] : [...veteran copy...]
+        "Gold Star Family Home Program — pays off the mortgage for a surviving spouse with dependent children when a service member dies in the line of duty",
+        "Smart Home Program — mortgage-free smart homes for catastrophically injured veterans",
+      ],
       contact: "1-718-987-1931",
       website: "t2t.org",
       highlight: true,
@@ -1063,14 +1061,15 @@ function OrgCard({ org }: { org: OrgDef }) {
 }
 
 export function OrgsSection({ profile }: { profile: Profile }) {
-  const isMilitary = profile.occupation_type === "military_veteran";
+  const isMilitary = resolvePersona(profile.occupation_type) === "military_veteran";
   const isVeteranFamily = !isMilitary && profile.veteran_family_member === "yes";
-  const isFirstResponder = profile.occupation_type === "law_enforcement" || profile.occupation_type === "firefighter";
+  // v2: FR path per Option B decision
+  // const isFirstResponder = profile.occupation_type === "law_enforcement" || profile.occupation_type === "firefighter";
 
   const orgs = getOrgs(profile).filter((o) =>
     o.audience.includes("universal") ||
-    ((isMilitary || isVeteranFamily) && (o.audience.includes("veteran_family") || o.audience.includes("veteran"))) ||
-    (!isMilitary && isFirstResponder && o.audience.includes("civilian"))
+    ((isMilitary || isVeteranFamily) && (o.audience.includes("veteran_family") || o.audience.includes("veteran")))
+    // v2: FR path per Option B decision — was: || (!isMilitary && isFirstResponder && o.audience.includes("civilian"))
   );
 
   if (orgs.length === 0) return null;

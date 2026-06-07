@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { computeProfileHash, getCachedReview, saveCachedReview } from "@/lib/reviewCache";
+import { resolvePersona } from "@/lib/resolvePersona";
 
 export const BENEFITS_MODEL = "claude-sonnet-4-6";
 export const STATE_ED_MODEL = "claude-sonnet-4-6";
@@ -8,7 +9,7 @@ export const STATE_ED_MODEL = "claude-sonnet-4-6";
 // produce different output. Date-string format: "YYYY-MM-DD". Cosmetic edits
 // (whitespace, internal comments) do not require a bump. Prompt logic, section
 // wording, constraint additions, or accuracy rule changes do.
-export const BENEFITS_PROMPT_VERSION = "2026-05-31";
+export const BENEFITS_PROMPT_VERSION = "2026-06-07";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -42,7 +43,7 @@ const STATE_ACCURACY_CONSTRAINTS = [
 ];
 
 export function buildBenefitsPrompt(profile: Record<string, unknown> | null): string {
-  const occ = (profile?.occupation_type as string) ?? "unknown";
+  const occ = resolvePersona(profile?.occupation_type as string | null | undefined);
   const isMilitaryVet = occ === "military_veteran";
   const isVeteranFamily = !isMilitaryVet && profile?.veteran_family_member === "yes";
 
@@ -102,15 +103,12 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
     return lines.join("\n");
   }
 
-  // ── Non-military, not veteran family (LEO / firefighter / civilian) ──────────
+  // ── Non-military, not veteran family (civilian — LE/FF resolve here via resolvePersona) ──
   if (!isMilitaryVet) {
-    const occLabel =
-      occ === "law_enforcement" ? "Law Enforcement Officer"
-      : occ === "firefighter" ? "Firefighter / First Responder"
-      : "Civilian";
-    const isLEO = occ === "law_enforcement";
-    const isFF = occ === "firefighter";
-    const sectionOffset = isLEO || isFF ? 1 : 0;
+    // v2: FR path per Option B decision — occLabel, isLEO, isFF previously branched on raw occupation_type.
+    // After resolvePersona(), occ is always "civilian" here. Restore FR-specific copy when FR EAP ships.
+    const occLabel = "Civilian";
+    const sectionOffset = 0;
 
     const lines: string[] = [
       `You are a survivor benefits advisor helping the family of a ${occLabel} understand what financial benefits they are entitled to after their passing.`,
@@ -126,8 +124,8 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
     if (profile?.years_of_service) lines.push(`- Years of Service: ${profile.years_of_service}`);
     if (profile?.marital_status) lines.push(`- Marital Status: ${profile.marital_status}`);
     if (profile?.num_dependents != null) lines.push(`- Number of Dependent Children: ${profile.num_dependents}`);
-    if (isLEO && profile?.department_type) lines.push(`- Department Type: ${profile.department_type}`);
-    if (isFF && profile?.career_volunteer) lines.push(`- Career/Volunteer: ${profile.career_volunteer}`);
+
+    // v2: FR path per Option B decision — PSOB section removed; restore when FR EAP ships.
 
     lines.push(
       "",
@@ -136,25 +134,14 @@ export function buildBenefitsPrompt(profile: Record<string, unknown> | null): st
       "### 1. Social Security Survivor Benefits",
       "Cover monthly survivor payments to spouse and children, lump-sum death benefit ($255), eligibility requirements. Include 2026 benefit amounts and how to apply via SSA.",
       "",
-    );
-
-    if (isLEO || isFF) {
-      lines.push(
-        "### 2. Public Safety Officer Benefit (PSOB)",
-        `Cover the federal Public Safety Officers' Benefit Act — the lump-sum payment (indexed annually, ~$413,000 for 2024) available to survivors of ${isLEO ? "officers" : "firefighters and first responders"} who die in the line of duty. Cover who qualifies, the application process through DOJ/COPS, and common reasons claims are denied.`,
-        "",
-      );
-    }
-
-    lines.push(
       `### ${2 + sectionOffset}. State-Specific Survivor Benefits`,
-      `Cover survivor benefits available in ${profile?.state ?? "this state"} — state pension survivor provisions (if public employee), workers' compensation death benefits, state-funded life insurance programs, and any state programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families. Describe what each program does and who qualifies; do not generate specific dollar amounts for state benefits. Apply the State & Federal Benefit Amount Accuracy rules below.`,
+      `Cover survivor benefits available in ${profile?.state ?? "this state"} — state pension survivor provisions (if public employee), workers' compensation death benefits, state-funded life insurance programs, and any state programs for civilian families. Describe what each program does and who qualifies; do not generate specific dollar amounts for state benefits. Apply the State & Federal Benefit Amount Accuracy rules below.`,
       "",
       `### ${3 + sectionOffset}. Employer, Union & Insurance Benefits`,
       "Cover employer-provided life insurance, union death benefits, pension survivor provisions, COBRA health continuation, and accidental death & dismemberment (AD&D) benefits where applicable.",
       "",
       `### ${4 + sectionOffset}. Additional Resources & Less-Known Benefits`,
-      `Highlight programs specific to this profile — state-funded education assistance for survivor children, property tax relief for surviving spouses, emergency funds from professional associations, and any relevant state or local programs for ${isLEO ? "law enforcement" : isFF ? "first responder" : "civilian"} families.`,
+      `Highlight programs specific to this profile — state-funded education assistance for survivor children, property tax relief for surviving spouses, emergency funds from professional associations, and any relevant state or local programs for civilian families.`,
       "",
       "Do NOT include VA/military-specific benefits like DIC, CHAMPVA, or DEA unless this person has documented veteran status.",
       ...STATE_ACCURACY_CONSTRAINTS,
@@ -289,7 +276,7 @@ CRITICAL RULES:
 export function benefitsHashFields(profile: Record<string, unknown>): Record<string, unknown> {
   return {
     _prompt_version: BENEFITS_PROMPT_VERSION,
-    occupation_type: profile?.occupation_type ?? null,
+    occupation_type: resolvePersona(profile?.occupation_type as string | null | undefined) || null,
     branch: profile?.branch ?? null,
     status: profile?.status ?? null,
     state: profile?.state ?? null,

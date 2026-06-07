@@ -49,24 +49,14 @@ const US_STATES = [
   "Wisconsin","Wyoming","District of Columbia",
 ];
 
+// Option B (June 7 2026): LE/FF removed from selector — they route through Civilian.
+// Enum values (law_enforcement, firefighter) preserved in OccupationType for legacy data.
 const OCCUPATION_OPTIONS: { value: OccupationType; label: string; icon: string; description: string }[] = [
   {
     value: "military_veteran",
     label: "Veteran / Military",
     icon: "✦",
     description: "Active duty, reserve, National Guard, or veteran of any branch",
-  },
-  {
-    value: "law_enforcement",
-    label: "Law Enforcement",
-    icon: "◈",
-    description: "City police, county sheriff, state trooper, federal agent",
-  },
-  {
-    value: "firefighter",
-    label: "Fire / First Responder",
-    icon: "◆",
-    description: "Career or volunteer firefighter, paramedic, EMT",
   },
   {
     value: "civilian",
@@ -495,7 +485,6 @@ export default function ProfileSetupPage() {
     return (
       <main className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
           <p className="text-stone-500 text-sm">Loading your profile…</p>
         </div>
       </main>
@@ -509,7 +498,6 @@ export default function ProfileSetupPage() {
 
           <div className="text-center mb-2">
             <Link href="/" className="inline-block">
-              <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
               <h1 className="font-serif text-2xl font-semibold text-stone-900 tracking-tight">Update Profile</h1>
             </Link>
             <p className="mt-2 text-sm text-stone-500">Keep your information current so your family sees the right benefits.</p>
@@ -809,7 +797,6 @@ export default function ProfileSetupPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
             <h1 className="font-serif text-2xl font-semibold text-stone-900 tracking-tight">
               LifeSentinel
             </h1>

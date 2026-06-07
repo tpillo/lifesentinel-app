@@ -36,7 +36,6 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-amber-600 text-3xl mb-3">❧</div>
             <h1 className="font-serif text-3xl font-semibold text-stone-900 tracking-tight hover:text-amber-700 transition">
               LifeSentinel
             </h1>

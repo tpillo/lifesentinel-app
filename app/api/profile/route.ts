@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prewarmBenefitsCache, prewarmStateEdCache } from "@/lib/generateReviews";
+import { resolvePersona } from "@/lib/resolvePersona";
 
 export const runtime = "nodejs";
 export const maxDuration = 180;
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
         console.log("[prewarm] starting state-ed pre-warm");
         const t2 = Date.now();
         const isVeteranFamilyMember =
-          row.occupation_type !== "military_veteran" && row.veteran_family_member === "yes";
+          resolvePersona(row.occupation_type as string | null | undefined) !== "military_veteran" && row.veteran_family_member === "yes";
         await prewarmStateEdCache(user.id, {
           state: String(row.state ?? ""),
           isPT: isVeteranFamilyMember ? false : row.va_pt_designation === "yes",

@@ -65,8 +65,7 @@ function shell(title: string, content: string) {
 function confirmPage(email: string) {
   return shell(
     "User Denied",
-    `<div class="glyph">❧</div>
-     <span class="badge denied">Denied</span>
+    `<span class="badge denied">Denied</span>
      <h1>Account denied</h1>
      <p><strong>${email}</strong> has been denied.<br>They'll see a notice if they attempt to access Life Sentinel.</p>`
   );
@@ -75,8 +74,7 @@ function confirmPage(email: string) {
 function invalidPage(message: string) {
   return shell(
     "Invalid Link",
-    `<div class="glyph">❧</div>
-     <span class="badge invalid">Invalid</span>
+    `<span class="badge invalid">Invalid</span>
      <h1>Link unavailable</h1>
      <p>${message}</p>`
   );

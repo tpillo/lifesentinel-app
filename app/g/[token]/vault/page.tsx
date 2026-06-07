@@ -113,7 +113,6 @@ export default function GuardianVaultPage() {
     return (
       <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-amber-600 text-3xl mb-3">❧</div>
           <p className="text-stone-500 text-sm">Loading documents prepared for you…</p>
         </div>
       </div>
@@ -138,7 +137,6 @@ export default function GuardianVaultPage() {
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4 md:px-8">
           <div className="flex items-center gap-2">
-            <span className="text-amber-600 text-xl">❧</span>
             <span className="font-serif text-lg font-semibold text-stone-900 tracking-tight">
               LifeSentinel
             </span>

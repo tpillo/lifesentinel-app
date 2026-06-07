@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/DashboardHeader";
 import { RcsbpSection, OrgsSection, StateEdSection, DigitalEstateSection } from "@/components/BenefitsGuide";
-import { Audience, StateInfo, STATE_INFO } from "@/lib/stateData";
+import { Audience, STATE_INFO } from "@/lib/stateData";
 import { trackEvent } from "@/lib/gtag";
+import { resolvePersona } from "@/lib/resolvePersona";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -70,7 +71,7 @@ function getDicEnhancementNote(ptAwardDate: string | null | undefined, isPT: boo
 }
 
 function getBenefits(p: Profile): BenefitDef[] {
-  const isMilitary = p.occupation_type === "military_veteran";
+  const isMilitary = resolvePersona(p.occupation_type) === "military_veteran";
   const isVeteranFamily = !isMilitary && p.veteran_family_member === "yes";
 
   // For veteran family members, use the veteran's data from the family fields
@@ -619,7 +620,6 @@ export default function BenefitsPage() {
       generate();
     }
     return () => abortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoading]);
 
   // Mark benefits step as acknowledged for onboarding
@@ -631,7 +631,7 @@ export default function BenefitsPage() {
     });
   }, []);
 
-  const isMilitary = profile?.occupation_type === "military_veteran";
+  const isMilitary = resolvePersona(profile?.occupation_type) === "military_veteran";
   const isVeteranFamily = !isMilitary && profile?.veteran_family_member === "yes";
   const showVeteranContent = isMilitary || isVeteranFamily;
   const benefits = profile ? getBenefits(profile) : [];
@@ -823,7 +823,7 @@ export default function BenefitsPage() {
                   </div>
                 )}
                 <StateEdSection profile={profile} />
-                {profile.occupation_type === "military_veteran" && (
+                {resolvePersona(profile.occupation_type) === "military_veteran" && (
                   <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
                       <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">State Parks — Surviving Family Pass</h3>

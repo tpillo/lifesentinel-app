@@ -552,7 +552,6 @@ export default function GuardianOverviewPage() {
     return (
       <div className="min-h-screen bg-[#faf8f5] p-8">
         <div className="mx-auto max-w-2xl">
-          <div className="text-amber-600 text-3xl mb-4 text-center">❧</div>
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
             <div className="text-red-700 font-semibold mb-2">Unable to load documents</div>
             <pre className="text-sm whitespace-pre-wrap text-red-600">{error}</pre>
@@ -566,7 +565,6 @@ export default function GuardianOverviewPage() {
     return (
       <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-amber-600 text-3xl mb-3">❧</div>
           <p className="text-stone-500 text-sm">Loading documents prepared for you…</p>
         </div>
       </div>
@@ -575,6 +573,7 @@ export default function GuardianOverviewPage() {
 
   const presentItems = data.items.filter((item) => item.completed)
   const notYetAdded = data.items.filter((item) => !item.completed)
+  // TODO: bug — compares against "military" but the enum value is "military_veteran". isMilitary is always false. Fix separately; do not route through resolvePersona here until guardian display logic is audited.
   const isMilitary = data.profile?.occupation_type === "military"
   const veteranName = data.profile?.full_name ?? null
 
@@ -596,7 +595,6 @@ export default function GuardianOverviewPage() {
 
       <main className="mx-auto max-w-5xl px-6 py-10 md:px-8 space-y-8">
         <div className="rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 to-stone-50 px-8 py-10 shadow-sm text-center">
-          <div className="text-amber-600 text-4xl mb-4">❧</div>
           <h1 className="font-serif text-3xl font-semibold text-stone-900 md:text-4xl">
             Documents prepared for you
           </h1>
