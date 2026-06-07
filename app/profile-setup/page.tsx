@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trackEvent } from "@/lib/gtag";
+import DashboardHeader from "@/components/DashboardHeader";
 
 type OccupationType = "law_enforcement" | "military_veteran" | "firefighter" | "civilian" | "";
 
@@ -772,10 +773,7 @@ export default function ProfileSetupPage() {
             <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</p>
           )}
 
-          <div className="flex items-center justify-between pb-4">
-            <Link href="/dashboard/readiness/overview" className="text-sm text-stone-400 hover:text-stone-600 transition">
-              ← Back to dashboard
-            </Link>
+          <div className="flex justify-end pb-4">
             <button
               onClick={handleSubmit}
               disabled={!canSubmit() || saving}
@@ -791,7 +789,9 @@ export default function ProfileSetupPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#faf8f5] px-4 py-12">
+    <>
+      <DashboardHeader />
+      <main className="min-h-screen bg-[#faf8f5] px-4 py-12">
       <div className="mx-auto w-full max-w-2xl">
 
         {/* Logo */}
@@ -1236,5 +1236,6 @@ export default function ProfileSetupPage() {
 
       </div>
     </main>
+    </>
   );
 }
