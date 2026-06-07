@@ -21,11 +21,6 @@ const audiences = [
     title: "Families & Spouses",
     body: "Know exactly what to do and where everything is — without the scramble.",
   },
-  {
-    icon: "◉",
-    title: "First Responders",
-    body: "Law enforcement, fire, and EMS — start every shift knowing your family is ready and can find what they need.",
-  },
 ];
 
 const steps = [
