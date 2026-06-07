@@ -529,7 +529,7 @@ export default function ProfileSetupPage() {
           {/* Service Details */}
           {form.occupation_type && (
             <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8 space-y-5">
-              <h2 className="font-serif text-lg font-semibold text-stone-900">Service Details</h2>
+              <h2 className="font-serif text-lg font-semibold text-stone-900">{form.occupation_type === "military_veteran" ? "Service Details" : "Your Details"}</h2>
 
               <div>
                 <label className="block text-sm font-medium text-stone-700">State of residence</label>
