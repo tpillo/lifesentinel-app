@@ -573,6 +573,7 @@ export default function GuardianOverviewPage() {
 
   const presentItems = data.items.filter((item) => item.completed)
   const notYetAdded = data.items.filter((item) => !item.completed)
+  // TODO: bug — compares against "military" but the enum value is "military_veteran". isMilitary is always false. Fix separately; do not route through resolvePersona here until guardian display logic is audited.
   const isMilitary = data.profile?.occupation_type === "military"
   const veteranName = data.profile?.full_name ?? null
 

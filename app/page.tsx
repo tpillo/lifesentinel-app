@@ -167,7 +167,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mx-auto max-w-4xl grid gap-5 lg:grid-cols-3">
             {audiences.map((a) => (
               <div
                 key={a.title}

@@ -49,24 +49,14 @@ const US_STATES = [
   "Wisconsin","Wyoming","District of Columbia",
 ];
 
+// Option B (June 7 2026): LE/FF removed from selector — they route through Civilian.
+// Enum values (law_enforcement, firefighter) preserved in OccupationType for legacy data.
 const OCCUPATION_OPTIONS: { value: OccupationType; label: string; icon: string; description: string }[] = [
   {
     value: "military_veteran",
     label: "Veteran / Military",
     icon: "✦",
     description: "Active duty, reserve, National Guard, or veteran of any branch",
-  },
-  {
-    value: "law_enforcement",
-    label: "Law Enforcement",
-    icon: "◈",
-    description: "City police, county sheriff, state trooper, federal agent",
-  },
-  {
-    value: "firefighter",
-    label: "Fire / First Responder",
-    icon: "◆",
-    description: "Career or volunteer firefighter, paramedic, EMT",
   },
   {
     value: "civilian",
