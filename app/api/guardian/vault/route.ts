@@ -39,6 +39,8 @@ async function walkFolder(
       continue;
     }
 
+    if (item.name === ".emptyFolderPlaceholder") continue;
+
     const { data: signed, error: signErr } = await supabaseAdmin.storage
       .from("vault")
       .createSignedUrl(fullPath, 3600);
