@@ -495,7 +495,6 @@ export default function ProfileSetupPage() {
     return (
       <main className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
           <p className="text-stone-500 text-sm">Loading your profile…</p>
         </div>
       </main>
@@ -509,7 +508,6 @@ export default function ProfileSetupPage() {
 
           <div className="text-center mb-2">
             <Link href="/" className="inline-block">
-              <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
               <h1 className="font-serif text-2xl font-semibold text-stone-900 tracking-tight">Update Profile</h1>
             </Link>
             <p className="mt-2 text-sm text-stone-500">Keep your information current so your family sees the right benefits.</p>
@@ -809,7 +807,6 @@ export default function ProfileSetupPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
             <h1 className="font-serif text-2xl font-semibold text-stone-900 tracking-tight">
               LifeSentinel
             </h1>

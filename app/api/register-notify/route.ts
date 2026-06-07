@@ -76,7 +76,6 @@ function adminNotificationHtml({ email, ts, approveUrl, denyUrl }: {
       <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #e7e5e4;overflow:hidden;">
         <tr>
           <td style="background:#faf8f5;border-bottom:1px solid #e7e5e4;padding:24px 32px;text-align:center;">
-            <span style="color:#d97706;font-size:28px;">❧</span><br>
             <span style="font-family:Georgia,serif;font-size:20px;font-weight:600;color:#1c1917;letter-spacing:-0.3px;">LifeSentinel</span>
           </td>
         </tr>

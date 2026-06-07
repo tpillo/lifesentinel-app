@@ -57,7 +57,6 @@ export default function RegisterPage() {
     return (
       <main className="min-h-screen bg-[#faf8f5] flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <div className="text-amber-600 text-4xl mb-4 select-none">❧</div>
           <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-8">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200 text-xl text-emerald-600 mb-5 mx-auto">
               ✓
@@ -97,7 +96,6 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
             <h1 className="font-serif text-3xl font-semibold text-stone-900 tracking-tight">
               LifeSentinel
             </h1>

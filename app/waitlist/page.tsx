@@ -29,7 +29,6 @@ export default async function WaitlistPage({
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-amber-600 text-3xl mb-3 select-none">❧</div>
             <h1 className="font-serif text-3xl font-semibold text-stone-900 tracking-tight">
               LifeSentinel
             </h1>
