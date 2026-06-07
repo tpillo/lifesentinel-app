@@ -14,7 +14,7 @@ const audiences = [
   {
     icon: "◈",
     title: "Active Duty",
-    body: "Your family is protected if something happens to you.",
+    body: "Before you deploy, know your family is set — and ready for whatever comes next.",
   },
   {
     icon: "⌂",
@@ -24,7 +24,7 @@ const audiences = [
   {
     icon: "◉",
     title: "First Responders",
-    body: "Law enforcement, fire, and EMS — your family deserves the same protection you give everyone else.",
+    body: "Law enforcement, fire, and EMS — start every shift knowing your family is ready and can find what they need.",
   },
 ];
 
@@ -132,8 +132,8 @@ export default function Home() {
           </h1>
 
           <p className="mt-8 text-stone-600 text-lg leading-relaxed max-w-2xl mx-auto md:text-xl">
-            Life Sentinel helps veterans, active duty, and first responders organize what matters —
-            and makes sure their families are protected no matter what.
+            Whether you&rsquo;re getting ready to deploy or starting your next shift, Life Sentinel helps you organize what matters —
+            so your family knows what they&rsquo;re entitled to and where to find everything, no matter what comes next.
           </p>
 
           <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -166,7 +166,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <div className="text-center mb-14">
             <p className="text-xs font-medium uppercase tracking-widest text-amber-600 mb-3">
-              Who it's for
+              Who it&rsquo;s for
             </p>
             <h2 className="font-serif text-4xl font-semibold text-stone-900 md:text-5xl">
               Built for the ones who protect others
@@ -204,7 +204,7 @@ export default function Home() {
           </h2>
 
           <p className="mt-8 text-stone-300 text-lg leading-relaxed">
-            When a veteran or first responder passes, their family faces two crises at once — grief,
+            When a veteran passes, their family faces two crises at once — grief,
             and an overwhelming maze of documents, benefits, and decisions they were never prepared for.
           </p>
 
