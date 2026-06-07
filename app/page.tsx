@@ -13,8 +13,8 @@ const audiences = [
   },
   {
     icon: "◈",
-    title: "Active Duty",
-    body: "Before you deploy, know your family is set — and ready for whatever comes next.",
+    title: "Active, Reserve & Guard",
+    body: "Active, Reserve, or Guard — make sure your family is set and ready for whatever comes next.",
   },
   {
     icon: "⌂",
