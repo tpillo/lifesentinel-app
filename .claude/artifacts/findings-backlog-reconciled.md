@@ -1,47 +1,62 @@
 # Life Sentinel — Current Fix Backlog (Shipyard-ready)
 
-**Reconciled 8 June 2026.** This supersedes the 31 May persona-test handoff doc on three points (noted below). Hand *this* to the LS Engineering Detachment, not the May 31 doc, which has drifted.
+**Reconciled 9 June 2026.** Merges the 8 June reconciled doc with in-session work completed 7–8 June. Supersedes both prior backlog files. Hand this to the LS Engineering Detachment.
 
 ---
 
 ## Count reconciliation
 
-The 31 May test surfaced **22 findings** (the exec-summary prose said "20" but the body lists 22 — the prose undercounted). Current state:
+The 31 May test surfaced **22 findings** (the exec-summary prose said "20" but the body lists 22 — the prose undercounted). Current state after June 7–8 session:
 
 - **2 critical — RESOLVED in-session** (U, V — Fixes 4 and 5)
 - **1 minor — SHIPPED** via the Finding-2 dry-run (commit a80623c)
-- **19 remaining — QUEUED** (this backlog)
+- **Phase 0.1 and Phase 1 — SHIPPED** (7 June, verified in production — see below)
+- **Finding 3 — SHIPPED** (7 June, verified in production)
+- **~15 remaining — QUEUED** (this backlog)
 
-Plus 5 in-session fixes already live (Fixes 1–5). So the real work ahead is **19 findings**, sequenced below.
+Plus 5 in-session fixes already live (Fixes 1–5), plus the June 7–8 session work. Remaining queued work is Phases 2–7 plus the Guardian storage finding.
 
 ---
 
-## What's stale in the 31 May doc (don't follow these)
+## What's stale in prior docs (don't follow these)
 
-1. **Decision 2 (multi-identity model)** in the old doc recommends `is_veteran` / `is_law_enforcement` / `is_first_responder` booleans. **SUPERSEDED by Option B** (memory #14, 7 June): primary is a single-select **Veteran/Military vs. Civilian only** — no first-responder, no law-enforcement identity. FRs route through Civilian. Use Option B, not the old Decision 2.
+1. **Decision 2 (multi-identity model)** in the 31 May doc recommends `is_veteran` / `is_law_enforcement` / `is_first_responder` booleans. **SUPERSEDED by Option B** (7 June): primary is a single-select **Veteran/Military vs. Civilian only** — no first-responder, no law-enforcement identity. FRs route through Civilian via `resolvePersona()`. Use Option B, not the old Decision 2.
 2. **Finding 2** (duplicate "Occupation" label) — already shipped. Don't re-queue.
 3. **Phase 1 standup from `ls-factory.zip`** — already done. Shipyard stood up 3 June (agents generated fresh, not from the zip). Skip.
+4. **Phase 0.1 (test infra)** — SHIPPED 7 June. Do not re-implement.
+5. **Phase 1 (identity model 4→2)** — SHIPPED 7 June. Do not re-implement.
+6. **Finding 3 ("Service Details" heading)** — SHIPPED 7 June. Do not re-implement.
 
 ---
 
-## Phase 0 — Prerequisites (do before any gating fix)
+## Shipped June 7–8 (verified in production — DO NOT RE-IMPLEMENT)
 
-These aren't findings; they're the foundation that makes the rest safe.
-
-- **0.1 — Test infrastructure (Vitest + RTL).** LS currently has none. Every gating fix below is a blind change without it. Initial scoped target: the profile-setup component's two render paths. This is the keystone — build it first. *(Memory: test-infra-first decision.)*
-- **0.2 — Next.js security upgrade.** LS is on 16.1.6; verify current advisories and upgrade to the current patched release. Do-regardless (PII-handling site). Best done *before* 0.1 so tests run against the current framework version. First step: verify current advisories/version.
+- ✓ **Phase 0.1** — Test infra: Vitest + RTL configured (jsdom, `@/*` alias); 39-assertion 3-persona regression suite live (`__tests__/persona-regression.test.ts`)
+- ✓ **Phase 1** — Identity model 4→2 (Option B): profile selector reduced to Veteran/Military + Civilian; `lib/resolvePersona.ts` added; legacy `law_enforcement`/`firefighter` normalize to civilian at read time; cache hash consumes resolved persona + `BENEFITS_PROMPT_VERSION`; CLAUDE.md updated
+- ✓ **Finding 3** — "Service Details" → "Your Details" heading for civilian on Update Profile page
+- ✓ Reserve/Guard landing card ("Active, Reserve & Guard")
+- ✓ Profile page nav header (was missing `DashboardHeader`)
+- ✓ Guardian `.emptyFolderPlaceholder` filter (was generating signed URLs for placeholder objects, causing all-categories-same-URL bug)
 
 ---
 
-## Phase 1 — Simplified identity model (foundational, Option B)
+## Phase 0 (remaining) — Prerequisites
 
-Changes the predicate model everything downstream gates on.
+- **0.2 — Next.js security upgrade.** LS is on 16.1.6; verify current advisories and upgrade to the current patched release. Do-regardless (PII-handling site). *(Security, independent, do soon, non-blocking. No longer a prereq — the test infra it was gating is done. Slot after Guardian fix.)*
 
-- Profile selector goes **4 cards → 2**: **Veteran/Military** and **Civilian**. Remove the Law Enforcement and Fire/First Responder cards.
-- **Keep the `occupation_type` enum values in the schema** (`military_veteran, law_enforcement, firefighter, civilian`) — do NOT run an enum migration. Treat any legacy `law_enforcement` / `firefighter` row as Civilian for routing. Fully reversible if FR ever returns in v2.
-- **No `is_first_responder` flag.** Option B dropped it entirely.
-- **The selector appears in at least two places** — initial **profile setup** (`app/profile-setup/page.tsx`) and the **Update Profile** editor (`app/profile/page.tsx` or equivalent). **Extract to one shared component** so the 4→2 change is made once and can't go half-done.
-- All downstream content gates on the resulting predicate: `isMilitaryVeteran` vs. `isCivilian`, with `veteran_family_member` still its own boolean.
+*(0.1 is DONE — test infra shipped 7 June.)*
+
+---
+
+## Guardian raw-storage exposure — HIGH PRIORITY (surfaced 7 June, slot before Phase 2)
+
+**New finding, not in the 8 June reconciled doc.** Guardian view (`app/api/guardian/vault/route.ts`) walks RAW STORAGE via `walkFolder()`, not `readiness_document_files`, so it serves every file ever uploaded including deleted/replaced files. No delete-from-storage path exists anywhere in the app.
+
+- **Fix: Option B** — point Guardian walk at the DB-backed current-file list, same source as the owner's `/api/vault/files`. `walkFolder` replaced by a query to `readiness_document_files` for the owner's user ID.
+- **FIRST recon question before any fix:** when a user removes/replaces a file, what happens to the `readiness_document_files` row — deleted, updated, or untouched? If DB table is clean (rows deleted on removal), Option B works as-is. If DB is also stale, fix is larger (needs a delete-from-storage + DB path, or a current-version flag).
+- **Side effect fix:** resolves count mismatches (Guardian overview counts `is_present` DB flags; vault section counts raw storage objects — they'll align once both read from DB).
+- **Also on this surface:** missing compass logo on Guardian header.
+- **Not screening-blocking:** reaching it requires approved account → profile → upload → share-link.
 
 ---
 
@@ -54,7 +69,7 @@ The biggest cluster. Civilians currently see veteran/survivor content unconditio
 - **G/K** — Documents and Overview show Military/VA categories framed as user-owned
 - **L** — Survivor page renders veteran-tagged items to civilians (filter logic missing)
 
-**Architect Decision 1 (civilian experience model)** gets made here. Three options from the old doc still apply: hide veteran content / reframe to general estate planning / progressive disclosure. **Recommended: progressive disclosure** — replicate the Survivor page's existing "Veteran family?" callout pattern across the other pages. *Simpler now under Option B — only two personas to gate against, not four.*
+**Architect Decision 1 (civilian experience model)** gets made here. Three options: hide veteran content / reframe to general estate planning / progressive disclosure. **Recommended: progressive disclosure** — replicate the Survivor page's existing "Veteran family?" callout pattern across the other pages. *Simpler under Option B — only two personas to gate against, not four.*
 
 ---
 
@@ -63,7 +78,7 @@ The biggest cluster. Civilians currently see veteran/survivor content unconditio
 Copy and prompts slip between addressing the user *as* the veteran vs. *referencing* the veteran in their life. Lower risk; can run parallel to Phase 2.
 
 - **B** — AI prompt says "your loved one was a veteran" for civilians
-- **E** — "Pre-Deployment" visible in top nav for non-active-duty personas *(simpler under Option B — gate on military/veteran vs. civilian)*
+- **E** — "Pre-Deployment" visible in top nav for non-active-duty personas *(gate on military/veteran vs. civilian under Option B)*
 - **N** — Military/VA document categories framed as user-owned for vet-family spouse
 - **O** — Overview tooltip wrong voice for vet-family ("your passing" should be "your spouse's passing")
 
@@ -81,24 +96,28 @@ The proper long-term fix that replaces the 31 May interim safety patch (Fix 4).
 
 ---
 
-## Phase 5 — Content accuracy & cleanup (Findings R, S, P, Q, W)
+## Phase 5 — Benefits-engine prompt pass + content accuracy (Findings R, S, P, Q, W)
 
-- **R** — SGLI/VGLI card implies coverage is automatic; VGLI requires enrollment
-- **S** — Detailed Analysis has significant cross-section duplication
-- **P** — VMSDEP acronym drops the "M" in card title (fix in `lib/stateData.ts` VA entry)
-- **Q** — Card says VMSDEP, AI prose says VSDEP (may resolve via Phase 4)
+**This is the same workstream as "Benefits-engine prompt pass" in the prior backlog** — do as ONE prompt revision + `BENEFITS_PROMPT_VERSION` bump + 3-persona re-verify. This is a product decision, not a copy tweak.
+
+- **Eligibility-gating decision** *(this bullet IS the product decision)* — `buildBenefitsPrompt()` currently instructs the AI to cover DIC, CHAMPVA, and Fry Scholarship unconditionally for all military_veteran profiles, regardless of P&T status, SC-death flag, or disability rating. The AI is expected to self-filter eligibility from the profile context. Whether to move this to deterministic prompt-level gating is an open product/engineering decision. **Logged in `.claude/artifacts/decision-pending-benefits-eligibility-gating.md`.** Resolve here before writing any prompt changes — the answer determines the scope of everything else in this phase.
+- **S** — Detailed Analysis has significant cross-section duplication (CHAMPVA/TRICARE duplicated across "Federal Survivor Benefits" + "Healthcare for Survivors" sections)
 - **W** — AI prose doesn't explicitly cross-reference pill cards ("See the [Card] above") — tune prompt; acceptable interim
+- **P** — VMSDEP acronym drops the "M" in card title (fix in `lib/stateData.ts` VA entry)
+- **Q** — Card says VMSDEP, AI prose says VSDEP (name mismatch: card vs. detailed analysis — may resolve via Phase 4)
+- **R** — SGLI/VGLI card implies coverage is automatic; VGLI requires enrollment
 
 ---
 
-## Phase 6 — Cosmetic / UX polish (Findings 3, C, D, H, J + CTA icon)
+## Phase 6 — Cosmetic / UX polish (Findings C, D, H, J + CTA icon)
 
-- **3** — "Service Details" header shown to civilians on profile setup
+*(Finding 3 already shipped — removed from this phase.)*
+
 - **C** — Markdown "#" rendering as literal text in AI analysis output
 - **D** — Broken UI element: empty red bar with truncated "Apply for" near Social Security
 - **H** — "Family" framing assumes user has family (off for single civilian)
 - **J** — Dashboard not reachable from top-nav (only via logo click)
-- **CTA icon** (new, 7 June) — the landing-page CTA lost its icon when the broken ❧ circle was removed; add a real lucide icon (compass/shield, on-brand with the LS logo)
+- **CTA icon** — the landing-page CTA lost its icon when the broken ❧ circle was removed; add a real lucide icon (compass/shield, on-brand with the LS logo)
 
 ---
 
@@ -115,17 +134,27 @@ After fixes ship: re-run all three personas (Civilian / Vet-Family / Veteran), w
 
 ---
 
+## Low priority / parking lot
+
+- **Guardian `:577` isMilitary bug** — `occupation_type === "military"` should be `"military_veteran"`; `isMilitary` is always false, affects 3 conditional blocks. Renders fine in prod currently. Has TODO comment in code. Needs own branch + guardian display logic audit before fix.
+- **`will.pdf` → "Advance Directive" filename mis-match** — pre-existing quirk in `filenameMatch.ts` partial-match logic. Minor.
+- **`guardian-vault-debug` deleted file** — appears across every checkout, unexplained. Ask CC.
+
+---
+
 ## Recommended order summary
 
 ```
-Phase 0  Test infra + Next.js security        (prereq, enables safe changes)
-Phase 1  Identity model 4→2 cards (Option B)   (foundational predicate change)
-Phase 2  Page-level gating: A, F, G/K, L       (biggest cluster; Decision 1 here)
-Phase 3  Voice/framing: B, E, N, O             (parallel-able with Phase 2)
-Phase 4  State canonicalization: T + gaps      (replaces Fix 4 interim)
-Phase 5  Content cleanup: R, S, P, Q, W
-Phase 6  Cosmetic: 3, C, D, H, J + CTA icon
-Phase 7  Mandatory 3-persona regression        (must-do gate)
+Guardian   Raw-storage exposure fix             (high priority, active exposure)
+Phase 0.2  Next.js security upgrade             (security, independent, do soon, non-blocking)
+Phase 2    Page-level gating: A, F, G/K, L      (biggest cluster; Decision 1 here)
+Phase 3    Voice/framing: B, E, N, O            (parallel-able with Phase 2)
+Phase 4    State canonicalization: T + gaps     (replaces Fix 4 interim)
+Phase 5    Benefits-engine prompt pass: R, S, P, Q, W + eligibility-gating decision
+Phase 6    Cosmetic: C, D, H, J + CTA icon
+Phase 7    Mandatory 3-persona regression       (must-do gate)
 ```
 
-19 findings, 7 phases. Each phase routes through the LS Engineering Det chain with its three human checkpoints (approve Scribe story → approve Architect spec → review IG audit before merge).
+Phases 0.1 and 1 complete. Finding 3 complete. ~15 findings remain across 6 active phases. Each phase routes through the LS Engineering Det chain with its three human checkpoints (approve Scribe story → approve Architect spec → review IG audit before merge).
+
+**Site is screening-ready for VHA window (~June 10–12). No blocking issues.**
