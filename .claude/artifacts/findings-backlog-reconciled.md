@@ -52,11 +52,39 @@ Plus 5 in-session fixes already live (Fixes 1–5), plus the June 7–8 session 
 
 **New finding, not in the 8 June reconciled doc.** Guardian view (`app/api/guardian/vault/route.ts`) walks RAW STORAGE via `walkFolder()`, not `readiness_document_files`, so it serves every file ever uploaded including deleted/replaced files. No delete-from-storage path exists anywhere in the app.
 
-- **Fix: Option B** — point Guardian walk at the DB-backed current-file list, same source as the owner's `/api/vault/files`. `walkFolder` replaced by a query to `readiness_document_files` for the owner's user ID.
-- **FIRST recon question before any fix:** when a user removes/replaces a file, what happens to the `readiness_document_files` row — deleted, updated, or untouched? If DB table is clean (rows deleted on removal), Option B works as-is. If DB is also stale, fix is larger (needs a delete-from-storage + DB path, or a current-version flag).
 - **Side effect fix:** resolves count mismatches (Guardian overview counts `is_present` DB flags; vault section counts raw storage objects — they'll align once both read from DB).
 - **Also on this surface:** missing compass logo on Guardian header.
 - **Not screening-blocking:** reaching it requires approved account → profile → upload → share-link.
+
+### Recon finding — 15 June 2026
+
+**We are in the bad case. Option B alone does NOT fix the exposure.**
+
+Full trace confirmed: `readiness_document_files` is INSERT/SELECT only. No `DELETE` export exists on any route touching this table. `storage.remove()` is never called anywhere in the codebase. The only `DELETE` handler in the app is `document-locations/route.ts` — a completely separate table (physical-location notes, unrelated to uploaded files). The "Remove" button in the documents UI calls that handler, not a file-removal path.
+
+Consequence: when a user replaces a file by uploading a new version, both the old and new rows remain in `readiness_document_files`, and both storage objects persist. The DB table is exactly as stale as raw storage. Pointing Guardian at `readiness_document_files` instead of `walkFolder()` would expose the same full upload history — it fixes nothing.
+
+### Revised fix — two parts required
+
+**Part 1 — Add a removal path** that runs on user remove/replace. Must clear both the storage object and the DB row (or mark it). No such path exists today.
+
+**Part 2 — Point Guardian at current-only files.** Once Part 1 is in place, Guardian reads from `readiness_document_files` filtered to current records only (replacing `walkFolder()`).
+
+### Two approaches for Part 1
+
+| | Hard delete | Soft delete |
+|---|---|---|
+| **Mechanism** | `storage.remove()` + `DELETE` from `readiness_document_files` | `is_current = false` / `deleted_at` flag; storage object kept |
+| **Recovery** | Irreversible — file is gone | Recoverable — file exists in storage, flag can be reversed |
+| **Storage cost** | Clean | Accumulates over time |
+| **Read-path impact** | None — row is gone | All read paths (`/api/vault/files`, Guardian, signed-url) must filter `WHERE is_current = true` or `deleted_at IS NULL` |
+| **Risk profile** | High for a survivor-document platform | Low — non-destructive by default |
+
+### Recommendation
+
+**Soft delete** — non-destructive is the right default for a platform holding survivor documents. Users may upload a replacement and later want the prior version; hard delete forecloses that permanently. Soft delete keeps the object in storage (cost is negligible at this scale), marks the DB row inactive, and all read paths filter to current. A future purge job can hard-delete old versions if storage cost ever becomes a concern.
+
+**Decision required next session before any implementation begins:** confirm soft delete, agree on the column name (`is_current` boolean vs. `deleted_at` timestamptz), and confirm that ALL read paths that touch `readiness_document_files` will be updated in the same PR.
 
 ---
 
