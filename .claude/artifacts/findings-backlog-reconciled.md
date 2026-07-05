@@ -48,9 +48,9 @@ Plus 5 in-session fixes already live (Fixes 1–5), plus the June 7–8 session 
 
 ---
 
-## Guardian raw-storage exposure — DISABLE (decided 5 July 2026)
+## Guardian raw-storage exposure — DONE, sharing disabled (5 July 2026)
 
-**Action: DISABLE — see `decision-guardian-disable.md`.** Guardian sharing will be disabled (no new share links, existing links revoked); the raw-storage exposure is accepted as known-and-unfixed by design because the surface will be unreachable. Do NOT implement the two-part soft-delete fix below — it is preserved as reference only for a possible future vault revival.
+**DONE — sharing disabled in `chore/disable-guardian-sharing`.** `/api/guardian/create` returns 410; `/g/[token]` and `/g/[token]/vault` render a retired-feature notice (no fetch to `/api/guardian/vault`, so `walkFolder()` is never reached from the serve path); the Guardian dashboard page is a retired notice. One-time DB cleanup (`UPDATE guardian_links SET revoked_at = now() WHERE revoked_at IS NULL;`) runs separately in Supabase. Raw-storage exposure is accepted as known-and-unfixed by design because the surface is now unreachable. See `decision-guardian-disable.md`. Do NOT implement the two-part soft-delete fix below — it is preserved as reference only for a possible future vault revival.
 
 - **Not screening-blocking:** reaching it requires approved account → profile → upload → share-link. Disabling creation + revoking closes it.
 - **Guardian `.emptyFolderPlaceholder` filter already shipped 7 June** (see "Shipped June 7–8" section) — no further work needed there.
@@ -174,7 +174,7 @@ After fixes ship: re-run all three personas (Civilian / Vet-Family / Veteran), w
 ## Recommended order summary
 
 ```
-Guardian   DISABLE sharing surface              (decided 5 July — see decision-guardian-disable.md)
+Guardian   DISABLED 5 July                      (chore/disable-guardian-sharing — DONE)
 Phase 0.2  Next.js security upgrade             (security, independent, do soon, non-blocking)
 Phase 2    Page-level gating: A, F, G/K, L      (biggest cluster; Decision 1 here)
 Phase 3    Voice/framing: B, E, N, O            (parallel-able with Phase 2)
