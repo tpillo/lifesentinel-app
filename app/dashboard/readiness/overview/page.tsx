@@ -32,18 +32,6 @@ type LegacyOverviewResponse = {
   items?: LegacyItem[];
 };
 
-type ReadinessDoc = {
-  id: string;
-  item_label: string;
-  is_present: boolean;
-};
-
-type ReadinessFile = {
-  id: string;
-  readiness_document_id: string;
-  file_name: string;
-};
-
 type NormalizedOverview = {
   overallPercent: number;
   totalItems: number;
@@ -169,8 +157,6 @@ function ProgressBar({ percent }: { percent: number }) {
 
 export default function ReadinessOverviewPage() {
   const [data, setData] = useState<NormalizedOverview | null>(null);
-  const [docs, setDocs] = useState<ReadinessDoc[]>([]);
-  const [files, setFiles] = useState<ReadinessFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -191,25 +177,15 @@ export default function ReadinessOverviewPage() {
         setLoading(true);
         setError("");
 
-        const [overviewRes, docsRes, filesRes] = await Promise.all([
-          fetch("/api/readiness/overview", { method: "GET", cache: "no-store" }),
-          fetch("/api/readiness/documents", { cache: "no-store" }),
-          fetch("/api/readiness/documents/files", { cache: "no-store" }),
-        ]);
+        const overviewRes = await fetch("/api/readiness/overview", { method: "GET", cache: "no-store" });
 
         if (!overviewRes.ok) throw new Error("Failed to load readiness overview.");
-        if (!docsRes.ok) throw new Error("Failed to load readiness documents.");
-        if (!filesRes.ok) throw new Error("Failed to load readiness files.");
 
         const overviewJson = await overviewRes.json();
-        const docsJson = await docsRes.json();
-        const filesJson = await filesRes.json();
         const normalized = normalizeOverviewResponse(overviewJson);
 
         if (!cancelled) {
           setData(normalized);
-          setDocs(docsJson.documents ?? []);
-          setFiles(filesJson.files ?? []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -225,26 +201,6 @@ export default function ReadinessOverviewPage() {
     loadOverview();
     return () => { cancelled = true; };
   }, []);
-
-  const docIdByCategory = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const doc of docs) map.set(doc.item_label, doc.id);
-    return map;
-  }, [docs]);
-
-  const filesByCategory = useMemo(() => {
-    const map = new Map<string, ReadinessFile[]>();
-    for (const category of docIdByCategory.keys()) map.set(category, []);
-    for (const file of files) {
-      const matchingDoc = docs.find((doc) => doc.id === file.readiness_document_id);
-      if (!matchingDoc) continue;
-      const key = matchingDoc.item_label;
-      const existing = map.get(key) ?? [];
-      existing.push(file);
-      map.set(key, existing);
-    }
-    return map;
-  }, [files, docs, docIdByCategory]);
 
   const sortedCategories = useMemo(() => {
     if (!data?.categoryProgress) return [];
@@ -425,7 +381,7 @@ export default function ReadinessOverviewPage() {
                       Protection by Category
                     </h2>
                     <p className="mt-1 text-sm text-stone-400">
-                      How each area of your family's life is covered.
+                      How each area of your family&apos;s life is covered.
                     </p>
                   </div>
                   <div className="hidden rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-500 sm:inline-flex">
@@ -441,7 +397,6 @@ export default function ReadinessOverviewPage() {
                   ) : (
                     sortedCategories.map((item) => {
                       const percent = clampPercent(item.percent);
-                      const uploadedFiles = filesByCategory.get(item.category) ?? [];
 
                       return (
                         <div
@@ -467,34 +422,6 @@ export default function ReadinessOverviewPage() {
                             <span>
                               {Math.max(0, item.total - item.completed)} remaining
                             </span>
-                          </div>
-
-                          <div className="mt-4 rounded-xl border border-stone-100 bg-white px-3 py-3">
-                            <div className="text-xs font-medium uppercase tracking-wide text-stone-400">
-                              Documents added
-                            </div>
-                            {uploadedFiles.length === 0 ? (
-                              <div className="mt-2 text-sm text-stone-400">
-                                No documents added yet.
-                              </div>
-                            ) : (
-                              <div className="mt-2 space-y-1">
-                                {uploadedFiles.slice(0, 3).map((file) => (
-                                  <div
-                                    key={file.id}
-                                    className="truncate text-sm text-stone-600"
-                                    title={file.file_name}
-                                  >
-                                    · {file.file_name}
-                                  </div>
-                                ))}
-                                {uploadedFiles.length > 3 ? (
-                                  <div className="text-xs text-stone-400">
-                                    +{uploadedFiles.length - 3} more
-                                  </div>
-                                ) : null}
-                              </div>
-                            )}
                           </div>
                         </div>
                       );
@@ -561,7 +488,7 @@ export default function ReadinessOverviewPage() {
                   </div>
                   <p className="mt-2 text-sm leading-6 text-amber-800">
                     Open Documents, add records for each category, and mark it protected
-                    when you feel it's covered. Even one category is a gift to your family.
+                    when you feel it&apos;s covered. Even one category is a gift to your family.
                   </p>
                 </div>
 
@@ -582,7 +509,7 @@ export default function ReadinessOverviewPage() {
         <div className="rounded-3xl border border-stone-200 bg-white px-7 py-6 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <span className="text-amber-500 select-none">◆</span>
-            <h2 className="font-serif text-lg font-semibold text-stone-900">Key Deadlines After a Veteran's Passing</h2>
+            <h2 className="font-serif text-lg font-semibold text-stone-900">Key Deadlines After a Veteran&apos;s Passing</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
