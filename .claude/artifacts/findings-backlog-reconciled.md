@@ -48,15 +48,16 @@ Plus 5 in-session fixes already live (Fixes 1–5), plus the June 7–8 session 
 
 ---
 
-## Guardian raw-storage exposure — HIGH PRIORITY (surfaced 7 June, slot before Phase 2)
+## Guardian raw-storage exposure — DISABLE (decided 5 July 2026)
 
-**New finding, not in the 8 June reconciled doc.** Guardian view (`app/api/guardian/vault/route.ts`) walks RAW STORAGE via `walkFolder()`, not `readiness_document_files`, so it serves every file ever uploaded including deleted/replaced files. No delete-from-storage path exists anywhere in the app.
+**Action: DISABLE — see `decision-guardian-disable.md`.** Guardian sharing will be disabled (no new share links, existing links revoked); the raw-storage exposure is accepted as known-and-unfixed by design because the surface will be unreachable. Do NOT implement the two-part soft-delete fix below — it is preserved as reference only for a possible future vault revival.
 
-- **Side effect fix:** resolves count mismatches (Guardian overview counts `is_present` DB flags; vault section counts raw storage objects — they'll align once both read from DB).
-- **Also on this surface:** missing compass logo on Guardian header.
-- **Not screening-blocking:** reaching it requires approved account → profile → upload → share-link.
+- **Not screening-blocking:** reaching it requires approved account → profile → upload → share-link. Disabling creation + revoking closes it.
+- **Guardian `.emptyFolderPlaceholder` filter already shipped 7 June** (see "Shipped June 7–8" section) — no further work needed there.
 
 ### Recon finding — 15 June 2026
+
+**REFERENCE ONLY — applies IF the vault is ever revived. Current decision is DISABLE (see decision-guardian-disable.md), not this fix.**
 
 **We are in the bad case. Option B alone does NOT fix the exposure.**
 
@@ -173,7 +174,7 @@ After fixes ship: re-run all three personas (Civilian / Vet-Family / Veteran), w
 ## Recommended order summary
 
 ```
-Guardian   Raw-storage exposure fix             (high priority, active exposure)
+Guardian   DISABLE sharing surface              (decided 5 July — see decision-guardian-disable.md)
 Phase 0.2  Next.js security upgrade             (security, independent, do soon, non-blocking)
 Phase 2    Page-level gating: A, F, G/K, L      (biggest cluster; Decision 1 here)
 Phase 3    Voice/framing: B, E, N, O            (parallel-able with Phase 2)
