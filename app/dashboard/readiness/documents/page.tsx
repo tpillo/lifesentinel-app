@@ -18,17 +18,6 @@ type ReadinessDoc = {
   last_reviewed_at: string | null;
 };
 
-type ReadinessFile = {
-  id: string;
-  readiness_document_id: string;
-  storage_bucket: string;
-  storage_path: string;
-  file_name: string;
-  mime_type: string | null;
-  file_size: number | null;
-  created_at: string;
-};
-
 type DocumentLocation = {
   id: string;
   user_id: string;
@@ -88,7 +77,7 @@ function getCategoryExamples(category: string) {
     case "military":  return ["DD-214", "Retirement orders", "SBP or RCSBP paperwork", "Service records"];
     case "va":        return ["VA rating decision", "Award letters", "Claims correspondence", "Survivor benefit paperwork"];
     case "other":     return ["Anything important your family would need", "Special instructions", "Unique personal records"];
-    default:          return ["Upload the key documents your family would need for this category"];
+    default:          return ["Record where the key documents in this category can be found"];
   }
 }
 
@@ -124,12 +113,10 @@ function StatCard({ label, value, subtext }: { label: string; value: string | nu
 
 export default function ReadinessDocumentsPage() {
   const [docs, setDocs] = useState<ReadinessDoc[]>([]);
-  const [files, setFiles] = useState<ReadinessFile[]>([]);
   const [locations, setLocations] = useState<DocumentLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [busyDocId, setBusyDocId] = useState<string | null>(null);
-  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
 
   // Location notes form state
   const [addingLocationForDocId, setAddingLocationForDocId] = useState<string | null>(null);
@@ -154,17 +141,6 @@ export default function ReadinessDocumentsPage() {
     }
   }
 
-  async function loadFiles() {
-    try {
-      const res = await fetch("/api/readiness/documents/files", { cache: "no-store" });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to load files");
-      setFiles(json.files ?? []);
-    } catch (e: unknown) {
-      console.warn(e instanceof Error ? e.message : "Failed to load files");
-    }
-  }
-
   async function loadLocations() {
     try {
       const res = await fetch("/api/document-locations", { cache: "no-store" });
@@ -178,7 +154,6 @@ export default function ReadinessDocumentsPage() {
 
   useEffect(() => {
     load();
-    loadFiles();
     loadLocations();
   }, []);
 
@@ -195,15 +170,6 @@ export default function ReadinessDocumentsPage() {
       return aIndex - bIndex;
     });
   }, [docs]);
-
-  const fileByDocId = useMemo(() => {
-    const m = new Map<string, ReadinessFile[]>();
-    for (const f of files) {
-      if (!m.has(f.readiness_document_id)) m.set(f.readiness_document_id, []);
-      m.get(f.readiness_document_id)!.push(f);
-    }
-    return m;
-  }, [files]);
 
   const locationsByDocId = useMemo(() => {
     const m = new Map<string, DocumentLocation[]>();
@@ -226,9 +192,8 @@ export default function ReadinessDocumentsPage() {
   const incomplete = Math.max(0, total - complete);
   const percent = total === 0 ? 0 : Math.round((complete / total) * 100);
 
-  const uploadedCount = docs.filter((d) => (fileByDocId.get(d.id)?.length ?? 0) > 0).length;
   const locationNotedCount = docs.filter(
-    (d) => (fileByDocId.get(d.id)?.length ?? 0) === 0 && (locationsByDocId.get(d.id)?.length ?? 0) > 0
+    (d) => !d.is_present && (locationsByDocId.get(d.id)?.length ?? 0) > 0
   ).length;
 
   const completionTone = useMemo(() => {
@@ -241,12 +206,12 @@ export default function ReadinessDocumentsPage() {
     if (percent >= 50) {
       return {
         badge: "Building protection",
-        text: "Add documents or location notes by category, then mark each one complete when your family will be able to find what they need.",
+        text: "Add location notes by category, then mark each one complete when your family will be able to find what they need.",
       };
     }
     return {
       badge: "Starting your journey",
-      text: "Start with key categories. Upload documents to the vault, or record where each one lives — either path works.",
+      text: "Start with key categories. Record where each document lives so your family knows where to look.",
     };
   }, [percent]);
 
@@ -278,43 +243,11 @@ export default function ReadinessDocumentsPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Seed failed");
       await load();
-      await loadFiles();
       await loadLocations();
       alert(`Setup complete. Added: ${json.inserted ?? 0} categories`);
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Setup failed");
     }
-  }
-
-  async function attachFile(doc: ReadinessDoc, file: File) {
-    setUploadingDocId(doc.id);
-    try {
-      const fd = new FormData();
-      fd.append("readiness_document_id", doc.id);
-      fd.append("file", file);
-      const res = await fetch("/api/readiness/documents/upload", { method: "POST", body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Upload failed");
-      trackEvent("document_uploaded", { category: doc.category, item_key: doc.item_key });
-      setDocs((prev) => prev.map((d) => (d.id === doc.id ? (json.document as ReadinessDoc) : d)));
-      await loadFiles();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploadingDocId(null);
-    }
-  }
-
-  async function viewFile(fileId: string) {
-    const res = await fetch("/api/readiness/documents/files/signed-url", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_id: fileId, expires_in: 600 }),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json?.error || "Failed to create signed URL");
-    if (!json?.url) throw new Error("No signed URL returned");
-    window.open(json.url, "_blank", "noopener,noreferrer");
   }
 
   function openLocationForm(docId: string) {
@@ -445,9 +378,6 @@ export default function ReadinessDocumentsPage() {
                   <Link href="/dashboard/readiness/overview" className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50">
                     Back to Overview
                   </Link>
-                  <Link href="/dashboard/vault" className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700">
-                    Open Vault
-                  </Link>
                 </div>
               </div>
             </div>
@@ -465,33 +395,31 @@ export default function ReadinessDocumentsPage() {
               value={complete}
               subtext={
                 complete === 0
-                  ? "Add uploads or location notes to get started"
-                  : `${uploadedCount} uploaded · ${locationNotedCount} location ${locationNotedCount === 1 ? "note" : "notes"}`
+                  ? "Add location notes to get started"
+                  : `${locationNotedCount} more with location ${locationNotedCount === 1 ? "note" : "notes"}`
               }
             />
             <StatCard
               label="Not yet recorded"
               value={incomplete}
-              subtext="Upload a file or record where it lives"
+              subtext="Record where each document lives"
             />
           </div>
 
           <div className="px-6 pb-8 md:px-8">
 
-            {/* Optional-upload info card */}
+            {/* Location-notes info card */}
             <div className="mb-6 rounded-2xl border border-amber-100 bg-amber-50/60 px-5 py-5">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 shrink-0 text-amber-500 select-none text-lg">◈</div>
                 <div>
                   <div className="font-medium text-stone-800 text-sm">
-                    Already have your documents secured elsewhere?
+                    Life Sentinel doesn&apos;t hold your documents — it tells your family where to find them.
                   </div>
                   <p className="mt-1 text-sm text-stone-500 leading-relaxed">
-                    That&apos;s perfectly fine. Many users keep important documents in their own cloud drive,
-                    a fireproof safe, or with a trusted attorney. Life Sentinel&apos;s readiness features work
-                    whether or not you upload here. If you&apos;d rather not upload, use{" "}
-                    <span className="font-medium text-stone-700">Document Location Notes</span> below to record
-                    where your family can find each item — it counts toward your readiness score just the same.
+                    Keep your important records wherever they already are — a fireproof safe, a cloud drive, or with your attorney.
+                    For each category below, add a <span className="font-medium text-stone-700">Document Location Note</span> so
+                    your family knows exactly where to look in a crisis.
                   </p>
                 </div>
               </div>
@@ -517,24 +445,17 @@ export default function ReadinessDocumentsPage() {
             ) : (
               <div className="space-y-6">
                 {docsSorted.map((doc) => {
-                  const list = fileByDocId.get(doc.id) ?? [];
                   const locationList = locationsByDocId.get(doc.id) ?? [];
-                  const latest = list[0];
                   const isBusy = busyDocId === doc.id;
-                  const isUploading = uploadingDocId === doc.id;
-                  const hasFiles = list.length > 0;
                   const hasLocationNotes = locationList.length > 0;
-                  const docComplete = doc.is_present || hasFiles || hasLocationNotes;
                   const isAddingLocation = addingLocationForDocId === doc.id;
                   const isSavingLocation = savingLocationForDocId === doc.id;
                   const docTypes = getDocumentTypesForCategory(doc.item_label);
                   const examples = getCategoryExamples(doc.item_label);
 
-                  const statusLabel = hasFiles
-                    ? "Uploaded to vault"
-                    : hasLocationNotes
-                      ? "Location recorded"
-                      : "Not yet recorded";
+                  const statusLabel = hasLocationNotes
+                    ? "Location recorded"
+                    : "Not yet recorded";
 
                   const badgeText = doc.is_present ? "Protected" : hasLocationNotes ? "Location recorded" : "In progress";
                   const badgeClass = doc.is_present
@@ -542,8 +463,6 @@ export default function ReadinessDocumentsPage() {
                     : hasLocationNotes
                       ? "rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700"
                       : "rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold text-stone-500";
-
-                  void docComplete; // used for scoring; rendering uses badgeText
 
                   return (
                     <section
@@ -571,44 +490,13 @@ export default function ReadinessDocumentsPage() {
                             </div>
                           </div>
 
-                          {/* Uploaded files */}
-                          <div className="mt-5 rounded-2xl border border-stone-100 bg-stone-50 p-4">
-                            <div className="text-sm font-medium text-stone-600">Documents added</div>
-                            {list.length === 0 ? (
-                              <div className="mt-2 text-sm text-stone-400">No documents uploaded yet.</div>
-                            ) : (
-                              <div className="mt-3 space-y-2">
-                                {list.slice(0, 4).map((file) => (
-                                  <div
-                                    key={file.id}
-                                    className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white px-3 py-2"
-                                  >
-                                    <div className="truncate text-sm text-stone-700">{file.file_name}</div>
-                                    <button
-                                      className="shrink-0 rounded-lg border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-600 transition hover:bg-stone-100"
-                                      onClick={async () => {
-                                        try { await viewFile(file.id); }
-                                        catch (e: unknown) { alert(e instanceof Error ? e.message : "View failed"); }
-                                      }}
-                                    >
-                                      View
-                                    </button>
-                                  </div>
-                                ))}
-                                {list.length > 4 && (
-                                  <div className="text-xs text-stone-400">+{list.length - 4} more documents</div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
                           {/* ── Document Location Notes ── */}
                           <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="text-sm font-medium text-stone-700">Document location notes</div>
                                 <div className="mt-0.5 text-xs text-stone-400 leading-relaxed">
-                                  Prefer not to upload? Record where these documents can be found.
+                                  Record where these documents can be found.
                                 </div>
                               </div>
                               {!isAddingLocation && (
@@ -754,7 +642,7 @@ export default function ReadinessDocumentsPage() {
                                 <div className="text-sm font-medium text-stone-700">Protection status</div>
                                 <div className="mt-1 text-xs text-stone-400">{statusLabel}</div>
                                 <div className="mt-2 text-sm text-stone-500">
-                                  Upload a document or record where it lives, then mark the category complete when your family will be able to find what they need.
+                                  Record where this document lives, then mark the category complete when your family will be able to find what they need.
                                 </div>
                               </div>
                               <div className={badgeClass}>{badgeText}</div>
@@ -771,34 +659,6 @@ export default function ReadinessDocumentsPage() {
                                 />
                                 <span>Mark this category protected</span>
                               </label>
-                            </div>
-
-                            <div className="mt-5 flex flex-wrap gap-2">
-                              <label className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                                {isUploading ? "Uploading…" : "Add document"}
-                                <input
-                                  type="file"
-                                  className="hidden"
-                                  onChange={async (e) => {
-                                    const f = e.target.files?.[0];
-                                    e.currentTarget.value = "";
-                                    if (!f) return;
-                                    await attachFile(doc, f);
-                                  }}
-                                />
-                              </label>
-
-                              {latest && (
-                                <button
-                                  className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
-                                  onClick={async () => {
-                                    try { await viewFile(latest.id); }
-                                    catch (e: unknown) { alert(e instanceof Error ? e.message : "View failed"); }
-                                  }}
-                                >
-                                  View latest
-                                </button>
-                              )}
                             </div>
                           </div>
                         </div>

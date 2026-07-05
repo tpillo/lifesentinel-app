@@ -15,7 +15,7 @@ Production: **lifesentinelfamily.com** — deployed on Vercel Pro (auto-deploy f
 | Auth | Supabase Auth |
 | AI | Anthropic API — `claude-sonnet-4-6`, non-streaming, `maxDuration: 180`, `max_tokens: 8192` |
 | Email | Resend (transactional) |
-| Storage | Supabase vault bucket (encrypted documents — built, not yet operationalized as core feature) |
+| Storage | Not used — file storage retired 2026-07-05 (see `.claude/artifacts/decision-vault-retire.md`). Documents feature uses location-notes (`document_locations` table) only. |
 
 ## Personas
 
