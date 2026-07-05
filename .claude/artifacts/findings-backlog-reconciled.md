@@ -48,6 +48,14 @@ Plus 5 in-session fixes already live (Fixes 1–5), plus the June 7–8 session 
 
 ---
 
+## File storage retired — DONE (5 July 2026)
+
+**File storage retired in `chore/retire-file-storage`.** See `decision-vault-retire.md`. Location-notes (`document_locations`) are KEPT — they deliver the survivor-relevant value ("where is it, in a crisis") without holding sensitive files. All file-touching API routes return HTTP 410; both Vault views and the top-nav Vault link are gone; the Documents page keeps its categories + location-notes UI, file-upload UI removed. `readiness_document_files` rows and the storage bucket remain in place but unreachable — a future purge job may remove them; do NOT hard-delete user files. Confirmed via prod DB: only the founder's test account has ever uploaded (2 files, April 2026), so no user comms needed.
+
+Subsumes the Guardian raw-storage exposure below: the raw-storage walk isn't just unreachable, its whole substrate is retired.
+
+---
+
 ## Guardian raw-storage exposure — DONE, sharing disabled (5 July 2026)
 
 **DONE — sharing disabled in `chore/disable-guardian-sharing`.** `/api/guardian/create` returns 410; `/g/[token]` and `/g/[token]/vault` render a retired-feature notice (no fetch to `/api/guardian/vault`, so `walkFolder()` is never reached from the serve path); the Guardian dashboard page is a retired notice. One-time DB cleanup (`UPDATE guardian_links SET revoked_at = now() WHERE revoked_at IS NULL;`) runs separately in Supabase. Raw-storage exposure is accepted as known-and-unfixed by design because the surface is now unreachable. See `decision-guardian-disable.md`. Do NOT implement the two-part soft-delete fix below — it is preserved as reference only for a possible future vault revival.
