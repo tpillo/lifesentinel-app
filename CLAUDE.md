@@ -24,15 +24,16 @@ Two first-class personas, gated at page, component, and AI prompt levels:
 | Persona | `occupation_type` value | Notes |
 |---|---|---|
 | Military / Veteran | `military_veteran` | Active duty, reserve, Guard, veteran |
-| Veteran Family | any + `veteran_family_member === "yes"` | Non-military user whose family member served |
-| Civilian | `civilian` | |
+| Military Family Member | `military_family` (new, Tier 1 2026-07-31) OR legacy `civilian`/`law_enforcement`/`firefighter` + `veteran_family_member === "yes"` | Spouse or dependent whose benefits derive from the veteran's service |
 
-`law_enforcement` and `firefighter` are **legacy `occupation_type` values** — preserved in the DB and enum for possible v2 FR EAP, but not first-class personas. At read time they normalize to `civilian` via `resolvePersona()` in `lib/resolvePersona.ts`. Do not add new branching on these values.
+The **Civilian** tile was retired from the signup selector on 2026-07-31 (Tier 1 persona model). `civilian`, `law_enforcement`, and `firefighter` remain as **legacy `occupation_type` values** — preserved in the DB, enum, `resolvePersona()`, and the `buildBenefitsPrompt` civilian branch for reading legacy rows only. At read time LE/FF normalize to `civilian` via `resolvePersona()` in `lib/resolvePersona.ts`. Do not add new branching on these values, and do not route new signups to them.
 
 **Derived predicates — always use these, never raw profile fields:**
 ```ts
 const isMilitary = occupation_type === "military_veteran";
-const isVeteranFamily = !isMilitary && veteran_family_member === "yes";
+const isMilitaryFamily = resolvePersona(occupation_type) === "military_family"
+  || (!isMilitary && veteran_family_member === "yes"); // OR captures new + legacy rows
+const isVeteranFamily = !isMilitary && veteran_family_member === "yes"; // legacy alias
 const showVeteranContent = isMilitary || isVeteranFamily;
 ```
 

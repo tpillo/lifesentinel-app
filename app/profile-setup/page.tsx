@@ -6,7 +6,7 @@ import Link from "next/link";
 import { trackEvent } from "@/lib/gtag";
 import DashboardHeader from "@/components/DashboardHeader";
 
-type OccupationType = "law_enforcement" | "military_veteran" | "firefighter" | "civilian" | "";
+type OccupationType = "law_enforcement" | "military_veteran" | "military_family" | "firefighter" | "civilian" | "";
 
 type FormData = {
   occupation_type: OccupationType;
@@ -50,8 +50,9 @@ const US_STATES = [
   "Wisconsin","Wyoming","District of Columbia",
 ];
 
-// Option B (June 7 2026): LE/FF removed from selector — they route through Civilian.
-// Enum values (law_enforcement, firefighter) preserved in OccupationType for legacy data.
+// Tier 1 (2026-07-31): Military Family Member promoted to first-class persona;
+// Civilian tile retired. Enum values civilian/law_enforcement/firefighter remain
+// in OccupationType for legacy row edits.
 const OCCUPATION_OPTIONS: { value: OccupationType; label: string; icon: string; description: string }[] = [
   {
     value: "military_veteran",
@@ -60,10 +61,10 @@ const OCCUPATION_OPTIONS: { value: OccupationType; label: string; icon: string; 
     description: "Active duty, reserve, National Guard, or veteran of any branch",
   },
   {
-    value: "civilian",
-    label: "Civilian",
-    icon: "⌂",
-    description: "Private sector, government, self-employed, or retired civilian",
+    value: "military_family",
+    label: "Military Family Member",
+    icon: "◈",
+    description: "Spouse or dependent of a Veteran / Service Member",
   },
 ];
 
@@ -406,6 +407,7 @@ export default function ProfileSetupPage() {
     if (!form.state) return false;
     if (form.occupation_type === "law_enforcement") return !!form.department_type && !!form.status;
     if (form.occupation_type === "military_veteran") return form.branches_served.length > 0 && !!form.status;
+    if (form.occupation_type === "military_family") return !!form.veteran_family_relationship;
     if (form.occupation_type === "firefighter") return !!form.career_volunteer && !!form.status;
     if (form.occupation_type === "civilian") return !!form.occupation;
     return false;
@@ -419,10 +421,13 @@ export default function ProfileSetupPage() {
     setSaving(true);
     setError(null);
     try {
-      const isMil    = form.occupation_type === "military_veteran";
-      const isLEO   = form.occupation_type === "law_enforcement";
-      const isFF    = form.occupation_type === "firefighter";
-      const isVetFam = !isMil && form.veteran_family_member === "yes";
+      const isMil       = form.occupation_type === "military_veteran";
+      const isMilFamily = form.occupation_type === "military_family";
+      const isLEO       = form.occupation_type === "law_enforcement";
+      const isFF        = form.occupation_type === "firefighter";
+      // Military Family Member persona implies veteran_family_member="yes" — the
+      // buried yes/no select is gone; the persona choice IS the answer.
+      const isVetFam = !isMil && (isMilFamily || form.veteran_family_member === "yes");
 
       const payload = {
         // ── universal ────────────────────────────────────────────────
@@ -433,7 +438,7 @@ export default function ProfileSetupPage() {
         marital_status:  form.marital_status,
         num_dependents:  Number(form.num_dependents),
         // ── veteran family (non-military only) ───────────────────────
-        veteran_family_member:            isMil ? null : form.veteran_family_member,
+        veteran_family_member:            isMil ? null : (isMilFamily ? "yes" : form.veteran_family_member),
         veteran_family_relationship:      isVetFam ? form.veteran_family_relationship      : null,
         veteran_family_sc_death:          isVetFam ? form.veteran_family_sc_death          : null,
         veteran_family_disability_rating: isVetFam ? form.veteran_family_disability_rating : null,
@@ -530,7 +535,7 @@ export default function ProfileSetupPage() {
           {/* Service Details */}
           {form.occupation_type && (
             <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8 space-y-5">
-              <h2 className="font-serif text-lg font-semibold text-stone-900">{form.occupation_type === "military_veteran" ? "Service Details" : "Your Details"}</h2>
+              <h2 className="font-serif text-lg font-semibold text-stone-900">{form.occupation_type === "military_veteran" ? "Service Details" : "Family Details"}</h2>
 
               <div>
                 <label className="block text-sm font-medium text-stone-700">State of residence</label>
@@ -662,68 +667,50 @@ export default function ProfileSetupPage() {
                 </>
               )}
 
-              {form.occupation_type === "civilian" && (
-                <div>
-                  <label className="block text-sm font-medium text-stone-700">What do you do?</label>
-                  <input type="text" value={form.occupation} onChange={(e) => set("occupation", e.target.value)} className={inputClass} placeholder="e.g. Teacher, Software Engineer, Nurse…" />
-                </div>
-              )}
             </div>
           )}
 
-          {/* Veteran Family Member — shown for non-military users */}
-          {form.occupation_type && form.occupation_type !== "military_veteran" && (
+          {/* Military Family Member — relationship + veteran details */}
+          {form.occupation_type === "military_family" && (
             <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8 space-y-5">
               <div>
-                <h2 className="font-serif text-lg font-semibold text-stone-900">Veteran Family Connection</h2>
+                <h2 className="font-serif text-lg font-semibold text-stone-900">Your Veteran</h2>
                 <p className="mt-1 text-sm text-stone-500 leading-relaxed">
-                  If you are the spouse, child, or family member of a veteran, your family may also qualify for VA survivor benefits.
+                  Tell us about the veteran or service member in your family — this determines which survivor benefits (DIC, CHAMPVA, DEA) apply to you.
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700">Are you a family member of a veteran?</label>
-                <select value={form.veteran_family_member} onChange={(e) => set("veteran_family_member", e.target.value)} className={selectClass}>
-                  <option value="">Not applicable / prefer not to say</option>
-                  <option value="yes">Yes — I am a family member of a veteran</option>
-                  <option value="no">No</option>
+                <label className="block text-sm font-medium text-stone-700">Relationship to the veteran</label>
+                <select value={form.veteran_family_relationship} onChange={(e) => set("veteran_family_relationship", e.target.value)} className={selectClass}>
+                  <option value="">Select…</option>
+                  <option value="spouse">Spouse / Surviving Spouse</option>
+                  <option value="child">Child / Dependent</option>
+                  <option value="parent">Parent</option>
+                  <option value="sibling">Sibling</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
-              {form.veteran_family_member === "yes" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Relationship to the veteran</label>
-                    <select value={form.veteran_family_relationship} onChange={(e) => set("veteran_family_relationship", e.target.value)} className={selectClass}>
-                      <option value="">Select…</option>
-                      <option value="spouse">Spouse / Surviving Spouse</option>
-                      <option value="child">Child / Dependent</option>
-                      <option value="parent">Parent</option>
-                      <option value="sibling">Sibling</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Was the veteran&apos;s death service-connected?</label>
-                    <InfoBox>If yes, the surviving spouse may qualify for DIC — $1,699+/month tax-free for life.</InfoBox>
-                    <select value={form.veteran_family_sc_death} onChange={(e) => set("veteran_family_sc_death", e.target.value)} className={selectClass}>
-                      <option value="">Select…</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                      <option value="unknown">Unknown</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700">Veteran&apos;s combined VA disability rating</label>
-                    <FieldHint>A rating of 100% or a P&amp;T designation can qualify the surviving spouse for DIC and CHAMPVA regardless of cause of death.</FieldHint>
-                    <select value={form.veteran_family_disability_rating} onChange={(e) => set("veteran_family_disability_rating", e.target.value)} className={selectClass}>
-                      <option value="">Select…</option>
-                      <option value="none">None / Not rated</option>
-                      {[10,20,30,40,50,60,70,80,90,100].map((r) => (
-                        <option key={r} value={String(r)}>{r}%</option>
-                      ))}
-                    </select>
-                  </div>
-                </>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-stone-700">Was the veteran&apos;s death service-connected?</label>
+                <InfoBox>If yes, the surviving spouse may qualify for DIC — $1,699+/month tax-free for life.</InfoBox>
+                <select value={form.veteran_family_sc_death} onChange={(e) => set("veteran_family_sc_death", e.target.value)} className={selectClass}>
+                  <option value="">Select…</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700">Veteran&apos;s combined VA disability rating</label>
+                <FieldHint>A rating of 100% or a P&amp;T designation can qualify the surviving spouse for DIC and CHAMPVA regardless of cause of death.</FieldHint>
+                <select value={form.veteran_family_disability_rating} onChange={(e) => set("veteran_family_disability_rating", e.target.value)} className={selectClass}>
+                  <option value="">Select…</option>
+                  <option value="none">None / Not rated</option>
+                  {[10,20,30,40,50,60,70,80,90,100].map((r) => (
+                    <option key={r} value={String(r)}>{r}%</option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
 
@@ -820,7 +807,7 @@ export default function ProfileSetupPage() {
             <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">What best describes you?</h2>
             <p className="text-sm text-stone-500 mb-6 leading-relaxed">
               This helps us find the right benefits programs for your family — they vary
-              significantly between military, law enforcement, and civilian employees.
+              significantly between veterans and their surviving family members.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -1033,70 +1020,47 @@ export default function ProfileSetupPage() {
                 </>
               )}
 
-              {/* ── Civilian ── */}
-              {form.occupation_type === "civilian" && (
-                <div>
-                  <label className="block text-sm font-medium text-stone-700">What do you do?</label>
-                  <input
-                    type="text"
-                    value={form.occupation}
-                    onChange={(e) => set("occupation", e.target.value)}
-                    className={inputClass}
-                    placeholder="e.g. Teacher, Software Engineer, Nurse…"
-                  />
-                </div>
-              )}
-
-              {/* ── Veteran Family Connection — all non-military users ── */}
-              {form.occupation_type !== "military_veteran" && (
+              {/* ── Military Family Member — veteran-derived benefits ── */}
+              {form.occupation_type === "military_family" && (
                 <div className="rounded-2xl border border-amber-100 bg-amber-50/40 px-4 py-4 space-y-4">
                   <div>
-                    <p className="text-xs font-semibold text-amber-900 mb-0.5">Are you also a veteran&apos;s family member?</p>
-                    <p className="text-xs text-stone-500 leading-relaxed mb-2">
-                      If yes, your family may also qualify for VA survivor benefits like DIC and CHAMPVA — we&apos;ll include them in your benefits guide.
+                    <p className="text-xs font-semibold text-amber-900 mb-0.5">Tell us about your veteran</p>
+                    <p className="text-xs text-stone-500 leading-relaxed">
+                      Your benefits (DIC, CHAMPVA, DEA) derive from the service and rating of the veteran in your family.
                     </p>
-                    <select value={form.veteran_family_member} onChange={(e) => set("veteran_family_member", e.target.value)} className={selectClass}>
-                      <option value="">Not applicable / skip</option>
-                      <option value="yes">Yes — I am a family member of a veteran</option>
-                      <option value="no">No</option>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Your relationship to the veteran</label>
+                    <select value={form.veteran_family_relationship} onChange={(e) => set("veteran_family_relationship", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="spouse">Spouse / Surviving Spouse</option>
+                      <option value="child">Child / Dependent</option>
+                      <option value="parent">Parent</option>
+                      <option value="sibling">Sibling</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
-                  {form.veteran_family_member === "yes" && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700">Your relationship to the veteran</label>
-                        <select value={form.veteran_family_relationship} onChange={(e) => set("veteran_family_relationship", e.target.value)} className={selectClass}>
-                          <option value="">Select…</option>
-                          <option value="spouse">Spouse / Surviving Spouse</option>
-                          <option value="child">Child / Dependent</option>
-                          <option value="parent">Parent</option>
-                          <option value="sibling">Sibling</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700">Was the veteran&apos;s death service-connected?</label>
-                        <FieldHint>If yes, the surviving spouse may qualify for DIC — $1,699+/month tax-free for life.</FieldHint>
-                        <select value={form.veteran_family_sc_death} onChange={(e) => set("veteran_family_sc_death", e.target.value)} className={selectClass}>
-                          <option value="">Select…</option>
-                          <option value="yes">Yes</option>
-                          <option value="no">No</option>
-                          <option value="unknown">Unknown</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700">Veteran&apos;s combined VA disability rating</label>
-                        <FieldHint>A 100% rating or P&amp;T designation can qualify the surviving spouse for DIC and CHAMPVA regardless of cause of death.</FieldHint>
-                        <select value={form.veteran_family_disability_rating} onChange={(e) => set("veteran_family_disability_rating", e.target.value)} className={selectClass}>
-                          <option value="">Select…</option>
-                          <option value="none">None / Not rated</option>
-                          {[10,20,30,40,50,60,70,80,90,100].map((r) => (
-                            <option key={r} value={String(r)}>{r}%</option>
-                          ))}
-                        </select>
-                      </div>
-                    </>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Was the veteran&apos;s death service-connected?</label>
+                    <FieldHint>If yes, the surviving spouse may qualify for DIC — $1,699+/month tax-free for life.</FieldHint>
+                    <select value={form.veteran_family_sc_death} onChange={(e) => set("veteran_family_sc_death", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                      <option value="unknown">Unknown</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700">Veteran&apos;s combined VA disability rating</label>
+                    <FieldHint>A 100% rating or P&amp;T designation can qualify the surviving spouse for DIC and CHAMPVA regardless of cause of death.</FieldHint>
+                    <select value={form.veteran_family_disability_rating} onChange={(e) => set("veteran_family_disability_rating", e.target.value)} className={selectClass}>
+                      <option value="">Select…</option>
+                      <option value="none">None / Not rated</option>
+                      {[10,20,30,40,50,60,70,80,90,100].map((r) => (
+                        <option key={r} value={String(r)}>{r}%</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
             </div>
