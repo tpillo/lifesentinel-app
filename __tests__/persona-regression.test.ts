@@ -17,6 +17,10 @@ describe("resolvePersona — routing", () => {
     expect(resolvePersona("military_veteran")).toBe("military_veteran");
   });
 
+  it("military_family → military_family", () => {
+    expect(resolvePersona("military_family")).toBe("military_family");
+  });
+
   it("civilian → civilian", () => {
     expect(resolvePersona("civilian")).toBe("civilian");
   });
@@ -91,6 +95,14 @@ describe("benefitsHashFields — cache-hash normalization", () => {
   it("hash fields include the resolved persona, not the raw occupation_type", () => {
     const fields = benefitsHashFields({ ...baseProfile, occupation_type: "law_enforcement" });
     expect(fields.occupation_type).toBe("civilian");
+  });
+
+  it("military_family produces a distinct hash from civilian and military_veteran", () => {
+    const mfHash  = computeProfileHash(benefitsHashFields({ ...baseProfile, occupation_type: "military_family",  veteran_family_member: "yes" }));
+    const civHash = computeProfileHash(benefitsHashFields({ ...baseProfile, occupation_type: "civilian" }));
+    const milHash = computeProfileHash(benefitsHashFields({ ...baseProfile, occupation_type: "military_veteran" }));
+    expect(mfHash).not.toBe(civHash);
+    expect(mfHash).not.toBe(milHash);
   });
 });
 
@@ -216,6 +228,36 @@ describe("buildBenefitsPrompt — veteran_family framing", () => {
   it("includes state accuracy constraints", () => {
     const prompt = buildBenefitsPrompt(vetFamilyProfile);
     expect(prompt).toContain("State & Federal Benefit Amount Accuracy");
+  });
+});
+
+describe("buildBenefitsPrompt — military_family (Tier 1) routes to veteran-family framing", () => {
+  const milFamilyProfile = {
+    occupation_type: "military_family",
+    veteran_family_member: "yes", // forced by handleSubmit for this persona
+    veteran_family_relationship: "spouse",
+    state: "TX",
+  };
+
+  it("uses the veteran benefits advisor / family member framing (not civilian)", () => {
+    const prompt = buildBenefitsPrompt(milFamilyProfile);
+    expect(prompt).toContain("veteran benefits advisor");
+    expect(prompt).toContain("family member of a veteran");
+    expect(prompt).not.toContain("Occupation: Civilian");
+  });
+
+  it("includes DIC and the pinned DIC accuracy block", () => {
+    const prompt = buildBenefitsPrompt(milFamilyProfile);
+    expect(prompt).toContain("DIC");
+    expect(prompt).toContain("$1,699.36");
+  });
+
+  it("military_family WITHOUT veteran_family_member falls through to civilian legacy branch", () => {
+    // Sanity check: the veteran-family branch depends on veteran_family_member="yes".
+    // handleSubmit forces it on submit, so this state shouldn't exist for a real user;
+    // this test just proves the persona value alone doesn't accidentally route somewhere new.
+    const prompt = buildBenefitsPrompt({ occupation_type: "military_family", state: "TX" });
+    expect(prompt).toContain("Occupation: Civilian");
   });
 });
 
