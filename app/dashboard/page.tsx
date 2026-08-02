@@ -104,8 +104,8 @@ const QUICK_ACTIONS = [
     iconClass: "bg-amber-50 text-amber-700",
   },
   {
-    label: "Documents & Vault",
-    description: "Map and protect your family's key documents",
+    label: "Records Locator",
+    description: "Note where every key document lives so your family can find them",
     href: "/dashboard/readiness/documents",
     Icon: FileText,
     iconClass: "bg-stone-100 text-stone-600",
