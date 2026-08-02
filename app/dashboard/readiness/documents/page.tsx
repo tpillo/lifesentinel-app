@@ -99,16 +99,6 @@ function getDocumentTypesForCategory(category: string): string[] {
   }
 }
 
-function StatCard({ label, value, subtext }: { label: string; value: string | number; subtext: string }) {
-  return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <div className="text-sm font-medium text-stone-500">{label}</div>
-      <div className="mt-2 text-3xl font-semibold tracking-tight text-stone-900">{value}</div>
-      <div className="mt-2 text-sm text-stone-400">{subtext}</div>
-    </div>
-  );
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ReadinessDocumentsPage() {
@@ -116,7 +106,6 @@ export default function ReadinessDocumentsPage() {
   const [locations, setLocations] = useState<DocumentLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [busyDocId, setBusyDocId] = useState<string | null>(null);
 
   // Location notes form state
   const [addingLocationForDocId, setAddingLocationForDocId] = useState<string | null>(null);
@@ -182,60 +171,7 @@ export default function ReadinessDocumentsPage() {
     return m;
   }, [locations]);
 
-  // A category is complete only when the user explicitly marks it protected
-  function isComplete(doc: ReadinessDoc) {
-    return doc.is_present;
-  }
-
-  const total = docs.length;
-  const complete = docs.filter(isComplete).length;
-  const incomplete = Math.max(0, total - complete);
-  const percent = total === 0 ? 0 : Math.round((complete / total) * 100);
-
-  const locationNotedCount = docs.filter(
-    (d) => !d.is_present && (locationsByDocId.get(d.id)?.length ?? 0) > 0
-  ).length;
-
-  const completionTone = useMemo(() => {
-    if (percent >= 80) {
-      return {
-        badge: "Well protected",
-        text: "Your family's most important records are in strong shape. Keep them current as life changes.",
-      };
-    }
-    if (percent >= 50) {
-      return {
-        badge: "Building protection",
-        text: "Add location notes by category, then mark each one complete when your family will be able to find what they need.",
-      };
-    }
-    return {
-      badge: "Starting your journey",
-      text: "Start with key categories. Record where each document lives so your family knows where to look.",
-    };
-  }, [percent]);
-
   // ── Actions ────────────────────────────────────────────────────────────────
-
-  async function toggle(doc: ReadinessDoc) {
-    setBusyDocId(doc.id);
-    setDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, is_present: !d.is_present } : d)));
-    try {
-      const res = await fetch("/api/readiness/documents", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: doc.id, is_present: !doc.is_present }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to update");
-      setDocs((prev) => prev.map((d) => (d.id === doc.id ? (json.document as ReadinessDoc) : d)));
-    } catch (e: unknown) {
-      setDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, is_present: doc.is_present } : d)));
-      alert(e instanceof Error ? e.message : "Failed to update");
-    } finally {
-      setBusyDocId(null);
-    }
-  }
 
   async function seedDefaults() {
     try {
@@ -359,54 +295,25 @@ export default function ReadinessDocumentsPage() {
 
           {/* Header */}
           <div className="relative border-b border-stone-100 px-6 py-8 md:px-8 md:py-10 bg-gradient-to-br from-amber-50/60 to-stone-50">
-            <div className="relative">
-              <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
-                {completionTone.badge}
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl">
+                <h1 className="font-serif text-3xl font-semibold tracking-tight text-stone-900 md:text-4xl">
+                  Records Locator
+                </h1>
+                <p className="mt-3 text-sm leading-7 text-stone-500 md:text-base">
+                  Note where each key document lives so your family can find it in a crisis.
+                </p>
               </div>
 
-              <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-3xl">
-                  <h1 className="font-serif text-3xl font-semibold tracking-tight text-stone-900 md:text-4xl">
-                    Records Locator
-                  </h1>
-                  <p className="mt-3 text-sm leading-7 text-stone-500 md:text-base">
-                    {completionTone.text}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <Link href="/dashboard/readiness/overview" className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                    Back to Overview
-                  </Link>
-                </div>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/dashboard/readiness/overview" className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50">
+                  Back to Overview
+                </Link>
               </div>
             </div>
           </div>
 
-          {/* Stat cards */}
-          <div className="grid gap-5 px-6 py-6 md:grid-cols-3 md:px-8">
-            <StatCard
-              label="Protection Score"
-              value={`${percent}%`}
-              subtext={`${complete} of ${total} categories secured`}
-            />
-            <StatCard
-              label="Secured"
-              value={complete}
-              subtext={
-                complete === 0
-                  ? "Add location notes to get started"
-                  : `${locationNotedCount} more with location ${locationNotedCount === 1 ? "note" : "notes"}`
-              }
-            />
-            <StatCard
-              label="Not yet recorded"
-              value={incomplete}
-              subtext="Record where each document lives"
-            />
-          </div>
-
-          <div className="px-6 pb-8 md:px-8">
+          <div className="px-6 py-8 md:px-8">
 
             {/* Location-notes info card */}
             <div className="mb-6 rounded-2xl border border-amber-100 bg-amber-50/60 px-5 py-5">
@@ -446,222 +353,174 @@ export default function ReadinessDocumentsPage() {
               <div className="space-y-6">
                 {docsSorted.map((doc) => {
                   const locationList = locationsByDocId.get(doc.id) ?? [];
-                  const isBusy = busyDocId === doc.id;
-                  const hasLocationNotes = locationList.length > 0;
                   const isAddingLocation = addingLocationForDocId === doc.id;
                   const isSavingLocation = savingLocationForDocId === doc.id;
                   const docTypes = getDocumentTypesForCategory(doc.item_label);
                   const examples = getCategoryExamples(doc.item_label);
-
-                  const statusLabel = hasLocationNotes
-                    ? "Location recorded"
-                    : "Not yet recorded";
-
-                  const badgeText = doc.is_present ? "Protected" : hasLocationNotes ? "Location recorded" : "In progress";
-                  const badgeClass = doc.is_present
-                    ? "rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
-                    : hasLocationNotes
-                      ? "rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700"
-                      : "rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold text-stone-500";
 
                   return (
                     <section
                       key={doc.id}
                       className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
                     >
-                      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-2.5 w-2.5 rounded-full ${getCategoryAccent(doc.item_label)}`} />
+                        <h2 className="font-serif text-2xl font-semibold text-stone-900">
+                          {getCategoryLabel(doc.item_label)}
+                        </h2>
+                      </div>
 
-                        {/* Left column */}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-3">
-                            <div className={`h-2.5 w-2.5 rounded-full ${getCategoryAccent(doc.item_label)}`} />
-                            <h2 className="font-serif text-2xl font-semibold text-stone-900">
-                              {getCategoryLabel(doc.item_label)}
-                            </h2>
+                      {/* Common documents hint */}
+                      <div className="mt-4 rounded-2xl border border-stone-100 bg-stone-50 px-4 py-4">
+                        <div className="text-sm font-medium text-stone-600">
+                          Common documents for this category
+                        </div>
+                        <div className="mt-2 text-sm leading-7 text-stone-400">
+                          {examples.join(" · ")}
+                        </div>
+                      </div>
+
+                      {/* ── Document Location Notes ── */}
+                      <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-sm font-medium text-stone-700">Document location notes</div>
+                            <div className="mt-0.5 text-xs text-stone-400 leading-relaxed">
+                              Record where these documents can be found.
+                            </div>
                           </div>
+                          {!isAddingLocation && (
+                            <button
+                              onClick={() => openLocationForm(doc.id)}
+                              className="shrink-0 rounded-xl border border-amber-200 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 transition hover:bg-amber-50"
+                            >
+                              + Add note
+                            </button>
+                          )}
+                        </div>
 
-                          {/* Common documents hint */}
-                          <div className="mt-4 rounded-2xl border border-stone-100 bg-stone-50 px-4 py-4">
-                            <div className="text-sm font-medium text-stone-600">
-                              Common documents for this category
-                            </div>
-                            <div className="mt-2 text-sm leading-7 text-stone-400">
-                              {examples.join(" · ")}
-                            </div>
-                          </div>
-
-                          {/* ── Document Location Notes ── */}
-                          <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="text-sm font-medium text-stone-700">Document location notes</div>
-                                <div className="mt-0.5 text-xs text-stone-400 leading-relaxed">
-                                  Record where these documents can be found.
-                                </div>
-                              </div>
-                              {!isAddingLocation && (
-                                <button
-                                  onClick={() => openLocationForm(doc.id)}
-                                  className="shrink-0 rounded-xl border border-amber-200 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 transition hover:bg-amber-50"
-                                >
-                                  + Add note
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Existing location notes */}
-                            {locationList.length > 0 && (
-                              <div className="mt-3 space-y-2">
-                                {locationList.map((loc) => (
-                                  <div
-                                    key={loc.id}
-                                    className="rounded-xl border border-amber-100 bg-white p-3"
-                                  >
-                                    <div className="flex items-start justify-between gap-3">
-                                      <div className="min-w-0">
-                                        <div className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
-                                          {loc.document_type}
-                                        </div>
-                                        <div className="mt-1 text-sm text-stone-700 leading-relaxed">
-                                          {loc.location_description}
-                                        </div>
-                                        {loc.access_instructions && (
-                                          <div className="mt-1 text-xs text-stone-500 leading-relaxed">
-                                            Access: {loc.access_instructions}
-                                          </div>
-                                        )}
-                                        {loc.contact_person && (
-                                          <div className="mt-1 text-xs text-stone-400">
-                                            Contact: {loc.contact_person}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <button
-                                        disabled={deletingLocationId === loc.id}
-                                        onClick={() => deleteLocation(loc.id)}
-                                        className="shrink-0 rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs text-stone-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                                      >
-                                        {deletingLocationId === loc.id ? "…" : "Remove"}
-                                      </button>
+                        {/* Existing location notes */}
+                        {locationList.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {locationList.map((loc) => (
+                              <div
+                                key={loc.id}
+                                className="rounded-xl border border-amber-100 bg-white p-3"
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+                                      {loc.document_type}
                                     </div>
+                                    <div className="mt-1 text-sm text-stone-700 leading-relaxed">
+                                      {loc.location_description}
+                                    </div>
+                                    {loc.access_instructions && (
+                                      <div className="mt-1 text-xs text-stone-500 leading-relaxed">
+                                        Access: {loc.access_instructions}
+                                      </div>
+                                    )}
+                                    {loc.contact_person && (
+                                      <div className="mt-1 text-xs text-stone-400">
+                                        Contact: {loc.contact_person}
+                                      </div>
+                                    )}
                                   </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Add location form */}
-                            {isAddingLocation && (
-                              <div className="mt-3 rounded-xl border border-amber-200 bg-white p-4 space-y-3">
-                                <div>
-                                  <label className="block text-xs font-medium text-stone-600 mb-1">
-                                    Document type <span className="text-red-400">*</span>
-                                  </label>
-                                  <select
-                                    value={locationForm.document_type}
-                                    onChange={(e) => setLocationForm((f) => ({ ...f, document_type: e.target.value }))}
-                                    className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                                  >
-                                    <option value="">Select a document type…</option>
-                                    {docTypes.map((t) => (
-                                      <option key={t} value={t}>{t}</option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-medium text-stone-600 mb-1">
-                                    Where is it? <span className="text-red-400">*</span>
-                                  </label>
-                                  <textarea
-                                    value={locationForm.location_description}
-                                    onChange={(e) => setLocationForm((f) => ({ ...f, location_description: e.target.value }))}
-                                    placeholder="e.g. Fireproof safe in master bedroom closet, top shelf. Or: iCloud Drive › Documents › Legal."
-                                    rows={2}
-                                    className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-medium text-stone-600 mb-1">
-                                    Access instructions <span className="text-stone-300">(optional)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={locationForm.access_instructions}
-                                    onChange={(e) => setLocationForm((f) => ({ ...f, access_instructions: e.target.value }))}
-                                    placeholder="e.g. Safe combination is in 1Password under 'Home Safe'"
-                                    className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                                  />
-                                  <p className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-400 leading-relaxed">
-                                    <span className="mt-px select-none">◈</span>
-                                    <span>
-                                      <span className="font-medium text-stone-500">Tip:</span>{" "}
-                                      Avoid storing actual passwords, combinations, or PINs here. Instead, point to where they&rsquo;re stored — e.g., &ldquo;1Password vault,&rdquo; &ldquo;sealed envelope with attorney,&rdquo; or &ldquo;written inside the front cover of the family Bible.&rdquo;
-                                    </span>
-                                  </p>
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-medium text-stone-600 mb-1">
-                                    Contact person <span className="text-stone-300">(optional)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={locationForm.contact_person}
-                                    onChange={(e) => setLocationForm((f) => ({ ...f, contact_person: e.target.value }))}
-                                    placeholder="e.g. Attorney Jane Smith, (703) 555-0100"
-                                    className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                                  />
-                                </div>
-
-                                <div className="flex gap-2 pt-1">
                                   <button
-                                    disabled={isSavingLocation || !locationForm.document_type || !locationForm.location_description.trim()}
-                                    onClick={() => addLocation(doc)}
-                                    className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-amber-700 disabled:opacity-50"
+                                    disabled={deletingLocationId === loc.id}
+                                    onClick={() => deleteLocation(loc.id)}
+                                    className="shrink-0 rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs text-stone-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                                   >
-                                    {isSavingLocation ? "Saving…" : "Save note"}
-                                  </button>
-                                  <button
-                                    onClick={closeLocationForm}
-                                    className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-2 text-xs font-medium text-stone-600 transition hover:bg-stone-100"
-                                  >
-                                    Cancel
+                                    {deletingLocationId === loc.id ? "…" : "Remove"}
                                   </button>
                                 </div>
                               </div>
-                            )}
+                            ))}
                           </div>
-                        </div>
+                        )}
 
-                        {/* Right column — protection status */}
-                        <div className="w-full max-w-md">
-                          <div className="rounded-2xl border border-stone-100 bg-stone-50 p-5">
-                            <div className="flex items-start justify-between gap-4">
-                              <div>
-                                <div className="text-sm font-medium text-stone-700">Protection status</div>
-                                <div className="mt-1 text-xs text-stone-400">{statusLabel}</div>
-                                <div className="mt-2 text-sm text-stone-500">
-                                  Record where this document lives, then mark the category complete when your family will be able to find what they need.
-                                </div>
-                              </div>
-                              <div className={badgeClass}>{badgeText}</div>
-                            </div>
-
-                            <div className="mt-5">
-                              <label className="flex items-center gap-3 text-sm text-stone-700">
-                                <input
-                                  type="checkbox"
-                                  checked={doc.is_present}
-                                  disabled={isBusy}
-                                  onChange={() => toggle(doc)}
-                                  className="h-4 w-4 rounded border-stone-300 accent-amber-600"
-                                />
-                                <span>Mark this category protected</span>
+                        {/* Add location form */}
+                        {isAddingLocation && (
+                          <div className="mt-3 rounded-xl border border-amber-200 bg-white p-4 space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-stone-600 mb-1">
+                                Document type <span className="text-red-400">*</span>
                               </label>
+                              <select
+                                value={locationForm.document_type}
+                                onChange={(e) => setLocationForm((f) => ({ ...f, document_type: e.target.value }))}
+                                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                              >
+                                <option value="">Select a document type…</option>
+                                {docTypes.map((t) => (
+                                  <option key={t} value={t}>{t}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-stone-600 mb-1">
+                                Where is it? <span className="text-red-400">*</span>
+                              </label>
+                              <textarea
+                                value={locationForm.location_description}
+                                onChange={(e) => setLocationForm((f) => ({ ...f, location_description: e.target.value }))}
+                                placeholder="e.g. Fireproof safe in master bedroom closet, top shelf. Or: iCloud Drive › Documents › Legal."
+                                rows={2}
+                                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-stone-600 mb-1">
+                                Access instructions <span className="text-stone-300">(optional)</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={locationForm.access_instructions}
+                                onChange={(e) => setLocationForm((f) => ({ ...f, access_instructions: e.target.value }))}
+                                placeholder="e.g. Safe combination is in 1Password under 'Home Safe'"
+                                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                              />
+                              <p className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-400 leading-relaxed">
+                                <span className="mt-px select-none">◈</span>
+                                <span>
+                                  <span className="font-medium text-stone-500">Tip:</span>{" "}
+                                  Avoid storing actual passwords, combinations, or PINs here. Instead, point to where they&rsquo;re stored — e.g., &ldquo;1Password vault,&rdquo; &ldquo;sealed envelope with attorney,&rdquo; or &ldquo;written inside the front cover of the family Bible.&rdquo;
+                                </span>
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-stone-600 mb-1">
+                                Contact person <span className="text-stone-300">(optional)</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={locationForm.contact_person}
+                                onChange={(e) => setLocationForm((f) => ({ ...f, contact_person: e.target.value }))}
+                                placeholder="e.g. Attorney Jane Smith, (703) 555-0100"
+                                className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                              />
+                            </div>
+
+                            <div className="flex gap-2 pt-1">
+                              <button
+                                disabled={isSavingLocation || !locationForm.document_type || !locationForm.location_description.trim()}
+                                onClick={() => addLocation(doc)}
+                                className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-amber-700 disabled:opacity-50"
+                              >
+                                {isSavingLocation ? "Saving…" : "Save note"}
+                              </button>
+                              <button
+                                onClick={closeLocationForm}
+                                className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-2 text-xs font-medium text-stone-600 transition hover:bg-stone-100"
+                              >
+                                Cancel
+                              </button>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </section>
                   );

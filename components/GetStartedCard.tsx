@@ -6,14 +6,13 @@ import {
   UserCheck,
   Sparkles,
   Users,
-  FileText,
   ClipboardCheck,
   CheckCircle,
   ChevronRight,
   X,
 } from "lucide-react";
 
-type StepId = "profile" | "benefits" | "roles" | "documents" | "overview";
+type StepId = "profile" | "benefits" | "roles" | "overview";
 
 export type Completions = Record<StepId, boolean>;
 
@@ -41,14 +40,6 @@ const STEPS = [
     route: "/dashboard/readiness/roles",
     timeEst: "~3 min",
     Icon: Users,
-  },
-  {
-    id: "documents" as StepId,
-    title: "Map your key documents",
-    subtitle: "Your family needs to know where to find your will, insurance, and ID",
-    route: "/dashboard/readiness/documents",
-    timeEst: "~10 min",
-    Icon: FileText,
   },
   {
     id: "overview" as StepId,
