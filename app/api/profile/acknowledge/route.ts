@@ -7,8 +7,6 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 const ALLOWED_FIELDS = new Set([
   "benefits_acknowledged_at",
   "readiness_overview_acknowledged_at",
-  "onboarding_dismissed_at",
-  "onboarding_completed_at",
 ]);
 
 export async function POST(req: Request) {
