@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [profileRes, rolesRes, docsRes] = await Promise.all([
+  const [profileRes, rolesRes] = await Promise.all([
     supabaseAdmin
       .from("profiles")
       .select(
@@ -25,22 +25,15 @@ export default async function DashboardPage() {
       .from("readiness_roles")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id),
-    supabaseAdmin
-      .from("readiness_documents")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("is_present", true),
   ]);
 
   const profile = profileRes.data;
   const rolesCount = rolesRes.count ?? 0;
-  const presentDocsCount = docsRes.count ?? 0;
 
   const completions: Completions = {
     profile: !!profile?.occupation_type,
     benefits: !!profile?.benefits_acknowledged_at,
     roles: rolesCount > 0,
-    documents: presentDocsCount >= 3,
     overview: !!profile?.readiness_overview_acknowledged_at,
   };
 
