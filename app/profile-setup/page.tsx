@@ -194,7 +194,7 @@ function BranchFields({
       <div>
         <label className="block text-sm font-medium text-stone-700">Primary Service Identity</label>
         <p className="text-xs text-stone-400 mt-0.5 mb-1">Which branch do you most identify with for ceremony and memorial purposes?</p>
-        <FieldHint>This helps your Guardian notify the right veteran organizations and arrange branch-appropriate honors and ceremonies.</FieldHint>
+        <FieldHint>This helps your family notify the right veteran organizations and arrange branch-appropriate honors and ceremonies.</FieldHint>
         <select value={form.primary_service_branch} onChange={(e) => set("primary_service_branch", e.target.value)} className={selectClass}>
           <option value="">Select…</option>
           {BRANCHES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
@@ -1175,7 +1175,7 @@ export default function ProfileSetupPage() {
             <div className="mt-7 rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 flex items-start gap-3">
               <span className="text-lg select-none shrink-0 mt-0.5">🔒</span>
               <p className="text-xs text-stone-500 leading-relaxed">
-                Your information is encrypted and private. Only you and your designated Guardian can see it.
+                Your information is encrypted and private. Only you can see it.
               </p>
             </div>
 

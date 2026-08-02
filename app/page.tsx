@@ -32,7 +32,7 @@ const steps = [
   {
     number: "2",
     title: "Protect your family",
-    body: "Your Guardian gets instant secure access when they need it. Your family knows exactly what they're entitled to and how to claim it.",
+    body: "Your family knows exactly what they're entitled to and where every key document is kept — no scramble, no guessing.",
   },
 ];
 
@@ -51,8 +51,7 @@ const features = [
 
 const trustItems = [
   { icon: "🔐", label: "Encrypted in transit", detail: "HTTPS everywhere, no exceptions" },
-  { icon: "👤", label: "Private by design", detail: "Only you and your Guardian ever see your data" },
-  { icon: "⏱️", label: "Time-limited secure links", detail: "Guardian access auto-expires" },
+  { icon: "👤", label: "Private by design", detail: "Only you can see your data" },
   { icon: "🚫", label: "Never sold or shared", detail: "Your data is yours, full stop" },
 ];
 
@@ -188,7 +187,7 @@ export default function Home() {
             {[
               "Most families miss benefits they're entitled to simply because they didn't know to ask.",
               "Critical documents — DD-214, insurance policies, VA letters — are scattered or missing.",
-              "Without a Guardian designation, families are left searching at the worst possible moment.",
+              "When documents aren't inventoried, families are left searching at the worst possible moment.",
             ].map((text) => (
               <div
                 key={text}
@@ -298,8 +297,7 @@ export default function Home() {
             </h2>
             <p className="mt-5 text-stone-400 text-base max-w-2xl mx-auto leading-relaxed">
               Your information is protected with AES-256 encryption — the same standard used by banks
-              and the U.S. military. Only you and your designated Guardian can ever access your data.
-              We never sell or share your information.
+              and the U.S. military. Only you can access your data. We never sell or share your information.
             </p>
           </div>
 
@@ -362,17 +360,6 @@ export default function Home() {
                 all work without uploading anything. If you&rsquo;d rather keep documents in iCloud,
                 Google Drive, Proton Drive, or a safe deposit box, just record where they are so
                 your family can find them.
-              </p>
-            </div>
-            <div className="py-8">
-              <h3 className="font-serif text-lg font-semibold text-stone-900">
-                What is a Guardian and do I need one?
-              </h3>
-              <p className="mt-3 text-stone-500 text-sm leading-relaxed">
-                A Guardian is a trusted person — a spouse, adult child, or attorney — who gets
-                secure, time-limited access to your readiness information when your family
-                needs it. You don&rsquo;t need to designate one to use Life Sentinel, but it&rsquo;s one of
-                the most valuable things you can set up.
               </p>
             </div>
             <div className="py-8">
