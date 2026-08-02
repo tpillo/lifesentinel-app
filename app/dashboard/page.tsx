@@ -2,9 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Sparkles, FileText, BarChart3 } from "lucide-react";
 import DashboardHeader from "@/components/DashboardHeader";
-import GetStartedCard, { type Completions } from "@/components/GetStartedCard";
 import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,49 +11,15 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [profileRes, rolesRes] = await Promise.all([
-    supabaseAdmin
-      .from("profiles")
-      .select(
-        "occupation_type, benefits_acknowledged_at, onboarding_dismissed_at, onboarding_completed_at, readiness_overview_acknowledged_at"
-      )
-      .eq("user_id", user.id)
-      .maybeSingle(),
-    supabaseAdmin
-      .from("readiness_roles")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
-  ]);
-
-  const profile = profileRes.data;
-  const rolesCount = rolesRes.count ?? 0;
-
-  const completions: Completions = {
-    profile: !!profile?.occupation_type,
-    benefits: !!profile?.benefits_acknowledged_at,
-    roles: rolesCount > 0,
-    overview: !!profile?.readiness_overview_acknowledged_at,
-  };
-
-  const allComplete = Object.values(completions).every(Boolean);
-
-  // Write onboarding_completed_at once when all steps detected — fire and forget
-  if (allComplete && !profile?.onboarding_completed_at) {
-    supabaseAdmin
-      .from("profiles")
-      .update({ onboarding_completed_at: new Date().toISOString() })
-      .eq("user_id", user.id)
-      .then(() => {});
-  }
-
   return (
     <div className="min-h-screen bg-[#faf8f5]">
       <DashboardHeader />
       <main className="mx-auto max-w-3xl px-6 py-10 md:px-8 space-y-10">
-        <GetStartedCard
-          completions={completions}
-          initialDismissed={!!profile?.onboarding_dismissed_at}
-        />
+        <div className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-5 py-3.5 shadow-sm">
+          <span className="text-sm font-medium text-stone-700">
+            Welcome back.
+          </span>
+        </div>
 
         <div>
           <h3 className="mb-4 font-serif text-lg font-semibold text-stone-800">
