@@ -38,7 +38,7 @@ const PHASES: Phase[] = [
         id: "locate-will",
         title: "Locate the will and any trust documents",
         description:
-          "Check the vault first, then home filing cabinets, safe deposit boxes, and the family attorney. The will dictates who has legal authority to act.",
+          "Check the Records Locator first, then home filing cabinets, safe deposit boxes, and the family attorney. The will dictates who has legal authority to act.",
         documents: ["Legal"],
       },
       {
@@ -61,7 +61,7 @@ const PHASES: Phase[] = [
         id: "notify-family",
         title: "Notify immediate family and close friends",
         description:
-          "Reach out personally before any public announcements. Check the vault's Family section for emergency contacts and dependent information.",
+          "Reach out personally before any public announcements. Check the Family section of the Records Locator for emergency contacts and dependent information.",
         documents: ["Family"],
       },
     ],
@@ -109,7 +109,7 @@ const PHASES: Phase[] = [
         id: "financial-institutions",
         title: "Notify banks and financial institutions",
         description:
-          "Bring certified death certificates. Joint accounts continue; sole accounts may be frozen pending probate. Get a list of all accounts from the Finance section of the vault.",
+          "Bring certified death certificates. Joint accounts continue; sole accounts may be frozen pending probate. Use the Finance section of the Records Locator to find where account information is kept.",
         documents: ["Finance"],
       },
     ],
@@ -200,7 +200,7 @@ const PHASES: Phase[] = [
         id: "property-titles",
         title: "Update property titles and vehicle registrations",
         description:
-          "Real estate owned jointly passes automatically; sole-ownership property goes through probate. Vehicle titles need to be transferred at your state DMV. Gather deeds and titles from the vault.",
+          "Real estate owned jointly passes automatically; sole-ownership property goes through probate. Vehicle titles need to be transferred at your state DMV. Locate deeds and titles using your Records Locator.",
         documents: ["Finance", "Identity"],
       },
       {
@@ -399,7 +399,7 @@ export default function SurvivorWorkflowPage() {
                                 href="/dashboard/readiness/documents"
                                 className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 transition"
                               >
-                                Vault: {doc}
+                                Records: {doc}
                               </Link>
                             ))}
                           </div>

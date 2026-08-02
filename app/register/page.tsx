@@ -101,7 +101,7 @@ export default function RegisterPage() {
             </h1>
           </Link>
           <p className="mt-3 text-stone-500 text-sm leading-relaxed">
-            Create your vault and start protecting<br />what matters most to your family.
+            Start protecting<br />what matters most to your family.
           </p>
         </div>
 

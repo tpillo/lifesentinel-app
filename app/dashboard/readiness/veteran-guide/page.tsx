@@ -60,7 +60,7 @@ const GUIDES: DocGuide[] = [
       "Priority VA healthcare enrollment",
     ],
     ifMissing:
-      "Request from your VA Regional Office or download from va.gov (sign in → My VA → letters). A VSO can pull it on your behalf. If the veteran was recently rated, the decision is mailed and may be in the Legal or VA section of the vault.",
+      "Request from your VA Regional Office or download from va.gov (sign in → My VA → letters). A VSO can pull it on your behalf. If the veteran was recently rated, the decision is mailed and may be in the Legal or VA section of your Records Locator.",
     contact: "VA: 1-800-827-1000",
   },
   {

@@ -131,7 +131,7 @@ const DEFAULT_SEED: SeedItem[] = [
   {
     category: "Survivor Readiness",
     item_key: "vso_memberships_stored",
-    item_label: "Veteran Service Organization Memberships Stored in Vault",
+    item_label: "Veteran Service Organization Memberships — location noted",
   },
   {
     category: "Digital Estate",
@@ -185,7 +185,7 @@ export async function POST() {
     return NextResponse.json({ error: existingErr.message }, { status: 500 });
   }
 
-  const existingKeys = new Set((existing ?? []).map((r: any) => r.item_key));
+  const existingKeys = new Set((existing ?? []).map((r: { item_key: string }) => r.item_key));
   const missing = DEFAULT_SEED.filter((i) => !existingKeys.has(i.item_key));
 
   if (missing.length === 0) {

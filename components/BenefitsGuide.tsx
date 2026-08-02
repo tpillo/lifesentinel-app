@@ -758,11 +758,11 @@ function PasswordManagerCard() {
         <h3 className="font-serif text-base font-semibold text-stone-900 leading-snug">Password Manager Access</h3>
       </div>
       <p className="text-sm text-stone-500 leading-relaxed mb-3">
-        Without access to your password manager, your family may be permanently locked out of critical accounts. Store your master password or emergency access in your LifeSentinel vault.
+        Without access to your password manager, your family may be permanently locked out of critical accounts. Note where your master password or emergency access lives in your Records Locator so your family can find it.
       </p>
       <ul className="space-y-2 mb-3">
         {[
-          { name: "1Password", detail: "Print the Emergency Kit and store it in your vault" },
+          { name: "1Password", detail: "Print the Emergency Kit and note where you keep it in your Records Locator" },
           { name: "Bitwarden", detail: "Emergency Access feature — designate a trusted contact directly in the app" },
           { name: "LastPass", detail: "Emergency Access feature — set a waiting period before access is granted" },
         ].map((item) => (
@@ -773,7 +773,7 @@ function PasswordManagerCard() {
         ))}
       </ul>
       <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-        <span className="text-xs text-stone-400">Store credentials in your vault</span>
+        <span className="text-xs text-stone-400">Note where credentials live in your Records Locator</span>
         <button onClick={() => setOpen(!open)} className="text-xs text-amber-600 hover:text-amber-700 transition font-medium">
           {open ? "Less ↑" : "Why this matters ↓"}
         </button>
@@ -1193,7 +1193,7 @@ function RcsbpCard({ profile, guardian = false }: { profile: Profile; guardian?:
       details: [
         `Monthly annuity: ~55% of ${baseLabel} (tax-free, for life)`,
         "Payments begin: the day after death — no waiting period",
-        guardian ? "Have your DD Form 2656-5 (RCSBP election certificate) ready — it should be in the document vault" : "Store your DD Form 2656-5 (RCSBP election certificate) in this vault",
+        guardian ? "Have your DD Form 2656-5 (RCSBP election certificate) ready — its location should be noted in the Records Locator" : "Note where you keep your DD Form 2656-5 (RCSBP election certificate) in your Records Locator",
         "DFAS contact: 1-800-321-1080",
       ],
     },
@@ -1228,7 +1228,7 @@ function RcsbpCard({ profile, guardian = false }: { profile: Profile; guardian?:
       headline: "❓ RCSBP election unknown — action required.",
       body: "Your RCSBP election status is unclear. This is critical information for your family. Steps to find out:",
       details: [
-        "Locate your DD Form 2656-5 (RCSBP Election Certificate) — store a copy in this vault",
+        "Locate your DD Form 2656-5 (RCSBP Election Certificate) — note where you keep it in your Records Locator",
         "Contact DFAS at 1-800-321-1080",
         "Log in to myPay at mypay.dfas.mil to view your SBP coverage",
         "Update your LifeSentinel profile once confirmed",
