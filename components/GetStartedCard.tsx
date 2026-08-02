@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   UserCheck,
   Sparkles,
-  Shield,
   Users,
   FileText,
   ClipboardCheck,
@@ -14,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-type StepId = "profile" | "benefits" | "guardian" | "roles" | "documents" | "overview";
+type StepId = "profile" | "benefits" | "roles" | "documents" | "overview";
 
 export type Completions = Record<StepId, boolean>;
 
@@ -22,7 +21,7 @@ const STEPS = [
   {
     id: "profile" as StepId,
     title: "Complete your profile",
-    subtitle: "Personalizes everything — your benefits, guardian access, and readiness plan",
+    subtitle: "Personalizes everything — your benefits and readiness plan",
     route: "/profile-setup",
     timeEst: "~5 min",
     Icon: UserCheck,
@@ -34,14 +33,6 @@ const STEPS = [
     route: "/dashboard/benefits",
     timeEst: "~5 min",
     Icon: Sparkles,
-  },
-  {
-    id: "guardian" as StepId,
-    title: "Designate a Guardian",
-    subtitle: "Someone you trust who can access your info in an emergency",
-    route: "/dashboard/guardian",
-    timeEst: "~2 min",
-    Icon: Shield,
   },
   {
     id: "roles" as StepId,

@@ -70,11 +70,6 @@ const DEFAULT_SEED: SeedItem[] = [
   },
   {
     category: "Survivor Readiness",
-    item_key: "guardian_designated",
-    item_label: "Guardian Designated",
-  },
-  {
-    category: "Survivor Readiness",
     item_key: "disability_rating_on_file",
     item_label: "Disability Rating Recorded in Profile",
   },

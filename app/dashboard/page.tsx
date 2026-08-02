@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, Shield, FileText, BarChart3 } from "lucide-react";
+import { Sparkles, FileText, BarChart3 } from "lucide-react";
 import DashboardHeader from "@/components/DashboardHeader";
 import GetStartedCard, { type Completions } from "@/components/GetStartedCard";
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [profileRes, guardianRes, rolesRes, docsRes] = await Promise.all([
+  const [profileRes, rolesRes, docsRes] = await Promise.all([
     supabaseAdmin
       .from("profiles")
       .select(
@@ -21,11 +21,6 @@ export default async function DashboardPage() {
       )
       .eq("user_id", user.id)
       .maybeSingle(),
-    supabaseAdmin
-      .from("guardian_links")
-      .select("id", { count: "exact", head: true })
-      .eq("owner_user_id", user.id)
-      .is("revoked_at", null),
     supabaseAdmin
       .from("readiness_roles")
       .select("id", { count: "exact", head: true })
@@ -38,14 +33,12 @@ export default async function DashboardPage() {
   ]);
 
   const profile = profileRes.data;
-  const guardianCount = guardianRes.count ?? 0;
   const rolesCount = rolesRes.count ?? 0;
   const presentDocsCount = docsRes.count ?? 0;
 
   const completions: Completions = {
     profile: !!profile?.occupation_type,
     benefits: !!profile?.benefits_acknowledged_at,
-    guardian: guardianCount > 0,
     roles: rolesCount > 0,
     documents: presentDocsCount >= 3,
     overview: !!profile?.readiness_overview_acknowledged_at,
@@ -109,13 +102,6 @@ const QUICK_ACTIONS = [
     href: "/dashboard/benefits",
     Icon: Sparkles,
     iconClass: "bg-amber-50 text-amber-700",
-  },
-  {
-    label: "Guardian Access",
-    description: "Share secure access with someone you trust",
-    href: "/dashboard/guardian",
-    Icon: Shield,
-    iconClass: "bg-blue-50 text-blue-600",
   },
   {
     label: "Documents & Vault",

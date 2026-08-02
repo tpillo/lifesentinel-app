@@ -43,11 +43,6 @@ const features = [
     body: "An AI-powered, personalized summary of every federal and state benefit your family is entitled to after your passing — DIC, survivor pension, CHAMPVA, property tax transfers, education benefits, burial benefits, and more.",
   },
   {
-    icon: "◎",
-    title: "Guardian Access",
-    body: "Your designated Guardian gets secure token-based access without needing an account — exactly when they need it most.",
-  },
-  {
     icon: "❋",
     title: "Readiness Dashboard",
     body: "A mission-ready checklist so nothing gets missed and your family is never left guessing.",
