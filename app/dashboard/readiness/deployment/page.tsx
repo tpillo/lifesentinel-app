@@ -1,21 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardHeader from "@/components/DashboardHeader";
-
-type ReadinessDoc = {
-  id: string;
-  category: string;
-  item_key: string;
-};
-
-type ReadinessFile = {
-  id: string;
-  readiness_document_id: string;
-  file_name: string;
-  created_at: string;
-};
 
 type ChecklistItem = {
   id: string;
@@ -51,7 +38,7 @@ const SECTIONS: Section[] = [
           "A General POA gives your spouse or designated person authority to handle financial, legal, and administrative matters on your behalf while you are deployed. Without it, they may be unable to sign for a car repair, close a bank account, or handle housing issues. Execute this at the installation legal office — it is free for service members.",
         critical: true,
         documents: ["Legal", "Deployment"],
-        tip: "Get it notarized and make multiple certified copies. Your spouse should keep one, your attorney should have one, and one should be in the vault.",
+        tip: "Get it notarized and make multiple certified copies. Your spouse should keep one, your attorney should have one, and note where the third is kept in your Records Locator.",
         contact: "Installation Legal Assistance Office (free for service members)",
       },
       {
@@ -124,7 +111,7 @@ const SECTIONS: Section[] = [
         title: "Set up automatic bill payments",
         description:
           "Mortgage or rent, utilities, car payment, insurance premiums, phone, internet — set every recurring bill to auto-pay from a joint account. Leave a written list of what's automated and what requires manual action.",
-        tip: "Create a simple spreadsheet: bill name, amount, due date, payment method, and login credentials stored securely in the vault.",
+        tip: "Create a simple spreadsheet: bill name, amount, due date, and payment method. Keep login credentials in a password manager, and note where the spreadsheet lives in your Records Locator.",
         documents: ["Finance", "Deployment"],
       },
       {
@@ -169,7 +156,7 @@ const SECTIONS: Section[] = [
         id: "tricare",
         title: "Confirm TRICARE enrollment and coverage",
         description:
-          "Review your family's TRICARE plan and confirm your family knows how to use it. Locate the nearest MTF (Military Treatment Facility) and the TRICARE regional contractor. Leave insurance cards and plan information in the vault.",
+          "Review your family's TRICARE plan and confirm your family knows how to use it. Locate the nearest MTF (Military Treatment Facility) and the TRICARE regional contractor. Note where the insurance cards and plan information are kept in your Records Locator.",
         documents: ["Insurance", "Deployment"],
         contact: "TRICARE: tricare.mil or 1-800-444-5445",
       },
@@ -204,51 +191,51 @@ const SECTIONS: Section[] = [
   },
   {
     id: "documents",
-    label: "Documents to Upload Before You Leave",
+    label: "Documents to Locate Before You Leave",
     icon: "◆",
-    tagline: "Get these into the vault before departure so your family has everything they need.",
+    tagline: "Locate these documents and note where they live in your Records Locator before departure so your family has everything they need.",
     accentColor: "violet",
     items: [
       {
         id: "upload-dd214-orders",
-        title: "Upload deployment orders and current military ID copy",
+        title: "Locate deployment orders and current military ID copy",
         description:
-          "Deployment orders may be needed for school enrollment, legal matters, and accessing benefits. Upload to the Military category in the vault.",
+          "Deployment orders may be needed for school enrollment, legal matters, and accessing benefits. Note where they are kept under Military in your Records Locator.",
         critical: true,
         documents: ["Military", "Deployment"],
       },
       {
         id: "upload-identity",
-        title: "Upload copies of all identity documents",
+        title: "Locate copies of all identity documents",
         description:
           "Passports, Social Security cards, birth certificates, marriage certificate, and adoption papers for all family members. If a document is lost or stolen while you're deployed, your spouse will need these.",
         documents: ["Identity", "Deployment"],
       },
       {
         id: "upload-legal",
-        title: "Upload the signed POA, will, and advance directive",
+        title: "Locate the signed POA, will, and advance directive",
         description:
-          "Once executed, upload scanned copies to the Legal category. The originals should be with your attorney or in a safe; the vault gives your family digital access.",
+          "Once executed, note where you keep the originals — with your attorney, in a home safe, or a safe deposit box — under Legal in your Records Locator so your family can find them.",
         critical: true,
         documents: ["Legal", "Deployment"],
       },
       {
         id: "upload-insurance",
-        title: "Upload all insurance policies and cards",
+        title: "Locate all insurance policies and cards",
         description:
           "SGLI policy documents, TRICARE cards, auto insurance, home/renter's insurance, and any supplemental life insurance. Include the SGLI beneficiary designation.",
         documents: ["Insurance", "Deployment"],
       },
       {
         id: "upload-finance",
-        title: "Upload a financial summary",
+        title: "Locate your financial summary",
         description:
           "A document listing all bank accounts, investment accounts, TSP balance, outstanding loans, credit cards, and monthly bills — with account numbers, contact numbers, and login instructions. Encrypt sensitive items if storing plaintext.",
         documents: ["Finance", "Deployment"],
       },
       {
         id: "upload-vehicle",
-        title: "Upload vehicle registrations and titles",
+        title: "Locate vehicle registrations and titles",
         description:
           "If a vehicle is in your name only, your spouse may need proof of ownership for registration renewal, insurance claims, or emergency sale.",
         documents: ["Finance", "Deployment"],
@@ -257,7 +244,7 @@ const SECTIONS: Section[] = [
         id: "upload-family",
         title: "Leave emergency contacts and household instructions",
         description:
-          "Trusted neighbors, family members, childcare contacts, school info, pediatrician, vet, and a home systems guide (circuit breakers, water shutoff, HVAC filters). Upload to the Family category.",
+          "Trusted neighbors, family members, childcare contacts, school info, pediatrician, vet, and a home systems guide (circuit breakers, water shutoff, HVAC filters). Note their locations in the Family section of your Records Locator.",
         documents: ["Family", "Deployment"],
       },
     ],
@@ -286,7 +273,7 @@ const SECTIONS: Section[] = [
         id: "childcare-backup",
         title: "Establish a childcare backup plan",
         description:
-          "What happens if the primary daycare is closed or a child gets sick? Identify at least two backup caregivers your children know and trust. Document their contacts in the Family section of the vault.",
+          "What happens if the primary daycare is closed or a child gets sick? Identify at least two backup caregivers your children know and trust. Note their contacts in the Family section of your Records Locator.",
         documents: ["Family", "Deployment"],
       },
       {
@@ -306,7 +293,7 @@ const SECTIONS: Section[] = [
         id: "pet-plan",
         title: "Create a plan for pets",
         description:
-          "If your spouse cannot care for pets alone, identify a backup caregiver. Ensure vaccinations are current and upload records to the vault. A signed authorization letter allows a vet to treat your pet in an emergency.",
+          "If your spouse cannot care for pets alone, identify a backup caregiver. Ensure vaccinations are current and note where the records live in your Records Locator. A signed authorization letter allows a vet to treat your pet in an emergency.",
         documents: ["Family", "Deployment"],
       },
     ],
@@ -373,87 +360,15 @@ function accentClasses(color: AccentColor) {
 export default function DeploymentChecklistPage() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
-  const [docsByCat, setDocsByCat] = useState<Record<string, ReadinessDoc>>({});
-  const [filesByDocId, setFilesByDocId] = useState<Record<string, ReadinessFile[]>>({});
-  const [uploadingItem, setUploadingItem] = useState<string | null>(null);
-  const [openingFile, setOpeningFile] = useState<string | null>(null);
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only localStorage hydration; lazy useState initializer would crash SSR
       if (saved) setChecked(new Set(JSON.parse(saved)));
     } catch {}
     setLoaded(true);
   }, []);
-
-  useEffect(() => {
-    async function loadDocs() {
-      let docsRes = await fetch("/api/readiness/documents");
-      let docsData = await docsRes.json();
-      if ((docsData.documents ?? []).length < 8) {
-        await fetch("/api/readiness/documents/seed", { method: "POST" });
-        docsRes = await fetch("/api/readiness/documents");
-        docsData = await docsRes.json();
-      }
-      const catMap: Record<string, ReadinessDoc> = {};
-      for (const doc of docsData.documents ?? []) catMap[doc.category] = doc;
-      setDocsByCat(catMap);
-
-      const filesRes = await fetch("/api/readiness/documents/files");
-      const filesData = await filesRes.json();
-      const fileMap: Record<string, ReadinessFile[]> = {};
-      for (const f of filesData.files ?? []) {
-        if (!fileMap[f.readiness_document_id]) fileMap[f.readiness_document_id] = [];
-        fileMap[f.readiness_document_id].push(f);
-      }
-      setFilesByDocId(fileMap);
-    }
-    loadDocs();
-  }, []);
-
-  async function uploadFile(itemId: string, categories: string[], file: File) {
-    setUploadingItem(itemId);
-    try {
-      const docs = categories.map((c) => docsByCat[c]).filter(Boolean);
-      const results = await Promise.all(
-        docs.map(async (doc) => {
-          const form = new FormData();
-          form.append("readiness_document_id", doc.id);
-          form.append("file", file);
-          const res = await fetch("/api/readiness/documents/upload", { method: "POST", body: form });
-          return res.json();
-        })
-      );
-      setFilesByDocId((prev) => {
-        const updated = { ...prev };
-        for (const data of results) {
-          if (data.ok && data.file) {
-            const docId = data.file.readiness_document_id;
-            updated[docId] = [data.file, ...(updated[docId] ?? [])];
-          }
-        }
-        return updated;
-      });
-    } finally {
-      setUploadingItem(null);
-    }
-  }
-
-  async function viewFile(fileId: string) {
-    setOpeningFile(fileId);
-    try {
-      const res = await fetch("/api/readiness/documents/files/signed-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_id: fileId }),
-      });
-      const data = await res.json();
-      if (data.url) window.open(data.url, "_blank");
-    } finally {
-      setOpeningFile(null);
-    }
-  }
 
   function toggle(id: string) {
     setChecked((prev) => {
@@ -657,61 +572,10 @@ export default function DeploymentChecklistPage() {
                                 href="/dashboard/readiness/documents"
                                 className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 transition"
                               >
-                                Vault: {doc}
+                                Records: {doc}
                               </Link>
                             ))}
                           </div>
-
-                          {item.documents && (() => {
-                            const allFiles = item.documents
-                              .map((c) => docsByCat[c])
-                              .filter(Boolean)
-                              .flatMap((doc) => filesByDocId[doc.id] ?? []);
-                            const seen = new Set<string>();
-                            const uniqueFiles = allFiles.filter((f) => {
-                              if (seen.has(f.file_name)) return false;
-                              seen.add(f.file_name);
-                              return true;
-                            });
-                            const isUploading = uploadingItem === item.id;
-                            return (
-                              <div className="mt-3 space-y-2">
-                                {uniqueFiles.length > 0 && (
-                                  <div className="rounded-xl border border-stone-200 bg-stone-50 divide-y divide-stone-100">
-                                    {uniqueFiles.map((f) => (
-                                      <div key={f.id} className="flex items-center gap-2 px-3 py-2">
-                                        <span className="text-stone-400 text-xs select-none">📎</span>
-                                        <span className="text-xs text-stone-600 truncate flex-1 min-w-0">{f.file_name}</span>
-                                        <button
-                                          onClick={() => viewFile(f.id)}
-                                          disabled={openingFile === f.id}
-                                          className="shrink-0 text-xs font-medium text-amber-700 hover:text-amber-800 disabled:opacity-50 transition"
-                                        >
-                                          {openingFile === f.id ? "Opening…" : "View"}
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                <label
-                                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-stone-300 px-3 py-1.5 text-xs text-stone-500 transition hover:border-amber-400 hover:text-amber-700 ${isUploading ? "pointer-events-none opacity-50" : ""}`}
-                                >
-                                  <span>{isUploading ? "Uploading…" : "＋ Attach file"}</span>
-                                  <input
-                                    ref={(el) => { fileInputRefs.current[item.id] = el; }}
-                                    type="file"
-                                    className="sr-only"
-                                    disabled={isUploading}
-                                    onChange={(e) => {
-                                      const f = e.target.files?.[0];
-                                      if (f) uploadFile(item.id, item.documents!, f);
-                                      e.target.value = "";
-                                    }}
-                                  />
-                                </label>
-                              </div>
-                            );
-                          })()}
                         </div>
                       </div>
                     </div>

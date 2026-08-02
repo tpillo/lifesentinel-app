@@ -8,10 +8,9 @@ import Logo from "@/components/Logo";
 
 const navLinks = [
   { href: "/dashboard/readiness/overview", label: "Overview" },
-  { href: "/dashboard/readiness/documents", label: "Documents" },
+  { href: "/dashboard/readiness/documents", label: "Records Locator" },
   { href: "/dashboard/readiness/deployment", label: "Pre-Deployment" },
   { href: "/dashboard/readiness/survivor", label: "Survivor" },
-  { href: "/dashboard/guardian", label: "Share" },
   { href: "/dashboard/benefits", label: "Family Benefits Guide" },
   { href: "/profile-setup", label: "Profile" },
 ];

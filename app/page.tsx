@@ -31,13 +31,8 @@ const steps = [
   },
   {
     number: "2",
-    title: "Organize your vault",
-    body: "Upload critical documents to the encrypted vault, or simply record where each one lives. Designate your Guardian and complete your readiness checklist.",
-  },
-  {
-    number: "3",
     title: "Protect your family",
-    body: "Your Guardian gets instant secure access when they need it. Your family knows exactly what they're entitled to and how to claim it.",
+    body: "Your family knows exactly what they're entitled to and where every key document is kept — no scramble, no guessing.",
   },
 ];
 
@@ -48,16 +43,6 @@ const features = [
     body: "An AI-powered, personalized summary of every federal and state benefit your family is entitled to after your passing — DIC, survivor pension, CHAMPVA, property tax transfers, education benefits, burial benefits, and more.",
   },
   {
-    icon: "◈",
-    title: "Document Vault",
-    body: "Every critical document — DD-214, insurance policies, wills, VA award letters — securely stored and instantly accessible to the people you designate.",
-  },
-  {
-    icon: "◎",
-    title: "Guardian Access",
-    body: "Your designated Guardian gets secure token-based access without needing an account — exactly when they need it most.",
-  },
-  {
     icon: "❋",
     title: "Readiness Dashboard",
     body: "A mission-ready checklist so nothing gets missed and your family is never left guessing.",
@@ -65,10 +50,8 @@ const features = [
 ];
 
 const trustItems = [
-  { icon: "🔒", label: "Encrypted at rest", detail: "AES-256 encryption on all stored files" },
   { icon: "🔐", label: "Encrypted in transit", detail: "HTTPS everywhere, no exceptions" },
-  { icon: "👤", label: "Private by design", detail: "Only you and your Guardian ever see your vault" },
-  { icon: "⏱️", label: "Time-limited secure links", detail: "Guardian access auto-expires" },
+  { icon: "👤", label: "Private by design", detail: "Only you can see your data" },
   { icon: "🚫", label: "Never sold or shared", detail: "Your data is yours, full stop" },
 ];
 
@@ -204,7 +187,7 @@ export default function Home() {
             {[
               "Most families miss benefits they're entitled to simply because they didn't know to ask.",
               "Critical documents — DD-214, insurance policies, VA letters — are scattered or missing.",
-              "Without a Guardian designation, families are left searching at the worst possible moment.",
+              "When documents aren't inventoried, families are left searching at the worst possible moment.",
             ].map((text) => (
               <div
                 key={text}
@@ -264,8 +247,8 @@ export default function Home() {
               Your documents stay where you want them
             </h3>
             <p className="mt-3 text-stone-500 text-sm leading-relaxed">
-              Upload them to Life Sentinel&rsquo;s encrypted vault, keep them in your own cloud drive, or
-              just leave instructions on where to find them. The planning tools work either way.
+              Keep them in your own cloud drive, safe deposit box, or wherever you prefer —
+              just leave instructions on where to find them. Life Sentinel&rsquo;s planning tools work regardless.
             </p>
           </div>
         </div>
@@ -314,8 +297,7 @@ export default function Home() {
             </h2>
             <p className="mt-5 text-stone-400 text-base max-w-2xl mx-auto leading-relaxed">
               Your information is protected with AES-256 encryption — the same standard used by banks
-              and the U.S. military. Only you and your designated Guardian can ever access your vault.
-              We never sell or share your data.
+              and the U.S. military. Only you can access your data. We never sell or share your information.
             </p>
           </div>
 
@@ -341,16 +323,16 @@ export default function Home() {
               The most secure document is the one you never upload.
             </p>
             <p className="mt-3 text-stone-400 text-sm leading-relaxed max-w-2xl">
-              Life Sentinel is designed to be useful even if you never upload a single file. Use our
-              encrypted storage if it fits your needs, or keep your documents in your preferred cloud
-              drive and use Life Sentinel to tell your family where to find them.
+              Life Sentinel doesn&rsquo;t store your documents at all. Keep them in your preferred cloud
+              drive, safe deposit box, or wherever you prefer — Life Sentinel tells your family
+              where to find them.
             </p>
           </div>
 
           <div className="mt-4 rounded-3xl border border-stone-700 bg-stone-800/30 px-8 py-7 text-center">
             <p className="text-stone-300 text-sm leading-relaxed max-w-2xl mx-auto">
               We will never sell your data, share it with advertisers, or use it for any purpose
-              other than providing this service to you and your family. Your vault is yours alone.
+              other than providing this service to you and your family. Your data is yours alone.
             </p>
           </div>
         </div>
@@ -382,24 +364,12 @@ export default function Home() {
             </div>
             <div className="py-8">
               <h3 className="font-serif text-lg font-semibold text-stone-900">
-                What is a Guardian and do I need one?
-              </h3>
-              <p className="mt-3 text-stone-500 text-sm leading-relaxed">
-                A Guardian is a trusted person — a spouse, adult child, or attorney — who gets
-                secure, time-limited access to your vault and readiness information when your family
-                needs it. You don&rsquo;t need to designate one to use Life Sentinel, but it&rsquo;s one of
-                the most valuable things you can set up.
-              </p>
-            </div>
-            <div className="py-8">
-              <h3 className="font-serif text-lg font-semibold text-stone-900">
                 Can I reach 100% readiness without uploading files?
               </h3>
               <p className="mt-3 text-stone-500 text-sm leading-relaxed">
-                Yes. The readiness score counts a document as secured whether you&rsquo;ve uploaded it
-                to the vault or recorded a location note describing where your family can find it.
-                Many users prefer to keep originals in a fireproof safe or with an attorney and
-                simply note that location in Life Sentinel.
+                Yes. The readiness score counts a document as secured once you&rsquo;ve recorded a
+                location note describing where your family can find it. Many users keep originals
+                in a fireproof safe or with an attorney and simply note that location in Life Sentinel.
               </p>
             </div>
           </div>
@@ -414,8 +384,8 @@ export default function Home() {
           </h2>
 
           <p className="mt-6 text-stone-600 text-lg leading-relaxed max-w-xl mx-auto">
-            It takes less than ten minutes to create your vault and add your first documents.
-            The peace of mind lasts a lifetime.
+            It takes less than ten minutes to note where your key documents live so your family
+            can find them. The peace of mind lasts a lifetime.
           </p>
 
           <Link

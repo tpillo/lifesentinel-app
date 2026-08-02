@@ -333,7 +333,7 @@ export default function ReadinessDocumentsPage() {
         <DashboardHeader />
         <main className="mx-auto max-w-7xl px-6 py-8 md:px-8 lg:px-10">
           <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
-            <div className="text-lg font-semibold text-stone-900">Documents</div>
+            <div className="text-lg font-semibold text-stone-900">Records Locator</div>
             <p className="mt-2 text-sm text-red-700">{err}</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/dashboard/readiness/overview" className="inline-flex items-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700">
@@ -367,7 +367,7 @@ export default function ReadinessDocumentsPage() {
               <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl">
                   <h1 className="font-serif text-3xl font-semibold tracking-tight text-stone-900 md:text-4xl">
-                    Family Documents
+                    Records Locator
                   </h1>
                   <p className="mt-3 text-sm leading-7 text-stone-500 md:text-base">
                     {completionTone.text}
