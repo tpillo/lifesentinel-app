@@ -83,10 +83,9 @@ export default function GetStartedCard({ completions, initialDismissed }: Props)
   // All complete — thin success pill
   if (allComplete) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 shadow-sm">
-        <CheckCircle className="h-5 w-5 flex-shrink-0 text-emerald-600" />
-        <span className="text-sm font-medium text-emerald-800">
-          Setup complete — your family is protected.
+      <div className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-5 py-3.5 shadow-sm">
+        <span className="text-sm font-medium text-stone-700">
+          Welcome back.
         </span>
       </div>
     );

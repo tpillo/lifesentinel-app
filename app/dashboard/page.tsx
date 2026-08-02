@@ -104,8 +104,8 @@ const QUICK_ACTIONS = [
     iconClass: "bg-stone-100 text-stone-600",
   },
   {
-    label: "Readiness Overview",
-    description: "See your full protection score at a glance",
+    label: "Overview",
+    description: "Your family's readiness at a glance",
     href: "/dashboard/readiness/overview",
     Icon: BarChart3,
     iconClass: "bg-emerald-50 text-emerald-600",
