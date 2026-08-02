@@ -31,11 +31,6 @@ const steps = [
   },
   {
     number: "2",
-    title: "Organize your vault",
-    body: "Upload critical documents to the encrypted vault, or simply record where each one lives. Designate your Guardian and complete your readiness checklist.",
-  },
-  {
-    number: "3",
     title: "Protect your family",
     body: "Your Guardian gets instant secure access when they need it. Your family knows exactly what they're entitled to and how to claim it.",
   },
@@ -46,11 +41,6 @@ const features = [
     icon: "◆",
     title: "Post-Death Benefits Guide",
     body: "An AI-powered, personalized summary of every federal and state benefit your family is entitled to after your passing — DIC, survivor pension, CHAMPVA, property tax transfers, education benefits, burial benefits, and more.",
-  },
-  {
-    icon: "◈",
-    title: "Document Vault",
-    body: "Every critical document — DD-214, insurance policies, wills, VA award letters — securely stored and instantly accessible to the people you designate.",
   },
   {
     icon: "◎",

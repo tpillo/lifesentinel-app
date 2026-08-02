@@ -1,21 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardHeader from "@/components/DashboardHeader";
-
-type ReadinessDoc = {
-  id: string;
-  category: string;
-  item_key: string;
-};
-
-type ReadinessFile = {
-  id: string;
-  readiness_document_id: string;
-  file_name: string;
-  created_at: string;
-};
 
 type ChecklistItem = {
   id: string;
@@ -373,87 +360,15 @@ function accentClasses(color: AccentColor) {
 export default function DeploymentChecklistPage() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
-  const [docsByCat, setDocsByCat] = useState<Record<string, ReadinessDoc>>({});
-  const [filesByDocId, setFilesByDocId] = useState<Record<string, ReadinessFile[]>>({});
-  const [uploadingItem, setUploadingItem] = useState<string | null>(null);
-  const [openingFile, setOpeningFile] = useState<string | null>(null);
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only localStorage hydration; lazy useState initializer would crash SSR
       if (saved) setChecked(new Set(JSON.parse(saved)));
     } catch {}
     setLoaded(true);
   }, []);
-
-  useEffect(() => {
-    async function loadDocs() {
-      let docsRes = await fetch("/api/readiness/documents");
-      let docsData = await docsRes.json();
-      if ((docsData.documents ?? []).length < 8) {
-        await fetch("/api/readiness/documents/seed", { method: "POST" });
-        docsRes = await fetch("/api/readiness/documents");
-        docsData = await docsRes.json();
-      }
-      const catMap: Record<string, ReadinessDoc> = {};
-      for (const doc of docsData.documents ?? []) catMap[doc.category] = doc;
-      setDocsByCat(catMap);
-
-      const filesRes = await fetch("/api/readiness/documents/files");
-      const filesData = await filesRes.json();
-      const fileMap: Record<string, ReadinessFile[]> = {};
-      for (const f of filesData.files ?? []) {
-        if (!fileMap[f.readiness_document_id]) fileMap[f.readiness_document_id] = [];
-        fileMap[f.readiness_document_id].push(f);
-      }
-      setFilesByDocId(fileMap);
-    }
-    loadDocs();
-  }, []);
-
-  async function uploadFile(itemId: string, categories: string[], file: File) {
-    setUploadingItem(itemId);
-    try {
-      const docs = categories.map((c) => docsByCat[c]).filter(Boolean);
-      const results = await Promise.all(
-        docs.map(async (doc) => {
-          const form = new FormData();
-          form.append("readiness_document_id", doc.id);
-          form.append("file", file);
-          const res = await fetch("/api/readiness/documents/upload", { method: "POST", body: form });
-          return res.json();
-        })
-      );
-      setFilesByDocId((prev) => {
-        const updated = { ...prev };
-        for (const data of results) {
-          if (data.ok && data.file) {
-            const docId = data.file.readiness_document_id;
-            updated[docId] = [data.file, ...(updated[docId] ?? [])];
-          }
-        }
-        return updated;
-      });
-    } finally {
-      setUploadingItem(null);
-    }
-  }
-
-  async function viewFile(fileId: string) {
-    setOpeningFile(fileId);
-    try {
-      const res = await fetch("/api/readiness/documents/files/signed-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_id: fileId }),
-      });
-      const data = await res.json();
-      if (data.url) window.open(data.url, "_blank");
-    } finally {
-      setOpeningFile(null);
-    }
-  }
 
   function toggle(id: string) {
     setChecked((prev) => {
@@ -661,57 +576,6 @@ export default function DeploymentChecklistPage() {
                               </Link>
                             ))}
                           </div>
-
-                          {item.documents && (() => {
-                            const allFiles = item.documents
-                              .map((c) => docsByCat[c])
-                              .filter(Boolean)
-                              .flatMap((doc) => filesByDocId[doc.id] ?? []);
-                            const seen = new Set<string>();
-                            const uniqueFiles = allFiles.filter((f) => {
-                              if (seen.has(f.file_name)) return false;
-                              seen.add(f.file_name);
-                              return true;
-                            });
-                            const isUploading = uploadingItem === item.id;
-                            return (
-                              <div className="mt-3 space-y-2">
-                                {uniqueFiles.length > 0 && (
-                                  <div className="rounded-xl border border-stone-200 bg-stone-50 divide-y divide-stone-100">
-                                    {uniqueFiles.map((f) => (
-                                      <div key={f.id} className="flex items-center gap-2 px-3 py-2">
-                                        <span className="text-stone-400 text-xs select-none">📎</span>
-                                        <span className="text-xs text-stone-600 truncate flex-1 min-w-0">{f.file_name}</span>
-                                        <button
-                                          onClick={() => viewFile(f.id)}
-                                          disabled={openingFile === f.id}
-                                          className="shrink-0 text-xs font-medium text-amber-700 hover:text-amber-800 disabled:opacity-50 transition"
-                                        >
-                                          {openingFile === f.id ? "Opening…" : "View"}
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                <label
-                                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-stone-300 px-3 py-1.5 text-xs text-stone-500 transition hover:border-amber-400 hover:text-amber-700 ${isUploading ? "pointer-events-none opacity-50" : ""}`}
-                                >
-                                  <span>{isUploading ? "Uploading…" : "＋ Attach file"}</span>
-                                  <input
-                                    ref={(el) => { fileInputRefs.current[item.id] = el; }}
-                                    type="file"
-                                    className="sr-only"
-                                    disabled={isUploading}
-                                    onChange={(e) => {
-                                      const f = e.target.files?.[0];
-                                      if (f) uploadFile(item.id, item.documents!, f);
-                                      e.target.value = "";
-                                    }}
-                                  />
-                                </label>
-                              </div>
-                            );
-                          })()}
                         </div>
                       </div>
                     </div>

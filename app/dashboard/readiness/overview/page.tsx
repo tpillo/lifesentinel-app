@@ -365,12 +365,6 @@ export default function ReadinessOverviewPage() {
                   >
                     Manage Documents
                   </Link>
-                  <Link
-                    href="/dashboard/vault"
-                    className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
-                  >
-                    Open Vault
-                  </Link>
                 </div>
               </div>
             </div>

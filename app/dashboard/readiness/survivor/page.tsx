@@ -240,13 +240,6 @@ const PHASES: Phase[] = [
         description:
           "VA benefits, SBP amounts, and Social Security benefits can change. Review annually, especially after any change in your income, health, or dependent status.",
       },
-      {
-        id: "update-vault",
-        title: "Keep the vault current",
-        description:
-          "Update beneficiary designations on any accounts you've opened or changed. Add new legal documents. Ensure your own guardian has access to an updated link.",
-        documents: ["Legal", "Finance"],
-      },
     ],
   },
 ];
@@ -266,6 +259,7 @@ export default function SurvivorWorkflowPage() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only localStorage hydration; lazy useState initializer would crash SSR
       if (saved) setChecked(new Set(JSON.parse(saved)));
     } catch {}
     setLoaded(true);
