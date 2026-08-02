@@ -9,17 +9,17 @@ const audiences = [
   {
     icon: "✦",
     title: "Veterans",
-    body: "Discover what your family is entitled to and make sure they can find everything they need.",
+    body: "Every benefit your service earned — DIC, CHAMPVA, DEA, and more — captured for your family, with every key document locatable.",
   },
   {
     icon: "◈",
     title: "Active, Reserve & Guard",
-    body: "Active, Reserve, or Guard — make sure your family is set and ready for whatever comes next.",
+    body: "Every benefit your service is earning for your family — captured, organized, and ready the day they need it.",
   },
   {
     icon: "⌂",
-    title: "Families & Spouses",
-    body: "Know exactly what to do and where everything is — without the scramble.",
+    title: "Spouses & Dependents",
+    body: "Understand exactly what you're owed — DIC, CHAMPVA, DEA, and more — and know where every document lives.",
   },
 ];
 
@@ -44,8 +44,8 @@ const features = [
   },
   {
     icon: "❋",
-    title: "Readiness Dashboard",
-    body: "A mission-ready checklist so nothing gets missed and your family is never left guessing.",
+    title: "Records Locator",
+    body: "Note where every critical document lives — will, DD-214, insurance, VA letters. Your family finds them in seconds, not weeks.",
   },
 ];
 
@@ -101,16 +101,16 @@ export default function Home() {
 
         <div className="relative mx-auto max-w-6xl px-6 py-24 md:px-8 md:py-36 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-medium text-amber-800 mb-8">
-            Built for those who protect others
+            Built for military families
           </div>
 
           <h1 className="font-serif text-4xl font-semibold tracking-tight text-stone-900 leading-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl mx-auto">
-            Prepared for life. Ready for whatever comes next.
+            Every benefit your service earned. Every document your family needs.
           </h1>
 
           <p className="mt-8 text-stone-600 text-lg leading-relaxed max-w-2xl mx-auto md:text-xl">
-            Whether you&rsquo;re getting ready to deploy or starting your next shift, Life Sentinel helps you organize what matters —
-            so your family knows what they&rsquo;re entitled to and where to find everything, no matter what comes next.
+            Whether you served, are still serving, or your family&rsquo;s benefits derive from someone who did — Life Sentinel
+            tells your family exactly what they&rsquo;re entitled to and where every key document lives.
           </p>
 
           <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -146,7 +146,7 @@ export default function Home() {
               Who it&rsquo;s for
             </p>
             <h2 className="font-serif text-4xl font-semibold text-stone-900 md:text-5xl">
-              Built for the ones who protect others
+              Built for veterans, service members, and their families
             </h2>
           </div>
 
@@ -221,13 +221,13 @@ export default function Home() {
               How it works
             </h2>
             <p className="mt-4 text-stone-500 text-base max-w-xl mx-auto leading-relaxed">
-              Three steps. No technical knowledge required. Start today and finish at your own pace.
+              Two steps. No technical knowledge required. Start today and finish at your own pace.
             </p>
           </div>
 
           <div className="relative">
             <div className="hidden md:block absolute top-12 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
-            <div className="grid gap-8 md:grid-cols-3">
+            <div className="grid gap-8 md:grid-cols-2">
               {steps.map((step) => (
                 <div key={step.number} className="relative text-center">
                   <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-600 text-white font-serif text-2xl font-semibold shadow-lg shadow-amber-200 mb-6">
@@ -362,16 +362,6 @@ export default function Home() {
                 your family can find them.
               </p>
             </div>
-            <div className="py-8">
-              <h3 className="font-serif text-lg font-semibold text-stone-900">
-                Can I reach 100% readiness without uploading files?
-              </h3>
-              <p className="mt-3 text-stone-500 text-sm leading-relaxed">
-                Yes. The readiness score counts a document as secured once you&rsquo;ve recorded a
-                location note describing where your family can find it. Many users keep originals
-                in a fireproof safe or with an attorney and simply note that location in Life Sentinel.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -380,12 +370,12 @@ export default function Home() {
       <section className="bg-gradient-to-br from-amber-50 via-[#faf8f5] to-stone-100 py-28">
         <div className="mx-auto max-w-3xl px-6 md:px-8 text-center">
           <h2 className="font-serif text-4xl font-semibold text-stone-900 md:text-5xl leading-tight">
-            Start protecting your family today.
+            Make sure your family gets what your service earned.
           </h2>
 
           <p className="mt-6 text-stone-600 text-lg leading-relaxed max-w-xl mx-auto">
-            It takes less than ten minutes to note where your key documents live so your family
-            can find them. The peace of mind lasts a lifetime.
+            A few minutes to build your profile — Life Sentinel generates your personalized benefits guide
+            (DIC, CHAMPVA, and more) plus a Records Locator your family can find in a crisis.
           </p>
 
           <Link
@@ -407,9 +397,6 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <span className="font-serif text-sm font-semibold text-stone-900">Life Sentinel</span>
           </div>
-          <p className="font-serif text-sm text-stone-400 italic hidden md:block">
-            &ldquo;Prepared for life. Ready for whatever comes next.&rdquo;
-          </p>
           <div className="flex items-center gap-4 text-xs text-stone-400">
             <Link href="/privacy" className="hover:text-amber-700 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-amber-700 transition">Terms of Service</Link>
