@@ -17,7 +17,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("readiness_documents")
     .select(
-      "id,user_id,category,item_key,item_label,is_present,notes,created_at,updated_at,last_reviewed_at"
+      "id,user_id,category,item_key,item_label,notes,created_at,updated_at,last_reviewed_at"
     )
     .eq("user_id", user.id)
     .order("category", { ascending: true })

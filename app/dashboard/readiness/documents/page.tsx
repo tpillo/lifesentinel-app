@@ -12,7 +12,6 @@ type ReadinessDoc = {
   category: string;
   item_key: string;
   item_label: string;
-  is_present: boolean;
   notes: string | null;
   updated_at: string;
   last_reviewed_at: string | null;

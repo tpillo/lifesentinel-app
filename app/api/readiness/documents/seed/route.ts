@@ -198,7 +198,6 @@ export async function POST() {
     category: i.category,
     item_key: i.item_key,
     item_label: i.item_label,
-    is_present: false,
     notes: null,
     created_at: now,
     updated_at: now,
